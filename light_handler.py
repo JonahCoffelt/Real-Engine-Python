@@ -35,7 +35,7 @@ class Light:
 
 
 class DirectionalLight(Light):
-    def __init__(self, direction=(1.0, -1.0, 1.0), ambient=0.2, diffuse=0.8, specular=0.75, color=(1.0, 1.0, 1.0)):
+    def __init__(self, direction=(1.0, -1.0, 1.0), ambient=0.2, diffuse=0.8, specular=1.0, color=(1.0, 1.0, 1.0)):
         super().__init__(ambient, diffuse, specular, color)
         self.dir = glm.vec3(direction)
 

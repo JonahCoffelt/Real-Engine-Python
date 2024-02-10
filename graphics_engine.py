@@ -8,7 +8,7 @@ class GraphicsEngine:
         self.ctx = app.ctx
         
         self.camera = Camera(self.app)
-        self.scene  = Scene(self.app, self)
+        self.scene  = Scene(self)
 
     def update(self):
         self.ctx.clear(color=(0.08, 0.16, 0.18))

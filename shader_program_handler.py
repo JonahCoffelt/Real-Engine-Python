@@ -1,8 +1,8 @@
 
 
 class ProgramHandler:
-    def __init__(self, app):
-        self.ctx = app.ctx
+    def __init__(self, ctx):
+        self.ctx = ctx
         self.programs = {}
 
         self.programs['default'] = self.get_program('default')

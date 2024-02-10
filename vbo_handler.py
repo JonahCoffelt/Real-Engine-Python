@@ -1,4 +1,5 @@
 import numpy as np
+import pywavefront
 
 
 class VBOHandler:
@@ -6,6 +7,7 @@ class VBOHandler:
         self.ctx = ctx
         self.vbos = {}
         self.vbos['cube'] = CubeVBO(self.ctx)
+        self.vbos['cat'] = ModelVBO(self.ctx, 'objects/cat/20430_Cat_v1_NEW.obj')
 
     def desstroy(self):
         [vbo.vbo.release() for vbo in self.vbos.values()]
@@ -69,4 +71,19 @@ class CubeVBO(BaseVBO):
 
         vertex_data = np.hstack([normals, vertex_data])
         vertex_data = np.hstack([tex_coord_data, vertex_data])
+        return vertex_data
+    
+
+class ModelVBO(BaseVBO):
+    def __init__(self, ctx, path):
+        self.path = path
+        super().__init__(ctx)
+        self.format = '2f 3f 3f'
+        self.attribs = ['in_texcoord_0', 'in_normal', 'in_position']
+
+    def get_vertex_data(self):
+        objs = pywavefront.Wavefront(self.path, cache=True, parse=True)
+        obj = objs.materials.popitem()[1]
+        vertex_data = obj.vertices
+        vertex_data = np.array(vertex_data, dtype='f4')
         return vertex_data

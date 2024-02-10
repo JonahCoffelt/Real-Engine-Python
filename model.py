@@ -3,16 +3,13 @@ from material_handler import *
 
 
 class BaseModel:
-    def __init__(self, object, scene, vao, texture) -> None:
+    def __init__(self, object, scene, vao) -> None:
         self.object = object
         self.scene = scene
         self.vao = self.scene.vao_handler.vaos[vao]
         self.program = self.vao.program
-        self.texture = texture
         self.camera = scene.graphics_engine.camera
         self.material = self.object.material
-
-
         self.m_model = self.get_model_matrix()
 
         self.on_init()
@@ -24,10 +21,8 @@ class BaseModel:
         self.program['m_model'].write(self.m_model)
 
     def update(self):
-        self.material.write(self.program)
+        #self.material.write(self.program)
 
-        self.program['view_pos'].write(self.camera.position)
-        self.program['m_view'].write(self.camera.m_view)
         self.program['m_model'].write(self.m_model)
 
     def render(self):
