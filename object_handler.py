@@ -13,7 +13,7 @@ class ObjectHandler:
         self.on_init()
 
     def on_init(self):
-        n, s = 10, 3
+        n, s = 20, 2
         for x in range(-n, n):
             for z in range(-n, n):
                 self.objects['container'].append(Object(self, self.scene, model.BaseModel, pos=(x*s, -2, z*s)))
