@@ -5,6 +5,7 @@ layout (location = 0) out vec4 fragColor;
 in vec2 uv_0;
 in vec3 normal;
 in vec3 fragPos;
+in vec4 shadowCoord;
 
 
 uniform vec3 view_pos;
@@ -45,6 +46,12 @@ struct PointLight {
 uniform Material material;
 uniform DirectionalLight dir_light;
 uniform PointLight pointLights[numPointLights];
+uniform sampler2DShadow shadowMap;
+
+float getShadow(){
+    float shadow = textureProj(shadowMap, shadowCoord);
+    return shadow;
+}
 
 vec3 CalcDirLight(DirectionalLight light, vec3 normal, vec3 viewDir){
     float gamma = 2.2;
@@ -60,7 +67,9 @@ vec3 CalcDirLight(DirectionalLight light, vec3 normal, vec3 viewDir){
     vec3 diffuse = light.d * diff * light.color * pow(vec3(texture(material.d, uv_0)), vec3(gamma));
     vec3 specular = light.s * spec* light.color * vec3(texture(material.s, uv_0));
 
-    return (ambient + diffuse + specular);
+    float shadow = getShadow();
+
+    return (ambient + (diffuse + specular) * shadow);
 }
 
 
@@ -99,7 +108,7 @@ void main() {
 
     vec3 result = CalcDirLight(dir_light, normal, viewDir);
     for(int i = 0; i < numPointLights; i++)
-        result += CalcPointLight(pointLights[i], normal, fragPos, viewDir);  
+        result += CalcPointLight(pointLights[i], normal, fragPos, viewDir) - CalcPointLight(pointLights[i], normal, fragPos, viewDir);  
 
     fragColor = vec4(result, 1.0);
     fragColor.rgb = pow(fragColor.rgb, vec3(1.0/gamma));

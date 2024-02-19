@@ -38,6 +38,12 @@ class DirectionalLight(Light):
     def __init__(self, direction=(1.0, -1.0, 1.0), ambient=0.2, diffuse=0.8, specular=1.0, color=(1.0, 1.0, 1.0)):
         super().__init__(ambient, diffuse, specular, color)
         self.dir = glm.vec3(direction)
+        self.position = glm.vec3(50, 50, -10)
+        # View matrix
+        self.m_view_light = self.get_view_matrix()
+    
+    def get_view_matrix(self):
+        return glm.lookAt(self.position, self.dir, glm.vec3(0, 1, 0) )
 
 
 class PointLight(Light):

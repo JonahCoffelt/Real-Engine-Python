@@ -6,6 +6,8 @@ class ProgramHandler:
         self.programs = {}
 
         self.programs['default'] = self.get_program('default')
+        self.programs['skybox'] = self.get_program('skybox')
+        self.programs['shadow_map'] = self.get_program('shadow_map')
 
     def get_program(self, name):
         with open(f'shaders/{name}.vert') as file:
