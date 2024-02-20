@@ -8,7 +8,7 @@ class ObjectHandler:
         self.ctx = scene.ctx
         self.objects = {'container' : [], 'metal_box' : [], 'cat' : [], 'skybox' : []}
 
-        light_handler = self.scene.light_handler
+        self.light_handler = self.scene.light_handler
 
         self.material_handler = MaterialHandler(self.scene.texture_handler.textures)
 
@@ -29,10 +29,22 @@ class ObjectHandler:
 
         self.objects['cat'].append(Object(self, self.scene, model.BaseModel, vao='cat', pos=(-5, 1, 10), scale=(1, 1, 1), rot=(-90, 0, 180), material='cat'))
 
+
+    def apply_shadow_shader_uniforms(self):
+        programs = self.scene.vao_handler.program_handler.programs
+        for program in programs:
+            if program == 'default':
+                programs[program]['m_view_light'].write(self.light_handler.dir_light.m_view_light)
+                programs[program]['u_resolution'].write(glm.vec2(self.scene.graphics_engine.app.win_size))
+                self.depth_texture = self.scene.texture_handler.textures['depth_texture']
+                programs[program]['shadowMap'] = 3
+                self.depth_texture.use(location=3)
+
     def render_shadows(self):
+        self.apply_shadow_shader_uniforms()
         # Render Models
         programs = self.scene.vao_handler.program_handler.programs
-        programs['shadow_map']['m_view_light'].write(self.scene.light_handler.dir_light.m_view_light)
+        programs['shadow_map']['m_view_light'].write(self.light_handler.dir_light.m_view_light)
         for obj_type in self.objects:
             if obj_type != 'skybox':
                 for obj in self.objects[obj_type]:
@@ -46,15 +58,14 @@ class ObjectHandler:
                     # Materials
                     self.material_handler.materials[obj_type].write(programs[program])
                     # Lighting
-                    self.scene.light_handler.write(programs[program])
-                    programs['shadow_map']['m_view_light'].write(self.scene.light_handler.dir_light.m_view_light)
+                    self.light_handler.write(programs[program])
                     # Basic Rendering
                     programs[program]['view_pos'].write(self.scene.graphics_engine.camera.position)
                     programs[program]['m_view'].write(self.scene.graphics_engine.camera.m_view)
                     # Depth Texture
-                    depth_texture = self.scene.texture_handler.textures['depth_texture']
-                    programs[program]['shadowMap'] = 1
-                    depth_texture.use(location=1)
+                    #self.depth_texture = self.scene.texture_handler.textures['depth_texture']
+                    #programs[program]['shadowMap'] = 3
+                    #self.depth_texture.use(location=3)
                 if obj_type in ('skybox') and program == 'skybox':
                     programs[program]['m_view'].write(glm.mat4(glm.mat3(self.scene.graphics_engine.camera.m_view)))
                     programs[program]['u_texture_skybox'] = 0

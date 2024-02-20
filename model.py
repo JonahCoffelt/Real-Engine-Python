@@ -18,9 +18,10 @@ class BaseModel:
         # Shadow
         self.shadow_vao = self.scene.vao_handler.vaos[f'shadow_{self.vao_name}']
         self.shadow_program = self.shadow_vao.program
+        self.shadow_program['m_proj'].write(self.camera.m_proj)
+        self.shadow_program['m_model'].write(self.m_model)
         # MVP
         self.program['m_proj'].write(self.camera.m_proj)
-        self.shadow_program['m_proj'].write(self.camera.m_proj)
         self.program['m_view'].write(self.camera.m_view)
         self.program['m_model'].write(self.m_model)
 

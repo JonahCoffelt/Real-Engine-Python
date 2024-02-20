@@ -25,7 +25,7 @@ class VAOHandler:
 
     def get_vao(self, program, vbo):
         print(vbo.format, *vbo.attribs)
-        vao =  self.ctx.vertex_array(program, [(vbo.vbo, vbo.format, *vbo.attribs)], skip_errors=True)
+        vao = self.ctx.vertex_array(program, [(vbo.vbo, vbo.format, *vbo.attribs)], skip_errors=True)
         return vao
     
     def desstroy(self):

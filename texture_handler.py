@@ -53,6 +53,8 @@ class TextureHandler:
 
     def get_depth_texture(self):
         depth_texture = self.ctx.depth_texture(self.app.win_size)
+        depth_texture.repeat_x = False
+        depth_texture.repeat_y = False
         return depth_texture
 
     def destroy(self):

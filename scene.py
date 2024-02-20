@@ -17,6 +17,10 @@ class Scene:
         self.depth_texture = self.texture_handler.textures['depth_texture']
         self.depth_fbo = self.ctx.framebuffer(depth_attachment=self.depth_texture)
 
+        self.shadow_timer = 5
+        self.shadow_frame_skips = 5
+
+
     def render_main(self):
         self.ctx.screen.use()
         self.objects.render()
@@ -28,6 +32,10 @@ class Scene:
 
     def render(self):
         # Pass 1
-        self.render_shadow()
+        if self.shadow_timer // self.shadow_frame_skips:
+            self.render_shadow()
+            self.shadow_timer = 0
+        else:
+            self.shadow_timer += 1
         # Pass 2
         self.render_main()
