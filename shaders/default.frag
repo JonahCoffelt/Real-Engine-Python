@@ -5,6 +5,7 @@ layout (location = 0) out vec4 fragColor;
 in vec2 uv_0;
 in vec3 normal;
 in vec3 fragPos;
+in vec4 shadowCoord;
 
 
 uniform vec3 view_pos;
@@ -45,6 +46,33 @@ struct PointLight {
 uniform Material material;
 uniform DirectionalLight dir_light;
 uniform PointLight pointLights[numPointLights];
+uniform sampler2DShadow shadowMap;
+uniform vec2 u_resolution;
+
+
+float lookup(float ox, float oy){
+    vec2 pixelOffset = 1 / u_resolution;
+    return textureProj(shadowMap, shadowCoord + vec4(ox * pixelOffset.x * shadowCoord.w,
+                                                     oy * pixelOffset.y * shadowCoord.w, 0.0, 0.0));
+}
+
+float getShadow(){
+    float shadow = textureProj(shadowMap, shadowCoord);
+    return shadow;
+}
+
+float getSoftShadowX16() {
+    float shadow;
+    float swidth = 1.0;
+    float endp = swidth * 1.5;
+    for (float y = -endp; y <= endp; y += swidth){
+        for (float x = -endp; x <= endp; x += swidth){
+            shadow += lookup(x, y);
+        }
+    }
+    return shadow / 16.0;
+}
+
 
 vec3 CalcDirLight(DirectionalLight light, vec3 normal, vec3 viewDir){
     float gamma = 2.2;
@@ -60,7 +88,9 @@ vec3 CalcDirLight(DirectionalLight light, vec3 normal, vec3 viewDir){
     vec3 diffuse = light.d * diff * light.color * pow(vec3(texture(material.d, uv_0)), vec3(gamma));
     vec3 specular = light.s * spec* light.color * vec3(texture(material.s, uv_0));
 
-    return (ambient + diffuse + specular);
+    float shadow = getSoftShadowX16();
+
+    return (ambient + (diffuse + specular) * shadow);
 }
 
 

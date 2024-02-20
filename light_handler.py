@@ -4,7 +4,7 @@ import glm
 class LightHandler:
     def __init__(self):
         self.dir_light = DirectionalLight(color=(1.0, 1.0, 1.0))
-        self.point_lights = [PointLight(pos=(1, 1, 1), color=(3.0, 0.0, 0.0), diffuse=3), PointLight(pos=(-10, 1, 1), color=(0.0, 3.0, 0.0)), PointLight(pos=(10, 1, 15), color=(0.0, 0.0, 3.0))]
+        self.point_lights = [PointLight(pos=(1, 1, 1), color=(3.0, 0.0, 0.0)), PointLight(pos=(-10, 1, 1), color=(0.0, 3.0, 0.0)), PointLight(pos=(10, 1, 15), color=(0.0, 0.0, 3.0))]
 
     def write(self, program, dir=True, point=True):
         if dir:
@@ -35,13 +35,19 @@ class Light:
 
 
 class DirectionalLight(Light):
-    def __init__(self, direction=(1.0, -1.0, 1.0), ambient=0.2, diffuse=0.8, specular=1.0, color=(1.0, 1.0, 1.0)):
+    def __init__(self, direction=(1.0, -1.0, 1.0), ambient=0.4, diffuse=1.0, specular=1.0, color=(1.0, 1.0, 1.0)):
         super().__init__(ambient, diffuse, specular, color)
         self.dir = glm.vec3(direction)
+        self.position = glm.vec3(50, 50, -10)
+        # View matrix
+        self.m_view_light = self.get_view_matrix()
+    
+    def get_view_matrix(self):
+        return glm.lookAt(self.position, self.dir, glm.vec3(0, 1, 0) )
 
 
 class PointLight(Light):
-    def __init__(self, pos=(1.0, 3.0, 1.0), constant=1.0, linear=0.09, quadratic=0.032, ambient=1.0, diffuse=1.0, specular=1.0, color=(1.0, 1.0, 1.0)):
+    def __init__(self, pos=(1.0, 3.0, 1.0), constant=1.0, linear=0.09, quadratic=0.032, ambient=0.0, diffuse=0.0, specular=1.0, color=(1.0, 1.0, 1.0)):
         super().__init__(ambient, diffuse, specular, color)
         self.pos = glm.vec3(pos)
         self.constant = glm.float32(constant)

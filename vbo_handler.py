@@ -8,6 +8,7 @@ class VBOHandler:
         self.vbos = {}
         self.vbos['cube'] = CubeVBO(self.ctx)
         self.vbos['cat'] = ModelVBO(self.ctx, 'objects/cat/20430_Cat_v1_NEW.obj')
+        self.vbos['skybox'] = SkyBoxVBO(self.ctx)
 
     def desstroy(self):
         [vbo.vbo.release() for vbo in self.vbos.values()]
@@ -73,6 +74,30 @@ class CubeVBO(BaseVBO):
         vertex_data = np.hstack([tex_coord_data, vertex_data])
         return vertex_data
     
+
+class SkyBoxVBO(BaseVBO):
+    def __init__(self, ctx):
+        super().__init__(ctx)
+        self.format = '3f'
+        self.attribs = ['in_position']
+
+    def get_vertex_data(self):
+        verticies = [(-1, -1, 1), ( 1, -1,  1), (1,  1,  1), (-1, 1,  1),
+                     (-1,  1,-1), (-1, -1, -1), (1, -1, -1), ( 1, 1, -1)]
+        
+        indicies = [(0, 2, 3), (0, 1, 2),
+                    (1, 7, 2), (1, 6, 7),
+                    (6, 5, 4), (4, 7, 6),
+                    (3, 4, 5), (3, 5, 0),
+                    (3, 7, 4), (3, 2, 7),
+                    (0, 6, 1), (0, 5, 6)]
+
+        vertex_data = self.get_data(verticies, indicies)
+        vertex_data = np.flip(vertex_data, 1).copy(order='C')
+        
+        return vertex_data
+
+
 
 class ModelVBO(BaseVBO):
     def __init__(self, ctx, path):
