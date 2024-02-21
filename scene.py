@@ -31,6 +31,8 @@ class Scene:
         self.objects.render_shadows()
 
     def render(self):
+        # Update
+        self.objects.update()
         # Pass 1
         if self.shadow_timer // self.shadow_frame_skips:
             self.render_shadow()

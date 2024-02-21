@@ -1,5 +1,6 @@
 import numpy as np
 import pywavefront
+from mesh import *
 
 
 class VBOHandler:
@@ -7,6 +8,10 @@ class VBOHandler:
         self.ctx = ctx
         self.vbos = {}
         self.vbos['cube'] = CubeVBO(self.ctx)
+        self.vbos['triangle'] = TriangleVBO(self.ctx)
+        self.vbos['quad'] = QuadVBO(self.ctx)
+        self.vbos['plane'] = PlaneVBO(self.ctx)
+        self.vbos['terrain'] = TerrainVBO(self.ctx)
         self.vbos['cat'] = ModelVBO(self.ctx, 'objects/cat/20430_Cat_v1_NEW.obj')
         self.vbos['skybox'] = SkyBoxVBO(self.ctx)
 

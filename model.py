@@ -26,6 +26,7 @@ class BaseModel:
         self.program['m_model'].write(self.m_model)
 
     def update(self):
+        self.m_model = self.get_model_matrix()
         self.program['m_model'].write(self.m_model)
 
     def render(self):

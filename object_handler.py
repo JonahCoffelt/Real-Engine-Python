@@ -1,4 +1,5 @@
 import model
+import mesh
 import glm
 from material_handler import MaterialHandler
 
@@ -6,7 +7,7 @@ class ObjectHandler:
     def __init__(self, scene):
         self.scene = scene
         self.ctx = scene.ctx
-        self.objects = {'container' : [], 'metal_box' : [], 'cat' : [], 'skybox' : []}
+        self.objects = {'container' : [], 'metal_box' : [], 'cat' : [], 'meshes' : [], 'skybox' : []}
 
         self.light_handler = self.scene.light_handler
 
@@ -18,22 +19,26 @@ class ObjectHandler:
 
         self.objects['skybox'].append(Object(self, self.scene, model.SkyBoxModel, vao='skybox'))
 
-        n, s = 10, 2
-        for x in range(-n, n):
-            for z in range(-n, n):
-                self.objects['container'].append(Object(self, self.scene, model.BaseModel, pos=(x*s, -2, z*s)))
-
         self.objects['metal_box'].append(Object(self, self.scene, model.BaseModel, pos=(1, 1, 1), scale=(.25, .25, .25), material='metal_box'))
         self.objects['metal_box'].append(Object(self, self.scene, model.BaseModel, pos=(-10, 1, 1), scale=(.25, .25, .25), material='metal_box'))
         self.objects['metal_box'].append(Object(self, self.scene, model.BaseModel, pos=(10, 1, 15), scale=(.25, .25, .25), material='metal_box'))
 
-        self.objects['cat'].append(Object(self, self.scene, model.BaseModel, vao='cat', pos=(-5, 1, 10), scale=(1, 1, 1), rot=(-90, 0, 180), material='cat'))
+        #self.objects['cat'].append(Object(self, self.scene, model.BaseModel, vao='cat', pos=(-5, 10, 10), scale=(1, 1, 1), rot=(-90, 0, 180), material='cat'))
 
+        self.objects['meshes'].append(Object(self, self.scene, model.BaseModel, vao='terrain', pos=(0, 0, 0), scale=(1, 1, 1), rot=(0, 0, 0), material='metal_box'))
+        #self.objects['meshes'].append(Object(self, self.scene, model.BaseModel, vao='plane', pos=(75, -2.1, 75), scale=(1, 1, 1), rot=(0, 0, 0), material='metal_box'))
+
+
+
+    def update(self): ...
+        #self.objects['meshes'][0].rot.x += .001
+        #self.objects['meshes'][0].rot.y += .001
+        #self.objects['meshes'][0].rot.z += .001
 
     def apply_shadow_shader_uniforms(self):
         programs = self.scene.vao_handler.program_handler.programs
         for program in programs:
-            if program == 'default':
+            if program == 'default' or program == 'mesh':
                 programs[program]['m_view_light'].write(self.light_handler.dir_light.m_view_light)
                 programs[program]['u_resolution'].write(glm.vec2(self.scene.graphics_engine.app.win_size))
                 self.depth_texture = self.scene.texture_handler.textures['depth_texture']
@@ -62,14 +67,17 @@ class ObjectHandler:
                     # Basic Rendering
                     programs[program]['view_pos'].write(self.scene.graphics_engine.camera.position)
                     programs[program]['m_view'].write(self.scene.graphics_engine.camera.m_view)
-                    # Depth Texture
-                    #self.depth_texture = self.scene.texture_handler.textures['depth_texture']
-                    #programs[program]['shadowMap'] = 3
-                    #self.depth_texture.use(location=3)
                 if obj_type in ('skybox') and program == 'skybox':
                     programs[program]['m_view'].write(glm.mat4(glm.mat3(self.scene.graphics_engine.camera.m_view)))
                     programs[program]['u_texture_skybox'] = 0
                     self.scene.texture_handler.textures['skybox'].use(location=0)
+                if obj_type in ('meshes') and program == 'mesh':
+                    # Lighting
+                    self.light_handler.write(programs[program])
+                    programs[program]['view_pos'].write(self.scene.graphics_engine.camera.position)
+                    # Basic Rendering
+                    programs[program]['m_view'].write(self.scene.graphics_engine.camera.m_view)
+
             for obj in self.objects[obj_type]:
                 obj.render()
 
@@ -92,6 +100,7 @@ class Object:
         self.model = model(self, self.scene, vao)
 
     def render(self):
+        self.model.rot = glm.vec3([glm.radians(a) for a in self.rot])
         self.model.render()
     
     def render_shadow(self):

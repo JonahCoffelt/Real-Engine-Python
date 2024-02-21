@@ -12,6 +12,10 @@ class VAOHandler:
         self.vaos = {}
 
         self.add_vao('cube', 'default')
+        self.add_vao('triangle', 'mesh')
+        self.add_vao('quad', 'mesh')
+        self.add_vao('plane', 'mesh')
+        self.add_vao('terrain', 'mesh')
         self.add_vao('cat', 'default')
         
         self.vaos['skybox'] = self.get_vao(program=self.program_handler.programs['skybox'], 
@@ -24,10 +28,9 @@ class VAOHandler:
                                          vbo=self.vbo_handler.vbos[vbo])
 
     def get_vao(self, program, vbo):
-        print(vbo.format, *vbo.attribs)
         vao = self.ctx.vertex_array(program, [(vbo.vbo, vbo.format, *vbo.attribs)], skip_errors=True)
         return vao
     
-    def desstroy(self):
+    def destroy(self):
         self.vbo_handler.destroy()
         self.program_handler.destroy()
