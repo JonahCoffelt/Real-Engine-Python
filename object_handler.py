@@ -23,17 +23,12 @@ class ObjectHandler:
         self.objects['metal_box'].append(Object(self, self.scene, model.BaseModel, pos=(-10, 1, 1), scale=(.25, .25, .25), material='metal_box'))
         self.objects['metal_box'].append(Object(self, self.scene, model.BaseModel, pos=(10, 1, 15), scale=(.25, .25, .25), material='metal_box'))
 
-        #self.objects['cat'].append(Object(self, self.scene, model.BaseModel, vao='cat', pos=(-5, 10, 10), scale=(1, 1, 1), rot=(-90, 0, 180), material='cat'))
-
         self.objects['meshes'].append(Object(self, self.scene, model.BaseModel, vao='terrain', pos=(0, 0, 0), scale=(1, 1, 1), rot=(0, 0, 0), material='metal_box'))
-        #self.objects['meshes'].append(Object(self, self.scene, model.BaseModel, vao='plane', pos=(75, -2.1, 75), scale=(1, 1, 1), rot=(0, 0, 0), material='metal_box'))
 
 
 
     def update(self): ...
-        #self.objects['meshes'][0].rot.x += .001
-        #self.objects['meshes'][0].rot.y += .001
-        #self.objects['meshes'][0].rot.z += .001
+        
 
     def apply_shadow_shader_uniforms(self):
         programs = self.scene.vao_handler.program_handler.programs
@@ -71,6 +66,7 @@ class ObjectHandler:
                     programs[program]['m_view'].write(glm.mat4(glm.mat3(self.scene.graphics_engine.camera.m_view)))
                     programs[program]['u_texture_skybox'] = 0
                     self.scene.texture_handler.textures['skybox'].use(location=0)
+                    programs[program]['time'].write(glm.float32(self.scene.time))
                 if obj_type in ('meshes') and program == 'mesh':
                     # Lighting
                     self.light_handler.write(programs[program])

@@ -2,6 +2,7 @@
 
 layout (location = 0) out vec4 fragColor;
 
+
 in vec3 normal;
 in vec3 fragPos;
 in vec4 shadowCoord;
@@ -137,7 +138,6 @@ void main() {
         ground_color = vec3(0.2, 0.3, 0.9);
     }
 
-
     float gamma = 2.2;
 
     vec3 viewDir = vec3(normalize(view_pos - fragPos));
@@ -148,6 +148,7 @@ void main() {
 
     fragColor = vec4(result, 1.0);
     fragColor.rgb = pow(fragColor.rgb, vec3(1.0/gamma));
+
 }
 
 

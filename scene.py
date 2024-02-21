@@ -2,6 +2,8 @@ from object_handler import ObjectHandler
 from vao_handler import VAOHandler
 from texture_handler import TextureHandler
 from light_handler import LightHandler
+import numpy as np
+import glm
 
 class Scene:
     def __init__(self, graphics_engine) -> None:
@@ -20,6 +22,7 @@ class Scene:
         self.shadow_timer = 5
         self.shadow_frame_skips = 5
 
+        self.time = 0
 
     def render_main(self):
         self.ctx.screen.use()
@@ -32,6 +35,8 @@ class Scene:
 
     def render(self):
         # Update
+        self.time += self.graphics_engine.app.delta_time
+        self.light_handler.dir_light.color = glm.vec3(np.array([1, 1, 1]) - np.array([.8, .9, .6]) * (min(.75, max(.25, (np.sin(self.time / 500)*.5 + .5))) * 2 - .5))
         self.objects.update()
         # Pass 1
         if self.shadow_timer // self.shadow_frame_skips:

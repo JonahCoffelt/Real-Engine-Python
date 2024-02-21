@@ -113,7 +113,7 @@ class PlaneVBO(BaseMeshVBO):
 
 class TerrainVBO(BaseMeshVBO):
     def __init__(self, ctx):
-        self.world_size = 75
+        self.world_size = 100
         self.oninit()
         super().__init__(ctx)
         self.format = '3f 3f'
@@ -147,21 +147,31 @@ class TerrainVBO(BaseMeshVBO):
 
         verticies = np.array([*v0, *v1, *v2, *v3], dtype='f4')
 
-        indicies = [(3, 0, 1),
-                    (2, 3, 1)]
+        indicies = np.array([(3, 0, 1),
+                    (2, 3, 1)])
 
         vertex_data = self.get_data(verticies, indicies)
 
         normal_data = get_normals(verticies, indicies)
 
         vertex_data = np.hstack([normal_data, vertex_data])
-        return vertex_data
+
+        return vertex_data, verticies, indicies
 
     def get_vertex_data(self):
-        vertex_data = np.array(self.get_quad(0, 0), dtype='f4')
+        vert_data, verts, inds = self.get_quad(0, 0)
+        vertex_data = vert_data
+        self.verticies = verts
+        self.indicies = inds
         n = self.world_size - 1
         for x in range(1, n):
             for z in range(1, n):
-                vertex_data = np.vstack([vertex_data, self.get_quad(x, z)])
+                vert_data, verts, inds = self.get_quad(x, z)
+                vertex_data = np.vstack([vertex_data, vert_data])
+                self.verticies = np.vstack([self.verticies, verts])
+                self.indicies = np.vstack([self.indicies, inds])
+
+        print('Verts: \n', self.verticies)
+        print('Indicies: \n', self.indicies)
 
         return vertex_data

@@ -1,8 +1,8 @@
 import glm
 
-
 class LightHandler:
     def __init__(self):
+        #self.dir_light = DirectionalLight(color=(.3, .1, .4))
         self.dir_light = DirectionalLight()
         self.point_lights = [PointLight(pos=(1, 1, 1), color=(1.0, 0.0, 0.0)), PointLight(pos=(-10, 1, 1), color=(0.0, 1.0, 0.0)), PointLight(pos=(10, 1, 15), color=(0.0, 0.0, 1.0))]
 
@@ -47,7 +47,7 @@ class DirectionalLight(Light):
 
 
 class PointLight(Light):
-    def __init__(self, pos=(1.0, 3.0, 1.0), constant=1.0, linear=0.09, quadratic=0.032, ambient=0.0, diffuse=3.0, specular=1.0, color=(1.0, 1.0, 1.0)):
+    def __init__(self, pos=(1.0, 3.0, 1.0), constant=1.0, linear=0.09, quadratic=0.032, ambient=0.0, diffuse=1.0, specular=1.0, color=(1.0, 1.0, 1.0)):
         super().__init__(ambient, diffuse, specular, color)
         self.pos = glm.vec3(pos)
         self.constant = glm.float32(constant)
