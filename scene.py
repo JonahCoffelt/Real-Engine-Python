@@ -49,7 +49,7 @@ class Scene:
         self.objects.render('shadow_map', 'shadow', ('container', 'metal_box', 'meshes', 'cat'))
 
     def render_filters(self):
-        sharpen_buffer = self.buffer_handler.buffers['sharpen']
+        sharpen_buffer = self.buffer_handler.buffers['edge_detect']
         sharpen_buffer.use()
 
         sharpen_buffer.vao.program['texture'] = 2
@@ -68,7 +68,7 @@ class Scene:
         frame_vao.program['depthTexture'] = 2
         self.buffer_handler.buffers['depth'].texture.use(location=2)
         frame_vao.program['outlineTexture'] = 4
-        self.buffer_handler.buffers['sharpen'].texture.use(location=4)
+        self.buffer_handler.buffers['edge_detect'].texture.use(location=4)
 
         frame_vao.render()
 

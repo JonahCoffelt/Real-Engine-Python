@@ -3,7 +3,7 @@ BUFFERS = {
     'frame' : 'buffer_frame',
     'normal' : 'buffer_normal',
     'depth' : 'buffer_depth',
-    'sharpen' : 'sharpen'
+    'edge_detect' : 'edge_detect'
 }
 
 
