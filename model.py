@@ -16,29 +16,29 @@ class BaseModel:
 
     def on_init(self):
         # Shadow
-        self.shadow_vao = self.scene.vao_handler.vaos[f'shadow_{self.vao_name}']
-        self.shadow_program = self.shadow_vao.program
-        self.shadow_program['m_proj'].write(self.camera.m_proj)
-        self.shadow_program['m_model'].write(self.m_model)
+        shadow_vao = self.scene.vao_handler.vaos[f'shadow_{self.vao_name}']
+        shadow_program = shadow_vao.program
+        shadow_program['m_proj'].write(self.camera.m_proj)
+        # Normal
+        normal_vao = self.scene.vao_handler.vaos[f'normal_{self.vao_name}']
+        normal_program = normal_vao.program
+        normal_program['m_proj'].write(self.camera.m_proj)
+        # Depth
+        depth_vao = self.scene.vao_handler.vaos[f'depth_{self.vao_name}']
+        depth_program = depth_vao.program
+        depth_program['m_proj'].write(self.camera.m_proj)
         # MVP
         self.program['m_proj'].write(self.camera.m_proj)
-        self.program['m_view'].write(self.camera.m_view)
-        self.program['m_model'].write(self.m_model)
+
+        self.vaos = { 'default' : self.vao, 'normal' : normal_vao, 'depth' : depth_vao, 'shadow' : shadow_vao }
+        self.programs = { 'default' : self.program, 'normal' : normal_program, 'depth' : depth_program, 'shadow' : shadow_program }
 
     def update(self):
         self.m_model = self.get_model_matrix()
-        self.program['m_model'].write(self.m_model)
 
-    def render(self):
-        self.update()
-        self.vao.render()
-
-    def update_shadow(self):
-        self.shadow_program['m_model'].write(self.m_model)
-
-    def render_shadow(self):
-        self.update_shadow()
-        self.shadow_vao.render()
+    def render(self, vao):
+        self.programs[vao]['m_model'].write(self.m_model)
+        self.vaos[vao].render()
 
     def get_model_matrix(self):
         m_model = glm.mat4()
@@ -56,10 +56,11 @@ class BaseModel:
 class SkyBoxModel(BaseModel):
     def __init__(self, object, scene, vao):
         super().__init__(object, scene, vao)
-
+        
     def on_init(self):
         # MVP
         self.program['m_proj'].write(self.camera.m_proj)
-        self.program['m_view'].write(self.camera.m_view)
-    
-    def update(self): ...
+
+    def render(self, vao):
+        self.update()
+        self.vao.render()

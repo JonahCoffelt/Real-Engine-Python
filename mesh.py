@@ -54,7 +54,7 @@ class TriangleVBO(BaseMeshVBO):
 
         vertex_data = np.hstack([normal_data, vertex_data])
         return vertex_data
-    
+
 
 class QuadVBO(BaseMeshVBO):
     def __init__(self, ctx):
@@ -113,7 +113,7 @@ class PlaneVBO(BaseMeshVBO):
 
 class TerrainVBO(BaseMeshVBO):
     def __init__(self, ctx):
-        self.world_size = 100
+        self.world_size = 80
         self.oninit()
         super().__init__(ctx)
         self.format = '3f 3f'
@@ -131,7 +131,9 @@ class TerrainVBO(BaseMeshVBO):
 
                 height = min(height, 1)
 
-                h1 = (np.power(glm.simplex(glm.vec2(x + seed, z + seed) * .03), 3) + .25) * 10
+                height += (.75 - dist) ** 3 * 35
+
+                h1 = (np.power(glm.simplex(glm.vec2(x + seed, z + seed) * .03), 3) + .25) * 8
                 h2 = max(np.power(glm.simplex(glm.vec2(x + seed, z + seed) * .03), 8) * 9 - 1.5, 0)
                 h3 = np.power(glm.simplex(glm.vec2(x + seed, z + seed) * .1), 3) * 2
 
@@ -140,10 +142,11 @@ class TerrainVBO(BaseMeshVBO):
 
     
     def get_quad(self, x, z):
-        v0 = (x, self.height_map[(x) + (z + 1) * self.world_size],  z + 1),  # Bottom Left
-        v1 = (x + 1, self.height_map[(x + 1) + (z + 1) * self.world_size],  z + 1),  # Bottom Right
-        v2 = (x + 1, self.height_map[(x + 1) + (z) * self.world_size], z),  # Top Right
-        v3 = (x, self.height_map[(x) + (z) * self.world_size], z),  # Top Left
+        scale = 1
+        v0 = ((x) * scale, self.height_map[(x) + (z + 1) * self.world_size] * scale,  (z + 1) * scale),  # Bottom Left
+        v1 = ((x + 1) * scale , self.height_map[(x + 1) + (z + 1) * self.world_size] * scale,  (z + 1) * scale),  # Bottom Right
+        v2 = ((x + 1) * scale, self.height_map[(x + 1) + (z) * self.world_size] * scale, (z) * scale),  # Top Right
+        v3 = ((x) * scale, self.height_map[(x) + (z) * self.world_size] * scale, (z) * scale),  # Top Left
 
         verticies = np.array([*v0, *v1, *v2, *v3], dtype='f4')
 
@@ -170,8 +173,5 @@ class TerrainVBO(BaseMeshVBO):
                 vertex_data = np.vstack([vertex_data, vert_data])
                 self.verticies = np.vstack([self.verticies, verts])
                 self.indicies = np.vstack([self.indicies, inds])
-
-        print('Verts: \n', self.verticies)
-        print('Indicies: \n', self.indicies)
 
         return vertex_data

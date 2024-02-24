@@ -8,12 +8,11 @@ class VBOHandler:
         self.ctx = ctx
         self.vbos = {}
         self.vbos['cube'] = CubeVBO(self.ctx)
-        self.vbos['triangle'] = TriangleVBO(self.ctx)
         self.vbos['quad'] = QuadVBO(self.ctx)
-        self.vbos['plane'] = PlaneVBO(self.ctx)
         self.vbos['terrain'] = TerrainVBO(self.ctx)
         self.vbos['cat'] = ModelVBO(self.ctx, 'objects/cat/20430_Cat_v1_NEW.obj')
         self.vbos['skybox'] = SkyBoxVBO(self.ctx)
+        self.vbos['frame'] = FrameVBO(self.ctx)
 
     def desstroy(self):
         [vbo.vbo.release() for vbo in self.vbos.values()]
@@ -79,6 +78,38 @@ class CubeVBO(BaseVBO):
         vertex_data = np.hstack([tex_coord_data, vertex_data])
         return vertex_data
     
+
+class FrameVBO(BaseVBO):
+    def __init__(self, ctx):
+        super().__init__(ctx)
+        self.format = '2f 3f'
+        self.attribs = ['in_texcoord_0', 'in_position']
+
+    def get_vertex_data(self):
+        verticies = np.array([[-1, -1, 0],  # Bottom Left
+                     [ 1, -1, 0],  # Bottom Right
+                     [ 1, 1, 0],   # Top Right
+                     [-1, 1, 0],  # Top Left
+                     ])
+        indicies = [(3, 0, 1),
+                    (2, 3, 1)]
+
+        vertex_data = self.get_data(verticies, indicies)
+
+        tex_coord_verticies =   [
+                                (0, 0), # Bottom Left
+                                (1, 0), # Bottom Right
+                                (1, 1), # Top Right
+                                (0, 1)  # Top Left
+                                ]
+        tex_coord_indicies = [(3, 0, 1),
+                              (2, 3, 1)]
+        tex_coord_data = self.get_data(tex_coord_verticies, tex_coord_indicies)
+
+
+        vertex_data = np.hstack([tex_coord_data, vertex_data])
+        return vertex_data
+
 
 class SkyBoxVBO(BaseVBO):
     def __init__(self, ctx):

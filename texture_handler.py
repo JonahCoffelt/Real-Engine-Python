@@ -1,19 +1,23 @@
 import pygame as pg
 import moderngl as mgl
 
+TEXTURES = {
+    'container' : 'textures/container.png',
+    'container_specular' : 'textures/container_specular.png',
+    'metal_box' : 'textures/img_1.png',
+    'cat' : 'objects/cat/20430_cat_diff_v1.jpg',
+}
+
 class TextureHandler:
     def __init__(self, app):
         self.app = app
         self.ctx = app.ctx
 
         self.textures = {}
-        self.textures[0] = self.get_texture('textures/img.png')
-        self.textures['container'] = self.get_texture('textures/container.png')
-        self.textures['container_specular'] = self.get_texture('textures/container_specular.png')
-        self.textures['metal_box'] = self.get_texture('textures/img_1.png')
-        self.textures['cat'] = self.get_texture('objects/cat/20430_cat_diff_v1.jpg')
+        for texture in TEXTURES: self.textures[texture] = self.get_texture(TEXTURES[texture])
+
         self.textures['skybox'] = self.get_cubemap_texture('textures/skybox (2).png')
-        self.textures['depth_texture'] = self.get_depth_texture()
+        self.textures['shadow_map_texture'] = self.get_depth_texture()
 
     def get_texture(self, path):
         texture = pg.image.load(path).convert()
@@ -56,6 +60,10 @@ class TextureHandler:
         depth_texture.repeat_x = False
         depth_texture.repeat_y = False
         return depth_texture
+    
+    def get_empty_texture(self):
+        empty_texture = self.ctx.texture(self.app.win_size, components=4)
+        return empty_texture
 
     def destroy(self):
         [tex.release() for tex in self.textures.values()]

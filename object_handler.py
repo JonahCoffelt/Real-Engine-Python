@@ -1,92 +1,93 @@
 import model
 import mesh
 import glm
+import numpy as np
 from material_handler import MaterialHandler
+
 
 class ObjectHandler:
     def __init__(self, scene):
         self.scene = scene
         self.ctx = scene.ctx
-        self.objects = {'container' : [], 'metal_box' : [], 'cat' : [], 'meshes' : [], 'skybox' : []}
+
+        self.objects = []
+        self.attrib_values, self.SHADER_ATTRIBS, self.currrent_shader_uniforms = scene.vao_handler.program_handler.attrib_values, scene.vao_handler.program_handler.SHADER_ATTRIBS, scene.vao_handler.program_handler.currrent_shader_uniforms
 
         self.light_handler = self.scene.light_handler
-
         self.material_handler = MaterialHandler(self.scene.texture_handler.textures)
 
         self.on_init()
 
     def on_init(self):
 
-        self.objects['skybox'].append(Object(self, self.scene, model.SkyBoxModel, vao='skybox'))
+        self.objects.append(Object(self, self.scene, model.SkyBoxModel, program_name='skybox', vao='skybox', obj_type='skybox'))
 
-        self.objects['metal_box'].append(Object(self, self.scene, model.BaseModel, pos=(1, 1, 1), scale=(.25, .25, .25), material='metal_box'))
-        self.objects['metal_box'].append(Object(self, self.scene, model.BaseModel, pos=(-10, 1, 1), scale=(.25, .25, .25), material='metal_box'))
-        self.objects['metal_box'].append(Object(self, self.scene, model.BaseModel, pos=(10, 1, 15), scale=(.25, .25, .25), material='metal_box'))
+        self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='container', obj_type='container', pos=(-1, 10, 1), scale=(.25, .25, .25)))
 
-        self.objects['meshes'].append(Object(self, self.scene, model.BaseModel, vao='terrain', pos=(0, 0, 0), scale=(1, 1, 1), rot=(0, 0, 0), material='metal_box'))
+        self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(35, 10, 25), scale=(.25, .25, .25)))
+        self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(20, 10, 35), scale=(.25, .25, .25)))
+        self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(45, 10, 55), scale=(.25, .25, .25)))
 
+        self.objects.append(Object(self, self.scene, model.BaseModel, program_name='mesh', vao='terrain', material='metal_box', obj_type='meshes', pos=(0, 0, 0), scale=(1, 1, 1), rot=(0, 0, 0)))
 
+    def update(self):...
 
-    def update(self): ...
-        
+    def write_shader_uniforms(self, program_name, obj_type=None):
+        """
+        This is the primary method for sending unforms to the shader programs.
+        See shader_program_handler.ProgramHandler.set_attribs for more info.
+        """
+        program = self.scene.vao_handler.program_handler.programs[program_name]
+        shader_attribs = self.SHADER_ATTRIBS
+        attribs = shader_attribs[program_name]
+        attrib_values = self.attrib_values
+        for attrib in attribs[0]:
+            if attrib_values[attrib] == self.currrent_shader_uniforms[program_name][attrib]: continue
+            program[attrib].write(attrib_values[attrib])
+            self.currrent_shader_uniforms[program_name][attrib] = attrib_values[attrib]
+        for i, texture in enumerate(attribs[1]):
+            if attrib_values[texture] == self.currrent_shader_uniforms[program_name][texture]: continue
+            program[texture] = i + 3
+            attrib_values[texture].use(location = i + 3)
+            self.currrent_shader_uniforms[program_name][texture] = attrib_values[texture]
+        if attribs[2]['light'] and obj_type != 'skybox' and self.currrent_shader_uniforms[program_name]['light']:
+            self.light_handler.write(program)
+            self.currrent_shader_uniforms[program_name]['light'] = False
+        if attribs[2]['material'] and obj_type != 'skybox' and obj_type != self.currrent_shader_uniforms[program_name]['material']:
+            self.material_handler.materials[obj_type].write(program)
+            self.currrent_shader_uniforms[program_name]['material'] = obj_type
 
     def apply_shadow_shader_uniforms(self):
         programs = self.scene.vao_handler.program_handler.programs
         for program in programs:
-            if program == 'default' or program == 'mesh':
-                programs[program]['m_view_light'].write(self.light_handler.dir_light.m_view_light)
-                programs[program]['u_resolution'].write(glm.vec2(self.scene.graphics_engine.app.win_size))
-                self.depth_texture = self.scene.texture_handler.textures['depth_texture']
-                programs[program]['shadowMap'] = 3
-                self.depth_texture.use(location=3)
+            if not (program == 'default' or program == 'mesh'): continue
+            self.write_shader_uniforms('mesh')
 
-    def render_shadows(self):
-        self.apply_shadow_shader_uniforms()
-        # Render Models
-        programs = self.scene.vao_handler.program_handler.programs
-        programs['shadow_map']['m_view_light'].write(self.light_handler.dir_light.m_view_light)
-        for obj_type in self.objects:
-            if obj_type != 'skybox':
-                for obj in self.objects[obj_type]:
-                    obj.render_shadow()
-    
-    def render(self):
-        programs = self.scene.vao_handler.program_handler.programs
-        for obj_type in self.objects:
+    def render(self, program_name, render_type='default', object_types=('container', 'metal_box', 'cat', 'skybox', 'meshes'), light=False):
+        if program_name: self.write_shader_uniforms(program_name)
+        if light:
+            programs = self.scene.vao_handler.program_handler.programs
             for program in programs:
-                if obj_type in ('container', 'metal_box', 'cat') and program == 'default':
-                    # Materials
-                    self.material_handler.materials[obj_type].write(programs[program])
-                    # Lighting
-                    self.light_handler.write(programs[program])
-                    # Basic Rendering
-                    programs[program]['view_pos'].write(self.scene.graphics_engine.camera.position)
-                    programs[program]['m_view'].write(self.scene.graphics_engine.camera.m_view)
-                if obj_type in ('skybox') and program == 'skybox':
-                    programs[program]['m_view'].write(glm.mat4(glm.mat3(self.scene.graphics_engine.camera.m_view)))
-                    programs[program]['u_texture_skybox'] = 0
-                    self.scene.texture_handler.textures['skybox'].use(location=0)
-                    programs[program]['time'].write(glm.float32(self.scene.time))
-                if obj_type in ('meshes') and program == 'mesh':
-                    # Lighting
-                    self.light_handler.write(programs[program])
-                    programs[program]['view_pos'].write(self.scene.graphics_engine.camera.position)
-                    # Basic Rendering
-                    programs[program]['m_view'].write(self.scene.graphics_engine.camera.m_view)
-
-            for obj in self.objects[obj_type]:
-                obj.render()
+                if program in ('mesh', 'default'): self.light_handler.write(programs[program])
+        for obj in self.objects:
+            if obj.obj_type not in object_types: continue
+            if not program_name:
+                program = obj.program_name
+                self.write_shader_uniforms(program, obj.obj_type)
+            obj.render(render_type)
 
 
 class Object:
-    def __init__(self, obj_handler, scene, model, vao='cube', material='container', pos=(0, 0, 0), rot=(0, 0, 0), scale=(1, 1, 1)):
+    def __init__(self, obj_handler, scene, model, program_name='default', vao='cube', material='container', obj_type='none', pos=(0, 0, 0), rot=(0, 0, 0), scale=(1, 1, 1)):
         self.ctx = obj_handler.ctx
         self.camera = scene.graphics_engine.camera
         self.scene = scene
 
+        self.program_name = program_name
+        self.obj_type = obj_type
         self.material = obj_handler.material_handler.materials[material] 
 
-        self.pos = pos
+        self.pos = glm.vec3(pos)
         self.rot = glm.vec3([glm.radians(a) for a in rot])
         self.scale = scale
 
@@ -95,9 +96,9 @@ class Object:
     def on_init(self, model, vao='cube'):
         self.model = model(self, self.scene, vao)
 
-    def render(self):
+    def update(self):
         self.model.rot = glm.vec3([glm.radians(a) for a in self.rot])
-        self.model.render()
-    
-    def render_shadow(self):
-        self.model.render_shadow()
+        self.model.update()
+
+    def render(self, vao):
+        self.model.render(vao)

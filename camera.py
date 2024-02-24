@@ -1,46 +1,35 @@
 import glm
 import pygame as pg
 
-
-FOV = 50  # deg
+# Camera view constants
+FOV = 50  # Degrees
 NEAR = 0.1
 FAR = 250
+
+# Camera movement constants
 SPEED = 0.01
 SENSITIVITY = 0.15
 
 
 class Camera:
-    def __init__(self, app, position=(0, 0, 4), yaw=-90, pitch=0):
+    def __init__(self, app, position=(0, 3, 35), yaw=-90, pitch=0):
         self.app = app
         self.aspect_ratio = app.win_size[0] / app.win_size[1]
+        # Position
         self.position = glm.vec3(position)
+        # k vector for vertical movement
         self.UP = glm.vec3(0, 1, 0)
+        # Movement vectors
         self.up = glm.vec3(0, 1, 0)
         self.right = glm.vec3(1, 0, 0)
         self.forward = glm.vec3(0, 0, -1)
+        # Look directions in degrees
         self.yaw = yaw
         self.pitch = pitch
-        # view matrix
+        # View matrix
         self.m_view = self.get_view_matrix()
-        # projection matrix
+        # Projection matrix
         self.m_proj = self.get_projection_matrix()
-
-    def rotate(self):
-        rel_x, rel_y = pg.mouse.get_rel()
-        self.yaw += rel_x * SENSITIVITY
-        self.pitch -= rel_y * SENSITIVITY
-        self.pitch = max(-89, min(89, self.pitch))
-
-    def update_camera_vectors(self):
-        yaw, pitch = glm.radians(self.yaw), glm.radians(self.pitch)
-
-        self.forward.x = glm.cos(yaw) * glm.cos(pitch)
-        self.forward.y = glm.sin(pitch)
-        self.forward.z = glm.sin(yaw) * glm.cos(pitch)
-
-        self.forward = glm.normalize(self.forward)
-        self.right = glm.normalize(glm.cross(self.forward, glm.vec3(0, 1, 0)))
-        self.up = glm.normalize(glm.cross(self.right, self.forward))
 
     def update(self):
         self.move()
@@ -48,7 +37,36 @@ class Camera:
         self.update_camera_vectors()
         self.m_view = self.get_view_matrix()
 
+    def get_m_view(self):
+        return self.m_view
+
+    def rotate(self):
+        """
+        Rotates the camera based on the amount of mouse movement.
+        """
+        rel_x, rel_y = pg.mouse.get_rel()
+        self.yaw += rel_x * SENSITIVITY
+        self.pitch -= rel_y * SENSITIVITY
+        self.pitch = max(-89, min(89, self.pitch))
+
+    def update_camera_vectors(self):
+        """
+        Computes the forward vector based on the pitch and yaw. Computes horizontal and vertical vectors with cross product.
+        """
+        yaw, pitch = glm.radians(self.yaw), glm.radians(self.pitch)
+
+        self.forward.x = glm.cos(yaw) * glm.cos(pitch)
+        self.forward.y = glm.sin(pitch)
+        self.forward.z = glm.sin(yaw) * glm.cos(pitch)
+
+        self.forward = glm.normalize(self.forward)
+        self.right = glm.normalize(glm.cross(self.forward, self.UP))
+        self.up = glm.normalize(glm.cross(self.right, self.forward))
+
     def move(self):
+        """
+        Checks for button presses and updates vectors accordingly. 
+        """
         velocity = SPEED * self.app.delta_time
         keys = pg.key.get_pressed()
         if keys[pg.K_w]:
