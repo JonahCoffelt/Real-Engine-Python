@@ -174,4 +174,5 @@ class TerrainVBO(BaseMeshVBO):
                 self.verticies = np.vstack([self.verticies, verts])
                 self.indicies = np.vstack([self.indicies, inds])
 
+
         return vertex_data

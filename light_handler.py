@@ -45,7 +45,7 @@ class DirectionalLight(Light):
 
 
 class PointLight(Light):
-    def __init__(self, pos=(1.0, 3.0, 1.0), constant=1.0, linear=0.09, quadratic=0.032, ambient=0.0, diffuse=2.0, specular=1.0, color=(1.0, 1.0, 1.0)):
+    def __init__(self, pos=(1.0, 3.0, 1.0), constant=1.0, linear=0.09, quadratic=0.032, ambient=0.0, diffuse=0.0, specular=1.0, color=(1.0, 1.0, 1.0)):
         super().__init__(ambient, diffuse, specular, color)
         self.pos = glm.vec3(pos)
         self.constant = glm.float32(constant)

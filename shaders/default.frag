@@ -135,13 +135,3 @@ void main() {
     fragColor = vec4(result, 1.0);
     fragColor.rgb = pow(fragColor.rgb, vec3(1.0/gamma));
 }
-
-
-
-
-
-
-
-
-
-

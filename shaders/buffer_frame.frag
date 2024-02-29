@@ -41,7 +41,7 @@ void main()
     vec3 sampleTex[9];
     for(int i = 0; i < 9; i++)
     {
-        sampleTex[i] = vec3(texture(outlineTexture, vec2(TexCoords.x + sin(gl_FragCoord.y / 12)/1200, TexCoords.y+ sin(gl_FragCoord.x / 12)/1200) + offsets[i]));
+        sampleTex[i] = vec3(texture(outlineTexture, vec2(TexCoords.x + sin(gl_FragCoord.y / 12)/1500, TexCoords.y+ sin(gl_FragCoord.x / 12)/1500) + offsets[i]));
     }
     vec3 col = vec3(0.0);
     for(int i = 0; i < 9; i++)

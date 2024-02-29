@@ -98,5 +98,7 @@ class ProgramHandler:
         self.currrent_shader_uniforms = {}
         for program in self.programs: 
             self.currrent_shader_uniforms[program] = {attrib : None for attrib in self.attrib_values}
+            self.currrent_shader_uniforms[program]['m_view'] = scene.cam.m_view
+            self.currrent_shader_uniforms[program]['view_pos'] = scene.cam.position
             self.currrent_shader_uniforms[program]['light'] = True
             self.currrent_shader_uniforms[program]['material'] = None

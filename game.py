@@ -42,6 +42,11 @@ class Game:
             if event.type == pg.MOUSEBUTTONDOWN:  # Lock mouse
                 pg.event.set_grab(True)
                 pg.mouse.set_visible(False)
+            if event.type == pg.MOUSEWHEEL:
+                for chunk in self.graphics_engine.scene.chunks:
+                    chunk.surf_lvl += event.y / 25
+                    chunk.generate_mesh()
+            
 
     def start(self):
         self.run = True

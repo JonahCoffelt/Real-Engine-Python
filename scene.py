@@ -3,6 +3,7 @@ from vao_handler import VAOHandler
 from texture_handler import TextureHandler
 from light_handler import LightHandler
 from buffer_handler import BufferHandler
+from marching_cubes_chunk import Chunk
 import numpy as np
 import glm
 
@@ -22,6 +23,11 @@ class Scene:
         self.vao_handler.program_handler.set_attribs(self)
         self.objects = ObjectHandler(self)
         
+        self.chunks = []
+        for x in range(4):
+            for z in range(4):
+                self.chunks.append(Chunk(self.ctx, self.vao_handler.program_handler.programs, self, (x, 0, z)))
+
         # Shadow map buffer
         self.shadow_texture = self.texture_handler.textures['shadow_map_texture']
         self.shadow_fbo = self.ctx.framebuffer(depth_attachment=self.shadow_texture)
@@ -30,7 +36,7 @@ class Scene:
         self.shadow_frame_skips = 5
 
     def update(self):
-        self.time += self.graphics_engine.app.delta_time
+        #self.time += self.graphics_engine.app.delta_time
         self.light_handler.dir_light.color = glm.vec3(np.array([1, 1, 1]) - np.array([.8, .9, .6]) * (min(.75, max(.25, (np.sin(self.time / 500)*.5 + .5))) * 2 - .5))
         
         self.vao_handler.program_handler.update_attribs(self)  # Updates the values sent to uniforms
@@ -39,14 +45,18 @@ class Scene:
     def render_buffers(self):
         self.buffer_handler.buffers['frame'].use()   # Frame Buffer
         self.objects.render(False, light=True)
+        self.objects.render(False, light=True, objs=self.chunks)
         self.buffer_handler.buffers['normal'].use()  # Normal Buffer
         self.objects.render('buffer_normal', 'normal', ('container', 'metal_box', 'meshes'))
+        self.objects.render('buffer_normal', 'normal', objs=self.chunks)
         self.buffer_handler.buffers['depth'].use()   # Depth Buffer
         self.objects.render('buffer_depth', 'depth', ('container', 'metal_box', 'meshes'))
+        self.objects.render('buffer_depth', 'depth', objs=self.chunks)
         self.shadow_fbo.clear() # Shadow Buffer
         self.shadow_fbo.use()
         self.objects.apply_shadow_shader_uniforms()
         self.objects.render('shadow_map', 'shadow', ('container', 'metal_box', 'meshes', 'cat'))
+        self.objects.render('shadow_map', 'shadow', objs=self.chunks)
 
     def render_filters(self):
         sharpen_buffer = self.buffer_handler.buffers['edge_detect']

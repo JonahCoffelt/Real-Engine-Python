@@ -65,7 +65,6 @@ float getSoftShadowX16() {
             shadow += lookup(x, y);
         }
     }
-    //return 1;
     return shadow / (16.0);
 }
 
@@ -73,26 +72,28 @@ float getSoftShadowX16() {
 vec3 CalcDirLight(DirectionalLight light, vec3 normal, vec3 viewDir){
     float gamma = 2.2;
 
+
     vec3 lightDir = normalize(-light.direction);
 
     float diff = max(dot(normal, lightDir), 0.0);
+    float diff_cel = diff;
 
     vec3 reflectDir = reflect(-lightDir, normal);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 16);
 
     if (diff > 0.5){
-        diff = 1.0;
+        diff_cel = 1.0;
     }
     else if (diff > 0.0){
-        diff = 0.33;
+        diff_cel = 0.33;
     }
     else {
-        diff = 0.0;
+        diff_cel = 0.0;
     }
 
     vec3 ambient = light.a * light.color * ground_color;
-    vec3 diffuse = light.d * diff * light.color * ground_color;
-    vec3 specular = light.s * (spec / 4) * light.color * ground_color * .5;
+    vec3 diffuse = (light.d * diff_cel * light.color * ground_color) * .5 + (light.d * diff * light.color * ground_color) * .5;
+    vec3 specular = light.s * spec * light.color * ground_color * .5;
 
     float shadow = getSoftShadowX16();
 
@@ -161,6 +162,8 @@ void main() {
         ground_color = vec3(0.2, 0.3, 0.9);
     }
 
+    //vec3 normal = abs(normal);
+
     float gamma = 2.2;
 
     vec3 viewDir = vec3(normalize(view_pos - fragPos));
@@ -172,13 +175,3 @@ void main() {
     fragColor = vec4(result, 1.0);
     fragColor.rgb = pow(fragColor.rgb, vec3(1.0/gamma));
 }
-
-
-
-
-
-
-
-
-
-
