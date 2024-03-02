@@ -4,10 +4,10 @@ out vec4 fragColor;
 in vec2 TexCoords;
 
 
-uniform sampler2D outlineTexture;
 uniform sampler2D screenTexture;
-uniform sampler2D normalTexture;
-uniform sampler2D depthTexture;
+//uniform sampler2D normalTexture;
+//uniform sampler2D depthTexture;
+uniform sampler2D outlineTexture;
 
 
 const float offset = 1.0 / 300.0;  
@@ -16,8 +16,8 @@ const float offset = 1.0 / 300.0;
 void main()
 { 
     vec4 screen = texture(screenTexture, TexCoords);
-    vec4 normal = texture(normalTexture, TexCoords);
-    vec4 depth = texture(depthTexture, TexCoords);
+    //vec4 normal = texture(normalTexture, TexCoords);
+    //vec4 depth = texture(depthTexture, TexCoords);
     vec4 outline_text = texture(outlineTexture, vec2(TexCoords.x + sin(gl_FragCoord.y + 10)/100, TexCoords.y));
 
     vec2 offsets[9] = vec2[](
@@ -53,5 +53,6 @@ void main()
         outline.rgb = vec3(0.0);
     }
 
+    //fragColor = normal + depth;
     fragColor = screen - outline;
 }

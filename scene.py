@@ -118,7 +118,7 @@ class Scene:
         sharpen_buffer = self.buffer_handler.buffers['edge_detect']
         sharpen_buffer.use()
 
-        sharpen_buffer.vao.program['texture'] = 2
+        sharpen_buffer.vao.program['u_texture'] = 2
         self.buffer_handler.buffers['depth'].texture.use(location=2)
 
         sharpen_buffer.vao.render()
@@ -129,10 +129,10 @@ class Scene:
         frame_vao = self.buffer_handler.buffers['frame'].vao
         frame_vao.program['screenTexture'] = 0
         self.buffer_handler.buffers['frame'].texture.use(location=0)
-        frame_vao.program['normalTexture'] = 1
-        self.buffer_handler.buffers['normal'].texture.use(location=1)
-        frame_vao.program['depthTexture'] = 2
-        self.buffer_handler.buffers['depth'].texture.use(location=2)
+        #frame_vao.program['normalTexture'] = 1
+        #self.buffer_handler.buffers['normal'].texture.use(location=1)
+        #frame_vao.program['depthTexture'] = 2
+        #self.buffer_handler.buffers['depth'].texture.use(location=2)
         frame_vao.program['outlineTexture'] = 4
         self.buffer_handler.buffers['edge_detect'].texture.use(location=4)
 

@@ -146,8 +146,9 @@ void main() {
 
     float height = fragPos.y;
     if (height > 0.1) {
-        height += (sin(fragPos.x * 3)/2 + cos(fragPos.z * 4)/2 + sin((fragPos.x * .75)) + cos((fragPos.z))) / 11 + pow(sin(fragPos.x * 3)/2 + cos(fragPos.z * 4)/2, 7) / 7;
+        height += ((sin(fragPos.x * 7) + cos(fragPos.z * 5))/5) + (cos(fragPos.x * .75) + sin(fragPos.z * .2) + sin(fragPos.y * 2))/10;
     }
+
 
     if (height > 8){
         ground_color = vec3(0.5, 0.5, 0.5);
