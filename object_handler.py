@@ -22,13 +22,16 @@ class ObjectHandler:
 
         self.objects.append(Object(self, self.scene, model.SkyBoxModel, program_name='skybox', vao='skybox', obj_type='skybox'))
 
-        self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(-1, 10, 1), scale=(.5, .5, .5)))
+        #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(-1, 10, 1), scale=(.5, .5, .5)))
 
-        #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(35, 10, 25), scale=(.25, .25, .25)))
-        #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(20, 10, 35), scale=(.25, .25, .25)))
-        #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(45, 10, 55), scale=(.25, .25, .25)))
+        #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(-10, 10, -10), scale=(.5, .5, .5)))
+        #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(-10, 10, -20), scale=(.5, .5, .5)))
+        #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(-20, 10, -10), scale=(.5, .5, .5)))
+        #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(-20, 10, -20), scale=(.5, .5, .5)))
 
-        self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='container', obj_type='container', pos=(1, -1, 1), scale=(1, 1, 1)))
+        #for x in range(-25, -5, 2):
+        #    for z in range(-25, -5, 2):
+        #        self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='container', obj_type='container', pos=(x, 6, z), scale=(1, 1, 1)))
 
 
         #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='mesh', vao='terrain', material='metal_box', obj_type='meshes', pos=(0, 0, 0), scale=(1, 1, 1), rot=(0, 0, 0)))
@@ -44,19 +47,23 @@ class ObjectHandler:
         shader_attribs = self.SHADER_ATTRIBS
         attribs = shader_attribs[program_name]
         attrib_values = self.attrib_values
+        
         for attrib in attribs[0]:
             if attrib == 'view_pos': program[attrib].write(attrib_values[attrib])
             if attrib_values[attrib] == self.currrent_shader_uniforms[program_name][attrib]: continue
             program[attrib].write(attrib_values[attrib])
             self.currrent_shader_uniforms[program_name][attrib] = attrib_values[attrib]
+
         for i, texture in enumerate(attribs[1]):
             if attrib_values[texture] == self.currrent_shader_uniforms[program_name][texture]: continue
             program[texture] = i + 3
             attrib_values[texture].use(location = i + 3)
             self.currrent_shader_uniforms[program_name][texture] = attrib_values[texture]
+
         if attribs[2]['light'] and obj_type != 'skybox' and self.currrent_shader_uniforms[program_name]['light']:
             self.light_handler.write(program)
             self.currrent_shader_uniforms[program_name]['light'] = False
+
         if attribs[2]['material'] and obj_type != 'skybox' and obj_type != self.currrent_shader_uniforms[program_name]['material']:
             self.material_handler.materials[obj_type].write(program)
             self.currrent_shader_uniforms[program_name]['material'] = obj_type

@@ -37,7 +37,7 @@ struct PointLight {
     float s;
 };
 
-#define numPointLights 3
+#define numPointLights 4
 
 uniform DirectionalLight dir_light;
 uniform PointLight pointLights[numPointLights];
@@ -158,7 +158,7 @@ void main() {
     if (height < 2){
         ground_color = vec3(0.5, 0.3, 0.2);
     }
-    if (height < 0.1){
+    if (height < 1){
         ground_color = vec3(0.2, 0.3, 0.9);
     }
 

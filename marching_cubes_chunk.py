@@ -5,51 +5,37 @@ from marching_cubes_mesh import ChunkMeshVBO
 from numba import njit
 from model import BaseModel
 
-CHUNK_SIZE = 20
+
+CHUNK_SIZE = 10
 SEED = random.randrange(1000)
-
-
-def generate_chunk(feild, chunk_x, chunk_y, chunk_z) -> np.array:
-    for local_z in range(CHUNK_SIZE + 1):
-        for local_y in range(CHUNK_SIZE + 1):
-            for local_x in range(CHUNK_SIZE + 1):
-                global_x, global_y, global_z = local_x + chunk_x * CHUNK_SIZE, local_y + chunk_y * CHUNK_SIZE, local_z + chunk_z * CHUNK_SIZE
-                feild[local_x][local_y][local_z] = glm.simplex(glm.vec3(global_x + SEED, global_y + SEED, global_z + SEED) * .05) - (global_y - 10) / 10
-    return feild
-
-
-def generate_sphere(feild, chunk_x, chunk_y, chunk_z) -> np.array:
-    center = CHUNK_SIZE / 2
-    for local_z in range(CHUNK_SIZE + 1):
-        for local_y in range(CHUNK_SIZE + 1):
-            for local_x in range(CHUNK_SIZE + 1):
-                global_x, global_y, global_z = local_x + chunk_x * CHUNK_SIZE, local_y + chunk_y * CHUNK_SIZE, local_z + chunk_z * CHUNK_SIZE
-                distance = np.sqrt((local_x - center) ** 2 + (local_y - center) ** 2 + (local_z - center) ** 2) - center * .85
-                distance += glm.simplex(glm.vec3(global_x + SEED, global_y + SEED, global_z + SEED) * .1) * 2
-                distance += glm.simplex(glm.vec3(global_x + SEED, global_y + SEED, global_z + SEED) * .05) ** 2 * 2
-                distance = min(1.0, distance)
-                distance = max(-1.0, distance)
-                feild[local_x][local_y][local_z] = -distance
-    return feild
 
 
 def generate_island(feild, chunk_x, chunk_y, chunk_z) -> np.array:
     center = CHUNK_SIZE / 2
+    world_size = CHUNK_SIZE * 6
     for local_z in range(CHUNK_SIZE + 1):
         for local_x in range(CHUNK_SIZE + 1):
             global_x, global_z = local_x + chunk_x * CHUNK_SIZE, local_z + chunk_z * CHUNK_SIZE
             
-            h1 = glm.simplex(glm.vec2(global_x + SEED, global_z + SEED) * .05) * 4
-            h2 = glm.simplex(glm.vec2(global_x + SEED, global_z + SEED) * .01) ** 8 * 10
-            h3 = glm.simplex(glm.vec2(global_x + SEED, global_z + SEED) * .2) * .5
-            h4 = glm.simplex(glm.vec2(global_x + SEED, global_z + 100 + SEED) * .005) ** 10 * 12
+            dist = np.sqrt((world_size / 2 - global_x) ** 2 + (world_size / 2 - global_z) ** 2)
+            dist /= (world_size / 2)
+            height = (min(1 / (dist ** 2), 5) - 3) * 5
+
+            height = min(height, 1)
+
+            height += (.75 - dist) ** 3 * 35
+
+            h1 = (np.power(glm.simplex(glm.vec2(global_x + SEED, global_z + SEED) * .03), 3) + .25) * 8
+            h2 = max(np.power(glm.simplex(glm.vec2(global_x + SEED, global_z + SEED) * .03), 8) * 9 - 1.5, 0)
+            h3 = np.power(glm.simplex(glm.vec2(global_x + SEED, global_z + SEED) * .1), 3) * 2
+
+            height = max(height + h1 + h2 + h3, 0)
 
             for local_y in range(CHUNK_SIZE + 1):
                 global_y = local_y + chunk_y * CHUNK_SIZE
                 
-                height = -global_y + h1 + h2 + h3 + h4 + 4
-                feild[local_x][local_y][local_z] = height
-                
+                feild[local_x][local_y][local_z] = max(min(height - global_y, 1.0), -1.0)
+
     return feild
 
 

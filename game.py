@@ -6,7 +6,7 @@ from graphics_engine import GraphicsEngine
 
 class Game:
     def __init__(self, win_size=(1600, 900)):
-        # Pygame initialization
+        # Pygame initialization ``
         pg.init()
         # Window size (resizable)
         self.win_size = win_size
@@ -27,6 +27,7 @@ class Game:
         self.ctx = mgl.create_context()
         # Basic Gl setup
         self.ctx.enable(flags=mgl.DEPTH_TEST | mgl.CULL_FACE)
+        #self.ctx.enable(flags=mgl.DEPTH_TEST)
         # Engine
         self.graphics_engine = GraphicsEngine(self)
 
@@ -39,20 +40,28 @@ class Game:
                 if event.key == pg.K_ESCAPE:  # Unlock mouse
                     pg.event.set_grab(False)
                     pg.mouse.set_visible(True)
+                
             if event.type == pg.MOUSEBUTTONDOWN:  # Lock mouse
                 pg.event.set_grab(True)
                 pg.mouse.set_visible(False)
-            if event.type == pg.MOUSEWHEEL:
-                for chunk in self.graphics_engine.scene.chunks:
-                    chunk.surf_lvl += event.y / 25
-                    chunk.generate_mesh()
+
+        if pg.mouse.get_pressed()[0] and self.mine_timer > self.mine_duration:
+            self.mine_timer = 0
+            self.graphics_engine.scene.modify_terrain(0.2)
+
+        if pg.mouse.get_pressed()[2] and self.mine_timer > self.mine_duration:
+            self.mine_timer = 0
+            self.graphics_engine.scene.modify_terrain(-.05)
             
 
     def start(self):
         self.run = True
+        self.mine_timer = 0
+        self.mine_duration = .03
         while self.run:
             pg.display.set_caption(str(round(self.clock.get_fps())))
             self.delta_time = self.clock.tick()
+            self.mine_timer += self.delta_time / 1000
             self.check_events()  # Checks for window events
             self.graphics_engine.update()  # Render and update calls
 

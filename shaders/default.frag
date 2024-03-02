@@ -41,7 +41,7 @@ struct PointLight {
     float s;
 };
 
-#define numPointLights 3
+#define numPointLights 4
 
 uniform Material material;
 uniform DirectionalLight dir_light;

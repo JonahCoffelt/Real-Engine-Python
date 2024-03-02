@@ -41,6 +41,10 @@ def vertex_interp(p1, p2, v1, v2, isolevel):
     return point
 
 @ njit
+def vertex_interp2(p1, p2, v1, v2, isolevel):
+    return (p2 + p1) / 2
+
+@ njit
 def get_cube(feild, edge_table, tri_table, surf_lvl, x, y, z):
     pos = np.array([x, y, z], dtype='f4')
     vert_list = np.zeros(shape=(12, 3), dtype='f4')
@@ -66,7 +70,7 @@ def get_cube(feild, edge_table, tri_table, surf_lvl, x, y, z):
 
     cube_state = 0
     for i, val in enumerate(vals):
-        if val > surf_lvl:
+        if val >= surf_lvl:
             cube_state += np.power(2, i)
             
 
