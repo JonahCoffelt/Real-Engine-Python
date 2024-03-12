@@ -56,6 +56,20 @@ float getShadow(){
     return shadow;
 }
 
+float getShadowFixed(){
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+    for(int x = -1; x <= 1; ++x)
+    {
+        for(int y = -1; y <= 1; ++y)
+        {
+            shadow += textureProj(shadowMap, shadowCoord);        
+        }    
+    }
+    shadow /= 9.0;
+    return shadow;
+}
+
 float getSoftShadowX16() {
     float shadow;
     float swidth = 1.0;
@@ -95,9 +109,9 @@ vec3 CalcDirLight(DirectionalLight light, vec3 normal, vec3 viewDir){
     vec3 diffuse = (light.d * diff_cel * light.color * ground_color) * .5 + (light.d * diff * light.color * ground_color) * .5;
     vec3 specular = light.s * spec * light.color * ground_color * .5;
 
-    float shadow = getSoftShadowX16();
+    float shadow = getShadowFixed();
 
-    return (ambient + (diffuse + specular) * (shadow/2 + .5));
+    return (ambient + (diffuse + specular) * (shadow/2 + .5)) + u_resolution.x/100000000;
 }
 
 
