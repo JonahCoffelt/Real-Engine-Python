@@ -51,7 +51,8 @@ float getShadow(){
 }
 
 float getSoftShadowX16() {
-    float shadow;
+    float shadow = 0.0;
+
     vec2 pixelOffset = 1 / u_resolution;
     float swidth = 1.0;
     float endp = swidth * 1.5;

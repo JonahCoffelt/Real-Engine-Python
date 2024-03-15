@@ -62,15 +62,17 @@ float getShadow(){
 }
 
 float getSoftShadowX16() {
-    float shadow;
+    float shadow = 0.0;
+
+    vec2 pixelOffset = 1 / u_resolution;
     float swidth = 1.0;
     float endp = swidth * 1.5;
     for (float y = -endp; y <= endp; y += swidth){
         for (float x = -endp; x <= endp; x += swidth){
-            shadow += lookup(x, y);
+            shadow += textureProj(shadowMap, shadowCoord + vec4(x * pixelOffset.x * shadowCoord.w, y * pixelOffset.y * shadowCoord.w, 0.0, 0.0));
         }
     }
-    return shadow / 16.0;
+    return shadow / (16.0);
 }
 
 
