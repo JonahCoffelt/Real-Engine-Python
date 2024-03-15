@@ -35,6 +35,7 @@ class BaseModel:
 
     def update(self):
         self.m_model = self.get_model_matrix()
+        self.object.hitbox.update_vertices()
 
     def render(self, vao):
         self.programs[vao]['m_model'].write(self.m_model)

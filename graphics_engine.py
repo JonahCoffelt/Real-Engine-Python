@@ -1,6 +1,6 @@
 import pygame as pg
 from scene import Scene
-from camera import Camera
+from camera import *
 
 class GraphicsEngine:
     def __init__(self, app) -> None:
@@ -10,13 +10,19 @@ class GraphicsEngine:
         self.oninit()
 
     def oninit(self):
+        
+        # creates freecam and scene
         self.camera = Camera(self.app)
         self.scene  = Scene(self)
+        
+        # creates attached cam to scene object
+        """self.camera = FollowCamera(self.app, self.scene.objects.objects[1])
+        self.scene.cam = self.camera"""
 
-    def update(self):
+    def update(self, delta_time):
         self.ctx.clear(color=(0.08, 0.16, 0.18))
 
         self.camera.update()  # Checks inputs and updates camera view matrix
-        self.scene.render()
+        self.scene.render(delta_time)
 
         pg.display.flip()

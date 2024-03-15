@@ -10,7 +10,6 @@ FAR = 250
 SPEED = 0.01
 SENSITIVITY = 0.15
 
-
 class Camera:
     def __init__(self, app, position=(0, 3, 35), yaw=-90, pitch=0):
         self.app = app
@@ -87,3 +86,33 @@ class Camera:
 
     def get_projection_matrix(self):
         return glm.perspective(glm.radians(FOV), self.aspect_ratio, NEAR, FAR)
+    
+class FollowCamera(Camera):
+    
+    def __init__(self, app, followed, yaw=-90, pitch=0, radius = 10):
+        
+        self.followed = followed
+        self.radius = radius
+        super().__init__(app, followed.pos, yaw, pitch)
+        
+    # follows object so no free cam movement
+    def update(self):
+        self.rotate()
+        self.update_pos()
+        self.update_camera_vectors()
+        self.m_view = self.get_view_matrix()
+        
+    def get_view_matrix(self):
+        return glm.lookAt(self.position, self.followed.pos, self.up)
+    
+    def update_pos(self):
+        self.position = self.followed.pos + self.forward * self.radius
+        
+    def rotate(self):
+        """
+        Rotates the camera based on the amount of mouse movement.
+        """
+        rel_x, rel_y = pg.mouse.get_rel()
+        self.yaw += rel_x * SENSITIVITY
+        self.pitch += rel_y * SENSITIVITY
+        self.pitch = max(-89, min(89, self.pitch))

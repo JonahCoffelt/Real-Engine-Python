@@ -1,9 +1,11 @@
 import model
-import mesh
 import glm
-import numpy as np
 from material_handler import MaterialHandler
-
+from hitboxes import *
+from physics_engine import PhysicsEngine
+from random import randint
+from scipy.spatial.transform import Rotation as R
+from quaternions import *
 
 class ObjectHandler:
     def __init__(self, scene):
@@ -15,6 +17,8 @@ class ObjectHandler:
 
         self.light_handler = self.scene.light_handler
         self.material_handler = MaterialHandler(self.scene.texture_handler.textures)
+        
+        self.pe = PhysicsEngine(-9.8)
 
         self.on_init()
 
@@ -22,21 +26,36 @@ class ObjectHandler:
 
         self.objects.append(Object(self, self.scene, model.SkyBoxModel, program_name='skybox', vao='skybox', obj_type='skybox'))
 
-        #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(-1, 10, 1), scale=(.5, .5, .5)))
+        """for _ in range(20):
+            self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(randint(-10, 10), randint(-20, 40), randint(-10, 10)), scale=(.5, .5, .5)))
+            
+        self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', scale=(40, .5, 40), gravity = False, immovable = True))"""
 
-        #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(-10, 10, -10), scale=(.5, .5, .5)))
-        #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(-10, 10, -20), scale=(.5, .5, .5)))
-        #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(-20, 10, -10), scale=(.5, .5, .5)))
-        #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(-20, 10, -20), scale=(.5, .5, .5)))
-
-        #for x in range(-25, -5, 2):
-        #    for z in range(-25, -5, 2):
-        #        self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='container', obj_type='container', pos=(x, 6, z), scale=(1, 1, 1)))
-
-
-        #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='mesh', vao='terrain', material='metal_box', obj_type='meshes', pos=(0, 0, 0), scale=(1, 1, 1), rot=(0, 0, 0)))
-
-    def update(self):...
+    def update(self, delta_time):
+    
+        for obj in self.objects:
+                
+            # checks if object needs physics calculations  
+            if obj.immovable: continue    
+                
+            # changes pos of all models in scene based off hitbox vel
+            obj.move_tick(delta_time)
+                
+            # changes velocity based off euler steps
+            force = glm.vec3(0, 0, 0)
+            if obj.gravity: 
+                force[1] = self.pe.gravity_strength
+            obj.hitbox.move_tick(delta_time, force, 0)
+                
+            # tp object to top if hits death plane
+            if obj.pos[1] < -60: 
+                obj.set_pos(glm.vec3(randint(-20, 20), randint(10, 30), randint(-20, 20)))
+                obj.hitbox.set_vel(glm.vec3(0, 0, 0))
+                obj.hitbox.set_rot_axis(glm.vec3(0, 1, 0))
+                obj.hitbox.set_rot_vel(0)
+                
+        # object - object collisions
+        self.pe.resolve_collisions(self.objects, delta_time)
 
     def write_shader_uniforms(self, program_name, obj_type=None):
         """
@@ -91,7 +110,8 @@ class ObjectHandler:
 
 
 class Object:
-    def __init__(self, obj_handler, scene, model, program_name='default', vao='cube', material='container', obj_type='none', pos=(0, 0, 0), rot=(0, 0, 0), scale=(1, 1, 1)):
+    def __init__(self, obj_handler, scene, model, program_name='default', vao='cube', material='container', obj_type='none', pos=(0, 0, 0), rot=(0, 0, 0), scale=(1, 1, 1), hitbox_type = 'cube', hitbox_file_name = None, rot_vel = 0.001, rot_axis = (0, 0, 0), vel = (0, 0, 0), mass = 1, immovable = False, gravity = True):
+        
         self.ctx = obj_handler.ctx
         self.camera = scene.graphics_engine.camera
         self.scene = scene
@@ -102,12 +122,25 @@ class Object:
 
         self.pos = glm.vec3(pos)
         self.rot = glm.vec3([glm.radians(a) for a in rot])
-        self.scale = scale
+        self.scale = glm.vec3(scale)
+        self.rot_point = [0, 0, 1]
+        
+        # physics variables
+        self.immovable = immovable
+        self.gravity = gravity
+        self.mass = mass if not immovable else 1e10
 
-        self.on_init(model, vao=vao)
+        self.on_init(model, vao=vao, hitbox_type=hitbox_type, hitbox_file_name=hitbox_file_name, rot_vel=rot_vel, rot_axis=rot_axis, vel=vel)
 
-    def on_init(self, model, vao='cube'):
+    def on_init(self, model, vao='cube', hitbox_type = 'cube', hitbox_file_name = None, rot_vel = 0, rot_axis = (0, 0, 0), vel = (0, 0, 0)):
         self.model = model(self, self.scene, vao)
+
+        self.hitbox = None
+        match hitbox_type:
+            case 'cube': self.define_hitbox_cube(vel, rot_vel, rot_axis)
+            case 'rectangle': self.define_hitbox_rectangle(hitbox_file_name, vel, rot_vel, rot_axis)
+            case 'fitted': self.define_hitbox_fitted(hitbox_file_name, vel, rot_vel, rot_axis)
+            case _: assert False, 'hitbox type is not recognized'
 
     def update(self):
         self.model.rot = glm.vec3([glm.radians(a) for a in self.rot])
@@ -115,3 +148,61 @@ class Object:
 
     def render(self, vao):
         self.model.render(vao)
+        
+        
+    def define_hitbox_cube(self, vel, rot_vel, rot_axis):
+        self.hitbox = CubeHitbox(self, vel, rot_vel, rot_axis)
+            
+    def define_hitbox_rectangle(self, file_name, vel, rot_vel, rot_axis):
+        assert file_name != None, 'hitbox needs file name to be created'
+        self.hitbox = FittedHitbox(self, file_name, True, vel, rot_vel, rot_axis)
+    
+    def define_hitbox_fitted(self, file_name, vel, rot_vel, rot_axis):
+        assert file_name != None, 'hitbox needs file name to be created'
+        self.hitbox = FittedHitbox(self, file_name, False, vel, rot_vel, rot_axis)
+        
+    # for physics
+    def move_tick(self, delta_time):
+        self.pos += delta_time * self.hitbox.vel
+        self.move_tick_rot(delta_time)
+        #self.model.update()
+        
+    def move_tick_translate(self, delta_time):
+        self.pos += delta_time * self.hitbox.vel
+        self.model.update()
+        
+    def move_tick_rot(self, delta_time):
+        
+        p = [0] + self.rot_point
+        
+        theta = delta_time * self.hitbox.rot_vel
+        
+        q = axis_angle_to_quaternion(self.hitbox.rot_axis, theta)
+        qneg = quaternion_conjugate(q)
+        
+        p = quaternion_multiply(q, p)
+        p = quaternion_multiply(p, qneg)
+        self.rot_point = p[1:]
+        
+        try:
+            p = R.from_quat(p)
+            euler_angles = glm.vec3(p.as_euler('zyx'))
+        except:
+            self.rot_point = [1, 0, 0]
+            euler_angles = glm.vec3(0, 0, 0)
+            
+        self.rot = euler_angles
+        self.model.update()
+        
+    def get_cartesian_vertices(self):
+        
+        return self.hitbox.vertices
+    
+    # setter methods
+    def set_hitbox(self, hitbox): self.hitbox = hitbox
+    def set_pos(self, pos): self.pos = pos
+    def set_rot(self, rot): self.rot = rot
+    
+    # modifier methods
+    def move(self, vec, delta_time):
+        self.pos += vec * delta_time

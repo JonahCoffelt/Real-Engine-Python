@@ -1,8 +1,8 @@
-from object_handler import ObjectHandler
 from vao_handler import VAOHandler
 from texture_handler import TextureHandler
 from light_handler import LightHandler
 from buffer_handler import BufferHandler
+from entity_handler import EntityHandler, ObjectHandler
 from marching_cubes_chunk import Chunk, CHUNK_SIZE
 import numpy as np
 import glm
@@ -21,11 +21,12 @@ class Scene:
         self.vao_handler.set_up()
         self.light_handler = LightHandler()
         self.vao_handler.program_handler.set_attribs(self)
+        self.entity_handler = EntityHandler()
         self.objects = ObjectHandler(self)
         
         self.chunks = {}
         for x in range(6):
-            for y in range(0, 2):
+            for y in range(3):
                 for z in range(6):
                     self.chunks[f'{x};{y};{z}'] = (Chunk(self.ctx, self.vao_handler.program_handler.programs, self, (x, y, z)))
 
@@ -36,13 +37,13 @@ class Scene:
         self.shadow_timer = 5
         self.shadow_frame_skips = 5
 
-    def update(self):
+    def update(self, delta_time):
         #self.time += self.graphics_engine.app.delta_time
 
         self.light_handler.dir_light.color = glm.vec3(np.array([1, 1, 1]) - np.array([.8, .9, .6]) * (min(.75, max(.25, (np.sin(self.time / 500)*.5 + .5))) * 2 - .5))
         
         self.vao_handler.program_handler.update_attribs(self)  # Updates the values sent to uniforms
-        self.objects.update()  # Updates the objects
+        self.objects.update(delta_time)  # Updates the objects
 
     def modify_terrain(self, magnitude):
         pos = self.ray_cast()
@@ -138,8 +139,8 @@ class Scene:
 
         frame_vao.render()
 
-    def render(self):
-        self.update()  # Updates objects, time, and uniforms
+    def render(self, delta_time):
+        self.update(delta_time)  # Updates objects, time, and uniforms
         self.render_buffers()  # Renders the standard buffers
         self.render_filters()  # Renders and filter buffers
         self.render_screen() # Renders buffers to screen
