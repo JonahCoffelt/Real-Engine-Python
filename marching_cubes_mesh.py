@@ -8,41 +8,11 @@ def normalized(a):
     normalized = normalized.astype('f4') 
     return normalized
 
-
-def get_normals(verticies, indicies, n=3):
-    normals = [normalized(np.cross(verticies[triangle[1]] - verticies[triangle[0]], verticies[triangle[2]] - verticies[triangle[0]])) for triangle in indicies for i in range(n)]
-    normals = np.array(normals)
-    normal_data = normals.reshape(3 * len(indicies), 3)
-    return normal_data
-
-class BaseMeshVBO:
-    def __init__(self, ctx):
-        self.ctx = ctx
-        self.vbo = self.get_vbo()
-        self.format: str = None
-        self.attrib: list = None
-
-    @staticmethod
-    def get_data(verticies, indicies):
-        data = [verticies[ind] for triangle in indicies for ind in triangle]
-        return np.array(data, dtype='f4')
-
-    def get_vertex_data(self): ...
-
-    def get_vbo(self):
-        vertex_data = self.get_vertex_data()
-        vbo = self.ctx.buffer(vertex_data)
-        return vbo
-    
 @ njit
 def vertex_interp(p1, p2, v1, v2, isolevel):
     mu = (isolevel - v1) / (v2 - v1)
     point = p1 + mu * (p2 - p1)
     return point
-
-@ njit
-def vertex_interp2(p1, p2, v1, v2, isolevel):
-    return (p2 + p1) / 2
 
 @ njit
 def get_cube(feild, edge_table, tri_table, surf_lvl, x, y, z):
@@ -111,14 +81,20 @@ def get_cube(feild, edge_table, tri_table, surf_lvl, x, y, z):
     return verticies
     
 
-class ChunkMeshVBO(BaseMeshVBO):
+class ChunkMeshVBO():
     def __init__(self, ctx, feild, surf_lvl):
         self.feild = feild
         self.CHUNK_SIZE = len(self.feild)
         self.surf_lvl = surf_lvl
-        super().__init__(ctx)
+        self.ctx = ctx
+        self.vbo = self.get_vbo()
         self.format = '3f 3f'
         self.attribs = ['in_normal', 'in_position']
+
+    def get_vbo(self):
+        vertex_data = self.get_vertex_data()
+        vbo = self.ctx.buffer(vertex_data)
+        return vbo
 
     def get_vertex_data(self):
         vertex_data = np.array([[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]], dtype='f4')
