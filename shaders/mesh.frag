@@ -9,10 +9,6 @@ in vec3 fragPos;
 in vec4 shadowCoord;
 
 
-uniform vec3 view_pos;
-
-const float offset = 1.0 / 300.0;
-
 struct DirectionalLight {
     vec3 direction;
 
@@ -36,18 +32,18 @@ struct PointLight {
     float s;
 };
 
-#define numPointLights 4
 
+#define numPointLights 4
 uniform DirectionalLight dir_light;
 uniform PointLight pointLights[numPointLights];
 uniform sampler2DShadow shadowMap;
 uniform vec2 u_resolution;
+uniform vec3 view_pos;
 
 
-float getShadow(){
-    float shadow = textureProj(shadowMap, shadowCoord);
-    return shadow;
-}
+float standardLightIntensity = 0.0;
+float cellLightIntensity = 1.0;
+
 
 float getSoftShadowX16() {
     float shadow = 0.0;
@@ -65,10 +61,13 @@ float getSoftShadowX16() {
 
 
 float clamp_value(float value){
-    if (value > 0.6){
+     if (value > 0.6){
         value = 1.0;
     }
-    else if (value > 0.2){
+    else if (value > 0.3){
+        value = 0.5;
+    }
+    else if (value > 0.0){
         value = 0.33;
     }
     else {
@@ -81,22 +80,21 @@ float clamp_value(float value){
 vec3 CalcDirLight(DirectionalLight light, vec3 normal, vec3 viewDir){
     float gamma = 2.2;
 
-
     vec3 lightDir = normalize(-light.direction);
 
     float diff = max(dot(normal, lightDir), 0.0);
-    float diff_cel = clamp_value(diff);
+    float cellDiff = clamp_value(diff);
 
     vec3 reflectDir = reflect(-lightDir, normal);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 16);
 
     vec3 ambient = light.a * light.color * groundColor;
-    vec3 diffuse = (light.d * diff_cel * light.color * groundColor) * .5 + (light.d * diff * light.color * groundColor) * .5;
-    vec3 specular = light.s * spec * light.color * groundColor * .5;
+    vec3 diffuse = (light.d * cellDiff * light.color * groundColor) * cellLightIntensity + (light.d * diff * light.color * groundColor) * standardLightIntensity;
+    vec3 specular = light.s * spec * light.color * groundColor;
 
     float shadow = getSoftShadowX16();
 
-    return (ambient + (diffuse + specular) * (shadow/2 + .5)) + u_resolution.x/100000000;
+    return (ambient + (diffuse + specular) * (shadow/2 + .5));
 }
 
 
@@ -106,19 +104,7 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir){
     vec3 lightDir = normalize(light.pos - fragPos);
 
     float diff = max(dot(normal, lightDir), 0.0);
-
-    if (diff > 0.5){
-        diff = 1.0;
-    }
-    else if (diff > 0.2){
-        diff = 0.5;
-    }
-    else if (diff > 0.0){
-        diff = 0.33;
-    }
-    else {
-        diff = 0.0;
-    }
+    float cellDiff = clamp_value(diff);
 
     vec3 reflectDir = reflect(-lightDir, normal);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 16);
@@ -127,7 +113,7 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir){
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
 
     vec3 ambient = light.a * light.color * groundColor;
-    vec3 diffuse = light.d * diff * light.color * groundColor + light.d * diff * light.color * .25;
+    vec3 diffuse = (light.d * cellDiff * light.color * groundColor) * cellLightIntensity + (light.d * diff * light.color * groundColor) * standardLightIntensity;
     vec3 specular = light.s * spec * light.color * groundColor;
 
     ambient *= attenuation;
@@ -140,29 +126,8 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir){
 }
 
 
-
 void main() {
-
-    //float height = fragPos.y;
-    //if (height > 0.1) {
-    //    height += ((sin(fragPos.x * 7) + cos(fragPos.z * 5))/5) + (cos(fragPos.x * .75) + sin(fragPos.z * .2) + sin(fragPos.y * 2))/10;
-    //}
-//
-//
-    //if (height > 8){
-    //    groundColor = vec3(0.5, 0.5, 0.5);
-    //}
-    //if (height > 12){
-    //    groundColor = vec3(0.9, 0.9, 0.9);
-    //}
-    //if (height < 2){
-    //    groundColor = vec3(0.5, 0.3, 0.2);
-    //}
-    //if (height < 1){
-    //    groundColor = vec3(0.2, 0.3, 0.9);
-    //}
-
-    //vec3 normal = abs(normal);
+    vec3 normal = abs(normal);
 
     float gamma = 2.2;
 

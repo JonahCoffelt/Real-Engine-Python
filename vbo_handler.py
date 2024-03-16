@@ -13,7 +13,7 @@ class VBOHandler:
         self.vbos['skybox'] = SkyBoxVBO(self.ctx)
         self.vbos['frame'] = FrameVBO(self.ctx)
 
-    def desstroy(self):
+    def destroy(self):
         [vbo.vbo.release() for vbo in self.vbos.values()]
 
 

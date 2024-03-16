@@ -23,7 +23,9 @@ class ObjectHandler:
         self.on_init()
 
     def on_init(self):
-
+        """
+        Creates objects in the scene
+        """
         self.objects.append(Object(self, self.scene, model.SkyBoxModel, program_name='skybox', vao='skybox', obj_type='skybox'))
 
         self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(-20, -1, -20), scale=(15, .5, 15), gravity=False, immovable=True))
@@ -69,24 +71,24 @@ class ObjectHandler:
         attribs = shader_attribs[program_name]
         attrib_values = self.attrib_values
 
-        for attrib in attribs[0]:
+        for attrib in attribs[0]:  # Writes int, float, and vector uniforms
             if attrib == 'view_pos': program[attrib].write(attrib_values[attrib])
             if attrib == 'm_view': program[attrib].write(attrib_values[attrib])
             if attrib_values[attrib] == self.currrent_shader_uniforms[program_name][attrib]: continue
             program[attrib].write(attrib_values[attrib])
             self.currrent_shader_uniforms[program_name][attrib] = attrib_values[attrib]
 
-        for i, texture in enumerate(attribs[1]):
+        for i, texture in enumerate(attribs[1]):  # Writes texture uniforms
             if attrib_values[texture] == self.currrent_shader_uniforms[program_name][texture]: continue
             program[texture] = i + 3
             attrib_values[texture].use(location = i + 3)
             self.currrent_shader_uniforms[program_name][texture] = attrib_values[texture]
 
-        if attribs[2]['light'] and obj_type != 'skybox' and self.currrent_shader_uniforms[program_name]['light']:
+        if attribs[2]['light'] and obj_type != 'skybox' and self.currrent_shader_uniforms[program_name]['light']: # Writes light uniforms
             self.light_handler.write(program)
             self.currrent_shader_uniforms[program_name]['light'] = False
 
-        if attribs[2]['material'] and obj_type != 'skybox' and obj_type != self.currrent_shader_uniforms[program_name]['material']:
+        if attribs[2]['material'] and obj_type != 'skybox' and obj_type != self.currrent_shader_uniforms[program_name]['material']: # Writes material uniforms
             self.material_handler.materials[material].write(program)
             self.currrent_shader_uniforms[program_name]['material'] = material
 
@@ -98,18 +100,21 @@ class ObjectHandler:
 
     def render(self, program_name, render_type='default', object_types=('container', 'metal_box', 'wooden_box', 'cat', 'skybox', 'meshes'), light=False, objs=False):
         if program_name: self.write_shader_uniforms(program_name)
-        if light:
+        if light: # Will write all light if true
             programs = self.scene.vao_handler.program_handler.programs
             for program in programs:
                 if program in ('mesh', 'default'): self.light_handler.write(programs[program])
+        # Choose the objects used
         if objs: objects = objs
         else: objects = self.objects
+        # loop though each object 
         for obj in objects:
             if obj.obj_type not in object_types: continue
             if not program_name:
                 program = obj.program_name
-                mat = obj.obj_type
+                # Choose the material
                 if obj.obj_type in ('container', 'metal_box', 'wooden_box', 'cat'): mat = obj.material
+                else: mat = obj.obj_type
                 self.write_shader_uniforms(program, obj.obj_type, mat)
             obj.render(render_type)
 

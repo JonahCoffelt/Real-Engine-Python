@@ -110,3 +110,6 @@ class ChunkMeshVBO():
                         vertex_data = np.vstack([vertex_data, cube_data], dtype='f4')
 
         return vertex_data
+    
+    def destroy(self):
+        self.vbo.release()

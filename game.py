@@ -6,7 +6,7 @@ from graphics_engine import GraphicsEngine
 
 class Game:
     def __init__(self, win_size=(1600, 900)):
-        # Pygame initialization ``
+        # Pygame initialization
         pg.init()
         # Window size (resizable)
         self.win_size = win_size
@@ -27,7 +27,6 @@ class Game:
         self.ctx = mgl.create_context()
         # Basic Gl setup
         self.ctx.enable(flags=mgl.DEPTH_TEST | mgl.CULL_FACE)
-        #self.ctx.enable(flags=mgl.DEPTH_TEST)
         # Engine
         self.graphics_engine = GraphicsEngine(self)
 
@@ -59,7 +58,7 @@ class Game:
         self.mine_duration = .04
         while self.run:
             pg.display.set_caption(str(round(self.clock.get_fps())))
-            self.delta_time = self.clock.tick()
+            self.delta_time = self.clock.tick(60)
             self.mine_timer += self.delta_time / 1000
             self.check_events()  # Checks for window events
             self.graphics_engine.update(self.delta_time * 0.001)  # Render and update calls

@@ -8,9 +8,6 @@ in vec3 fragPos;
 in vec4 shadowCoord;
 
 
-uniform vec3 view_pos;
-
-
 struct Material {
     sampler2D d;
     sampler2D s;
@@ -41,19 +38,19 @@ struct PointLight {
     float s;
 };
 
-#define numPointLights 4
 
+#define numPointLights 4
 uniform Material material;
 uniform DirectionalLight dir_light;
 uniform PointLight pointLights[numPointLights];
 uniform sampler2DShadow shadowMap;
 uniform vec2 u_resolution;
+uniform vec3 view_pos;
 
 
-float getShadow(){
-    float shadow = textureProj(shadowMap, shadowCoord);
-    return shadow;
-}
+float standardLightIntensity = 0.5;
+float cellLightIntensity = 0.5;
+
 
 float getSoftShadowX16() {
     float shadow = 0.0;
@@ -70,23 +67,40 @@ float getSoftShadowX16() {
 }
 
 
+float clamp_value(float value){
+     if (value > 0.6){
+        value = 1.0;
+    }
+    else if (value > 0.3){
+        value = 0.5;
+    }
+    else if (value > 0.0){
+        value = 0.33;
+    }
+    else {
+        value = 0.0;
+    }
+    return value;
+}
+
+
 vec3 CalcDirLight(DirectionalLight light, vec3 normal, vec3 viewDir){
     float gamma = 2.2;
 
     vec3 lightDir = normalize(-light.direction);
 
     float diff = max(dot(normal, lightDir), 0.0);
+    float cellDiff = clamp_value(diff);
 
     vec3 reflectDir = reflect(-lightDir, normal);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.spec_const);
 
     vec3 ambient = light.a * light.color * pow(vec3(texture(material.d, uv_0)), vec3(gamma));;
-    vec3 diffuse = light.d * diff * light.color * pow(vec3(texture(material.d, uv_0)), vec3(gamma));
+    vec3 diffuse = light.d * cellDiff * light.color * pow(vec3(texture(material.d, uv_0)), vec3(gamma));
     vec3 specular = light.s * spec * light.color * vec3(texture(material.s, uv_0));
 
 
     float shadow = getSoftShadowX16();
-    shadow = getShadow();
 
     return (ambient + (diffuse + specular) * shadow);
 }
@@ -98,6 +112,7 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir){
     vec3 lightDir = normalize(light.pos - fragPos);
 
     float diff = max(dot(normal, lightDir), 0.0);
+    float cellDiff = clamp_value(diff);
 
     vec3 reflectDir = reflect(-lightDir, normal);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.spec_const);
@@ -106,7 +121,7 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir){
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
 
     vec3 ambient = light.a * light.color * pow(vec3(texture(material.d, uv_0)), vec3(gamma));
-    vec3 diffuse = light.d * diff * light.color * pow(vec3(texture(material.d, uv_0)), vec3(gamma));
+    vec3 diffuse = light.d * cellDiff * light.color * pow(vec3(texture(material.d, uv_0)), vec3(gamma));
     vec3 specular = light.s * spec * light.color * vec3(texture(material.s, uv_0));
 
 
