@@ -56,7 +56,7 @@ class Game:
     def start(self):
         self.run = True
         self.mine_timer = 0
-        self.mine_duration = .03
+        self.mine_duration = .04
         while self.run:
             pg.display.set_caption(str(round(self.clock.get_fps())))
             self.delta_time = self.clock.tick()

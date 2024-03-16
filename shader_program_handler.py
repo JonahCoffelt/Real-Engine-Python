@@ -64,12 +64,12 @@ class ProgramHandler:
 
         self.SHADER_ATTRIBS = {
             'default' : [
-                ['view_pos', 'm_view_light', 'u_resolution', 'm_view'],  # Variables
+                ['view_pos', 'm_view_light', 'u_resolution', 'm_view', 'view_pos'],  # Variables
                 ['shadowMap'],  # Textures
                 {'light' : True, 'material' : True}  # Components
             ],
             'mesh' : [
-                ['view_pos', 'm_view_light', 'u_resolution', 'm_view'],  # Variables
+                ['view_pos', 'm_view_light', 'u_resolution', 'm_view', 'view_pos'],  # Variables
                 ['shadowMap'],  # Textures
                 {'light' : True, 'material' : False}  # Components
             ],
@@ -101,4 +101,4 @@ class ProgramHandler:
             self.currrent_shader_uniforms[program]['m_view'] = scene.cam.m_view
             self.currrent_shader_uniforms[program]['view_pos'] = scene.cam.position
             self.currrent_shader_uniforms[program]['light'] = True
-            self.currrent_shader_uniforms[program]['material'] = None
+            self.currrent_shader_uniforms[program]['material'] = 'asd'

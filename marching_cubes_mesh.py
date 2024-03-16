@@ -1,6 +1,7 @@
 import numpy as np
 from numba import njit
 from marching_cube_tables import edge_table, tri_table
+from terrain_materials import material_IDs
 
 @njit
 def normalized(a):
@@ -15,7 +16,7 @@ def vertex_interp(p1, p2, v1, v2, isolevel):
     return point
 
 @ njit
-def get_cube(feild, edge_table, tri_table, surf_lvl, x, y, z):
+def get_cube(field, material, edge_table, tri_table, surf_lvl, x, y, z):
     pos = np.array([x, y, z], dtype='f4')
     vert_list = np.zeros(shape=(12, 3), dtype='f4')
     vals = np.zeros(shape=(8), dtype='f4')
@@ -29,14 +30,14 @@ def get_cube(feild, edge_table, tri_table, surf_lvl, x, y, z):
     rel_v6 = np.array([1.0, 1.0, 1.0], dtype='f4')
     rel_v7 = np.array([0.0, 1.0, 1.0], dtype='f4')
 
-    vals[0] = feild[x + 0][y + 0][z + 0]
-    vals[1] = feild[x + 1][y + 0][z + 0]
-    vals[2] = feild[x + 1][y + 0][z + 1]
-    vals[3] = feild[x + 0][y + 0][z + 1]
-    vals[4] = feild[x + 0][y + 1][z + 0]
-    vals[5] = feild[x + 1][y + 1][z + 0]
-    vals[6] = feild[x + 1][y + 1][z + 1]
-    vals[7] = feild[x + 0][y + 1][z + 1]
+    vals[0] = field[x + 0][y + 0][z + 0]
+    vals[1] = field[x + 1][y + 0][z + 0]
+    vals[2] = field[x + 1][y + 0][z + 1]
+    vals[3] = field[x + 0][y + 0][z + 1]
+    vals[4] = field[x + 0][y + 1][z + 0]
+    vals[5] = field[x + 1][y + 1][z + 0]
+    vals[6] = field[x + 1][y + 1][z + 1]
+    vals[7] = field[x + 0][y + 1][z + 1]
 
     cube_state = 0
     for i, val in enumerate(vals):
@@ -65,7 +66,7 @@ def get_cube(feild, edge_table, tri_table, surf_lvl, x, y, z):
     while tris[num_tris] != -1:
         num_tris += 1
 
-    verticies = np.zeros(shape=(num_tris, 6), dtype='f4')
+    verticies = np.zeros(shape=(num_tris, 9), dtype='f4')
 
     for i in range(num_tris//3):
         v1 = vert_list[tris[i*3]] + pos
@@ -74,22 +75,23 @@ def get_cube(feild, edge_table, tri_table, surf_lvl, x, y, z):
 
         norm = -np.cross((v1 - v2), (v3 - v2))
 
-        verticies[i*3    ] = np.array([*norm, *v1], dtype='f4')
-        verticies[i*3 + 1] = np.array([*norm, *v2], dtype='f4')
-        verticies[i*3 + 2] = np.array([*norm, *v3], dtype='f4')
+        verticies[i*3    ] = np.array([*norm, *v1, *material], dtype='f4')
+        verticies[i*3 + 1] = np.array([*norm, *v2, *material], dtype='f4')
+        verticies[i*3 + 2] = np.array([*norm, *v3, *material], dtype='f4')
 
     return verticies
     
 
 class ChunkMeshVBO():
-    def __init__(self, ctx, feild, surf_lvl):
-        self.feild = feild
-        self.CHUNK_SIZE = len(self.feild)
+    def __init__(self, ctx, field, materials, surf_lvl):
+        self.field = field
+        self.materials = materials 
+        self.CHUNK_SIZE = len(self.field)
         self.surf_lvl = surf_lvl
         self.ctx = ctx
         self.vbo = self.get_vbo()
-        self.format = '3f 3f'
-        self.attribs = ['in_normal', 'in_position']
+        self.format = '3f 3f 3f'
+        self.attribs = ['in_normal', 'in_position', 'in_material']
 
     def get_vbo(self):
         vertex_data = self.get_vertex_data()
@@ -97,12 +99,14 @@ class ChunkMeshVBO():
         return vbo
 
     def get_vertex_data(self):
-        vertex_data = np.array([[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]], dtype='f4')
+        vertex_data = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0]], dtype='f4')
         for z in range(self.CHUNK_SIZE - 1):
             for y in range(self.CHUNK_SIZE - 1):
                 for x in range(self.CHUNK_SIZE - 1):
-                    cube_data = get_cube(self.feild, edge_table, tri_table, self.surf_lvl, x, y, z)
+                    material = material_IDs[self.materials[x][y][z]]
+                    cube_data = get_cube(self.field, material, edge_table, tri_table, self.surf_lvl, x, y, z)
                     if len(cube_data):
+                        
                         vertex_data = np.vstack([vertex_data, cube_data], dtype='f4')
 
         return vertex_data

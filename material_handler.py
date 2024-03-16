@@ -9,6 +9,7 @@ class MaterialHandler:
 
         self.materials['container'] = BaseMaterial('container', 'container_specular', 64.0, self.textures)
         self.materials['metal_box'] = BaseMaterial('metal_box', 'metal_box', 64.0, self.textures)
+        self.materials['wooden_box'] = BaseMaterial('wooden_box', 'wooden_box', 16.0, self.textures)
         self.materials['meshes'] = BaseMaterial('metal_box', 'metal_box', 64.0, self.textures)
         self.materials['cat'] = BaseMaterial('cat', 'cat', 64.0, self.textures)
 

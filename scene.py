@@ -76,10 +76,11 @@ class Scene:
                                     chunk = f'{int(chunk_pos[0] - x_edge)};{int(chunk_pos[1] - y_edge)};{int(chunk_pos[2] - z_edge)}'
                                     if chunk in self.graphics_engine.scene.chunks:
                                         if magnitude > 0:
-                                            self.graphics_engine.scene.chunks[chunk].feild[local_x][local_y][local_z] += magnitude / ((abs(x) + abs(y) + abs(z)) * .5 * width + .0001)
+                                            self.graphics_engine.scene.chunks[chunk].field[local_x][local_y][local_z] += magnitude / ((abs(x) + abs(y) + abs(z)) * .5 * width + .0001)
+                                            self.graphics_engine.scene.chunks[chunk].materials[local_x][local_y][local_z] = 3
                                         else:
-                                            self.graphics_engine.scene.chunks[chunk].feild[local_x][local_y][local_z] += magnitude /  .5 * width + .0001
-                                        self.graphics_engine.scene.chunks[chunk].feild[local_x][local_y][local_z] = max(min(self.graphics_engine.scene.chunks[chunk].feild[local_x][local_y][local_z], 1.0), -1.0)
+                                            self.graphics_engine.scene.chunks[chunk].field[local_x][local_y][local_z] += magnitude /  .5 * width + .0001
+                                        self.graphics_engine.scene.chunks[chunk].field[local_x][local_y][local_z] = max(min(self.graphics_engine.scene.chunks[chunk].field[local_x][local_y][local_z], 1.0), -1.0)
                                         if chunk not in chunks:
                                             chunks.append(chunk)
             for chunk in chunks:
@@ -93,7 +94,7 @@ class Scene:
             pos = self.cam.position + step_size * i
             cam_chunk = f'{int(pos.x // CHUNK_SIZE)};{int(pos.y // CHUNK_SIZE)};{int(pos.z // CHUNK_SIZE)}'
             if cam_chunk in self.chunks:
-                if self.chunks[cam_chunk].feild[int(pos.x) % CHUNK_SIZE][int(pos.y) % CHUNK_SIZE][int(pos.z) % CHUNK_SIZE] > 0:
+                if self.chunks[cam_chunk].field[int(pos.x) % CHUNK_SIZE][int(pos.y) % CHUNK_SIZE][int(pos.z) % CHUNK_SIZE] > 0:
                     ray_cast_pos = pos
                     break
 
@@ -101,18 +102,19 @@ class Scene:
 
     def render_buffers(self):
         self.buffer_handler.buffers['frame'].use()   # Frame Buffer
-        self.objects.render(False, light=True)
+        self.objects.render('skybox', light=False, object_types=('skybox'))
+        self.objects.render(False, light=True, object_types=('container', 'metal_box', 'wooden_box'))
         self.objects.render(False, light=True, objs=self.chunks.values())
         self.buffer_handler.buffers['normal'].use()  # Normal Buffer
-        self.objects.render('buffer_normal', 'normal', ('container', 'metal_box', 'meshes'))
+        self.objects.render('buffer_normal', 'normal', ('container', 'metal_box', 'wooden_box', 'meshes'))
         self.objects.render('buffer_normal', 'normal', objs=self.chunks.values())
         self.buffer_handler.buffers['depth'].use()   # Depth Buffer
-        self.objects.render('buffer_depth', 'depth', ('container', 'metal_box', 'meshes'))
+        self.objects.render('buffer_depth', 'depth', ('container', 'metal_box', 'wooden_box', 'meshes'))
         self.objects.render('buffer_depth', 'depth', objs=self.chunks.values())
         self.shadow_fbo.clear() # Shadow Buffer
         self.shadow_fbo.use()
         self.objects.apply_shadow_shader_uniforms()
-        self.objects.render('shadow_map', 'shadow', ('container', 'metal_box', 'meshes', 'cat'))
+        self.objects.render('shadow_map', 'shadow', ('container', 'metal_box', 'wooden_box', 'meshes', 'cat'))
         self.objects.render('shadow_map', 'shadow', objs=self.chunks.values())
 
     def render_filters(self):

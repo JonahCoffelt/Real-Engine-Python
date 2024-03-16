@@ -88,7 +88,8 @@ vec3 CalcDirLight(DirectionalLight light, vec3 normal, vec3 viewDir){
 
     vec3 ambient = light.a * light.color * pow(vec3(texture(material.d, uv_0)), vec3(gamma));;
     vec3 diffuse = light.d * diff * light.color * pow(vec3(texture(material.d, uv_0)), vec3(gamma));
-    vec3 specular = light.s * spec* light.color * vec3(texture(material.s, uv_0));
+    vec3 specular = light.s * spec * light.color * vec3(texture(material.s, uv_0));
+
 
     float shadow = getSoftShadowX16();
     shadow = getShadow();
@@ -113,6 +114,7 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir){
     vec3 ambient = light.a * light.color * pow(vec3(texture(material.d, uv_0)), vec3(gamma));
     vec3 diffuse = light.d * diff * light.color * pow(vec3(texture(material.d, uv_0)), vec3(gamma));
     vec3 specular = light.s * spec * light.color * vec3(texture(material.s, uv_0));
+
 
     ambient *= attenuation;
     diffuse *= attenuation;

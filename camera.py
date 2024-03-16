@@ -99,6 +99,9 @@ class FollowCamera(Camera):
     def update(self):
         self.rotate()
         self.update_pos()
+        for event in pg.event.get():
+            if event.type == pg.MOUSEWHEEL:
+                self.radius += event.y
         self.update_camera_vectors()
         self.m_view = self.get_view_matrix()
         

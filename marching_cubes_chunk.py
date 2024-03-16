@@ -10,7 +10,7 @@ CHUNK_SIZE = 10
 SEED = random.randrange(1000)
 
 
-def generate_island(feild, chunk_x, chunk_y, chunk_z) -> np.array:
+def generate_island(field, materials, chunk_x, chunk_y, chunk_z) -> np.array:
     center = CHUNK_SIZE / 2
     world_size = CHUNK_SIZE * 6
     for local_z in range(CHUNK_SIZE + 1):
@@ -33,10 +33,22 @@ def generate_island(feild, chunk_x, chunk_y, chunk_z) -> np.array:
 
             for local_y in range(CHUNK_SIZE + 1):
                 global_y = local_y + chunk_y * CHUNK_SIZE
-                
-                feild[local_x][local_y][local_z] = max(min(height - global_y, 1.0), -1.0)
+                field[local_x][local_y][local_z] = max(min(height - global_y, 1.0), -1.0)
 
-    return feild
+                global_y = local_y + chunk_y * CHUNK_SIZE
+                mat_value = global_y + np.sin(local_x) + np.cos(local_z)
+                if global_y < 1:
+                    continue
+                elif mat_value > 12:
+                    materials[local_x][local_y][local_z] = 4
+                elif mat_value > 9:
+                    materials[local_x][local_y][local_z] = 3
+                elif mat_value > 6:
+                    materials[local_x][local_y][local_z] = 2
+                else:
+                    materials[local_x][local_y][local_z] = 1
+
+    return field, materials
 
 
 class Chunk:
@@ -51,16 +63,16 @@ class Chunk:
         self.obj_type = 'meshes'
         self.program_name = 'mesh'
 
-        self.feild = np.zeros(shape=(CHUNK_SIZE + 1, CHUNK_SIZE + 1, CHUNK_SIZE + 1), dtype='f4')
-        #self.feild = generate_sphere(self.feild, *pos)
-        self.feild = generate_island(self.feild, *pos)
+        self.field = np.zeros(shape=(CHUNK_SIZE + 1, CHUNK_SIZE + 1, CHUNK_SIZE + 1), dtype='f4')
+        self.materials = np.zeros(shape=(CHUNK_SIZE + 1, CHUNK_SIZE + 1, CHUNK_SIZE + 1), dtype='int8')
+        self.field, self.materials = generate_island(self.field, self.materials, *pos)
 
-        self.VBO = ChunkMeshVBO(self.ctx, self.feild, self.surf_lvl)
+        self.VBO = ChunkMeshVBO(self.ctx, self.field, self.materials, self.surf_lvl)
 
         self.set_vaos()
 
     def generate_mesh(self):
-        self.VBO = ChunkMeshVBO(self.ctx, self.feild, self.surf_lvl)
+        self.VBO = ChunkMeshVBO(self.ctx, self.field, self.materials, self.surf_lvl)
 
         self.set_vaos()
 
