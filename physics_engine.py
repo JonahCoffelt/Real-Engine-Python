@@ -46,8 +46,8 @@ class PhysicsEngine():
         
         point1, point2 = self.distance_point_to_plane(obj1.hitbox, normal2), self.distance_point_to_plane(obj2.hitbox, normal1)
         
-        if not obj1.immovable: self.get_collision_result(obj1.hitbox, normal2, point1, 0.5, 0, delta_time)
-        if not obj2.immovable: self.get_collision_result(obj2.hitbox, normal1, point2, 0.5, 0, delta_time)
+        if not obj1.immovable: self.get_collision_result(obj1.hitbox, normal2, point1, 0.5, 5, delta_time)
+        if not obj2.immovable: self.get_collision_result(obj2.hitbox, normal1, point2, 0.5, 5, delta_time)
         
         return obj1, obj2
     
@@ -65,15 +65,6 @@ class PhysicsEngine():
         perpendicular_component *= (1 - friction_factor * delta_time)
         
         reflected_vel = parallel_component + perpendicular_component
-        
-        # gets velocity based of goofy momentum conservation but not really
-        """new_vel = glm.normalize(new_vel)
-        new_vel *= tot_vel / 2"""
-        
-        """# set low velocities to zero
-        for i in range(len(new_vel)):
-            if abs(new_vel[i]) < 0.1:
-                new_vel[i] = 0"""
                 
         # sets new velocity
         hitbox1.set_vel(reflected_vel)
@@ -82,7 +73,7 @@ class PhysicsEngine():
         radius = hitbox1.get_center() - close_point
         
         # gravitational vs lateral rotation
-        if glm.length(perpendicular_component) < 9.8:
+        if glm.length(perpendicular_component) < 9.8 and glm.dot((0, -1, 0), radius) > 0:
             aor = glm.cross(radius, normal2)
             vel = glm.dot(normal2, radius)
         else: 

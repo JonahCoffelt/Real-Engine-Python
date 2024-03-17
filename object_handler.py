@@ -23,17 +23,15 @@ class ObjectHandler:
         self.on_init()
 
     def on_init(self):
-        """
-        Creates objects in the scene
-        """
-        self.objects.append(Object(self, self.scene, model.SkyBoxModel, program_name='skybox', vao='skybox', obj_type='skybox'))
 
-        self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(-20, -1, -20), scale=(15, .5, 15), gravity=False, immovable=True))
-
-        for _ in range(10):
-            self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(randint(-20, -5), randint(5, 20), randint(-20, -5)), scale=(.5, .5, .5)))
-            self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='wooden_box', obj_type='wooden_box', pos=(randint(-20, -5), randint(5, 20), randint(-20, -5)), scale=(.5, .5, .5)))
-            
+        #self.objects.append(Object(self, self.scene, model.SkyBoxModel, program_name='skybox', vao='skybox', obj_type='skybox'))
+        
+        for x in range(-10, 11):  
+            for z in range(-10, 11):
+                self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', scale=(2, .5, 2), pos = (4 * x, 0, 4*z), gravity = False, immovable = True))
+        
+        for i in range(10):
+            self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(randint(-10, 10), randint(-20, 40), randint(-10, 10)), scale=(.5, .5, .5)))
 
     def update(self, delta_time):
     
@@ -61,7 +59,7 @@ class ObjectHandler:
         # object - object collisions
         self.pe.resolve_collisions(self.objects, delta_time)
 
-    def write_shader_uniforms(self, program_name, obj_type=None, material=None):
+    def write_shader_uniforms(self, program_name, obj_type=None):
         """
         This is the primary method for sending unforms to the shader programs.
         See shader_program_handler.ProgramHandler.set_attribs for more info.
@@ -70,27 +68,26 @@ class ObjectHandler:
         shader_attribs = self.SHADER_ATTRIBS
         attribs = shader_attribs[program_name]
         attrib_values = self.attrib_values
-
-        for attrib in attribs[0]:  # Writes int, float, and vector uniforms
+        
+        for attrib in attribs[0]:
             if attrib == 'view_pos': program[attrib].write(attrib_values[attrib])
-            if attrib == 'm_view': program[attrib].write(attrib_values[attrib])
             if attrib_values[attrib] == self.currrent_shader_uniforms[program_name][attrib]: continue
             program[attrib].write(attrib_values[attrib])
             self.currrent_shader_uniforms[program_name][attrib] = attrib_values[attrib]
 
-        for i, texture in enumerate(attribs[1]):  # Writes texture uniforms
+        for i, texture in enumerate(attribs[1]):
             if attrib_values[texture] == self.currrent_shader_uniforms[program_name][texture]: continue
             program[texture] = i + 3
             attrib_values[texture].use(location = i + 3)
             self.currrent_shader_uniforms[program_name][texture] = attrib_values[texture]
 
-        if attribs[2]['light'] and obj_type != 'skybox' and self.currrent_shader_uniforms[program_name]['light']: # Writes light uniforms
+        if attribs[2]['light'] and obj_type != 'skybox' and self.currrent_shader_uniforms[program_name]['light']:
             self.light_handler.write(program)
             self.currrent_shader_uniforms[program_name]['light'] = False
 
-        if attribs[2]['material'] and obj_type != 'skybox' and obj_type != self.currrent_shader_uniforms[program_name]['material']: # Writes material uniforms
-            self.material_handler.materials[material].write(program)
-            self.currrent_shader_uniforms[program_name]['material'] = material
+        if attribs[2]['material'] and obj_type != 'skybox' and obj_type != self.currrent_shader_uniforms[program_name]['material']:
+            self.material_handler.materials[obj_type].write(program)
+            self.currrent_shader_uniforms[program_name]['material'] = obj_type
 
     def apply_shadow_shader_uniforms(self):
         programs = self.scene.vao_handler.program_handler.programs
@@ -98,26 +95,24 @@ class ObjectHandler:
             if not (program == 'default' or program == 'mesh'): continue
             self.write_shader_uniforms('mesh')
 
-    def render(self, program_name, render_type='default', object_types=('container', 'metal_box', 'wooden_box', 'cat', 'skybox', 'meshes'), light=False, objs=False):
+    def render(self, program_name, render_type='default', object_types=('container', 'metal_box', 'cat', 'skybox', 'meshes'), light=False, objs=False):
         if program_name: self.write_shader_uniforms(program_name)
-        if light: # Will write all light if true
+        if light:
             programs = self.scene.vao_handler.program_handler.programs
             for program in programs:
                 if program in ('mesh', 'default'): self.light_handler.write(programs[program])
-        # Choose the objects used
         if objs: objects = objs
         else: objects = self.objects
-        # loop though each object 
         for obj in objects:
             if obj.obj_type not in object_types: continue
             if not program_name:
                 program = obj.program_name
-                # Choose the material
-                if obj.obj_type in ('container', 'metal_box', 'wooden_box', 'cat'): mat = obj.material
-                else: mat = obj.obj_type
-                self.write_shader_uniforms(program, obj.obj_type, mat)
+                self.write_shader_uniforms(program, obj.obj_type)
             obj.render(render_type)
-
+            
+    def add_object(self, object):
+        self.objects.append(object)
+        return object
 
 class Object:
     def __init__(self, obj_handler, scene, model, program_name='default', vao='cube', material='container', obj_type='none', pos=(0, 0, 0), rot=(0, 0, 0), scale=(1, 1, 1), hitbox_type = 'cube', hitbox_file_name = None, rot_vel = 0.001, rot_axis = (0, 0, 0), vel = (0, 0, 0), mass = 1, immovable = False, gravity = True):
@@ -128,7 +123,7 @@ class Object:
 
         self.program_name = program_name
         self.obj_type = obj_type
-        self.material = material
+        self.material = obj_handler.material_handler.materials[material] 
 
         self.pos = glm.vec3(pos)
         self.rot = glm.vec3([glm.radians(a) for a in rot])
