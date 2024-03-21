@@ -10,6 +10,7 @@ class GraphicsEngine:
         self.oninit()
 
     def oninit(self):
+        
         # creates freecam and scene
         self.camera = Camera(self.app)
         self.scene  = Scene(self)
