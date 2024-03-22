@@ -19,8 +19,7 @@ def generate_island(field, materials, chunk_x, chunk_y, chunk_z) -> np.array:
             
             dist = np.sqrt((world_size / 2 - global_x) ** 2 + (world_size / 2 - global_z) ** 2)
             dist /= (world_size / 2)
-            if dist != 0: height = (min(1 / (dist ** 2), 5) - 3) * 5
-            else : height = (min(1 / (.001 ** 2), 5) - 3) * 5
+            height = (min(1 / (dist ** 2), 5) - 3) * 5
 
             height = min(height, 1)
 
@@ -68,14 +67,17 @@ class Chunk:
         self.materials = np.zeros(shape=(CHUNK_SIZE + 1, CHUNK_SIZE + 1, CHUNK_SIZE + 1), dtype='int8')
         self.field, self.materials = generate_island(self.field, self.materials, *pos)
 
-        self.vbo = ChunkMeshVBO(self.ctx, self.field, self.materials, self.surf_lvl)
+        self.VBO = ChunkMeshVBO(self.ctx, self.field, self.materials, self.surf_lvl)
 
         self.set_vaos()
 
     def generate_mesh(self):
-        #self.destroy()
 
-        self.vbo = ChunkMeshVBO(self.ctx, self.field, self.materials, self.surf_lvl)
+        self.VBO.release()
+        for vao in self.vaos.values():
+            vao.release()
+
+        self.VBO = ChunkMeshVBO(self.ctx, self.field, self.materials, self.surf_lvl)
 
         self.set_vaos()
 
@@ -89,20 +91,15 @@ class Chunk:
     def set_vaos(self):
         self.vaos = {}
         self.vaos['default'] = self.get_vao(program=self.programs['mesh'], 
-                                         vbo=self.vbo)
+                                         vbo=self.VBO)
         self.vaos['shadow'] = self.get_vao(program=self.programs['shadow_map'], 
-                                         vbo=self.vbo)
+                                         vbo=self.VBO)
         self.vaos['normal'] = self.get_vao(program=self.programs['buffer_normal'], 
-                                         vbo=self.vbo)
+                                         vbo=self.VBO)
         self.vaos['depth'] = self.get_vao(program=self.programs['buffer_depth'], 
-                                         vbo=self.vbo)
+                                         vbo=self.VBO)
         
         self.model = ChunkModel(self.pos, self.scene, self.vaos)
-
-    def destroy(self):
-        self.vbo.destroy()
-        for vao in self.vaos.values():
-            vao.release()
 
 
 class ChunkModel(BaseModel):

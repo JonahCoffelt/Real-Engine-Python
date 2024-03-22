@@ -3,9 +3,12 @@ from texture_handler import TextureHandler
 from light_handler import LightHandler
 from buffer_handler import BufferHandler
 from entity_handler import EntityHandler, ObjectHandler
+from particle_handler import ParticleHandler
 from marching_cubes_chunk import Chunk, CHUNK_SIZE
 import numpy as np
 import glm
+import moderngl as mgl
+
 
 class Scene:
     def __init__(self, graphics_engine) -> None:
@@ -20,8 +23,10 @@ class Scene:
         self.vao_handler.set_up()
         self.light_handler = LightHandler()
         self.vao_handler.program_handler.set_attribs(self)
+        self.entity_handler = EntityHandler()
         self.objects = ObjectHandler(self)
-        self.entity_handler = EntityHandler(self.objects, self.cam)
+
+        self.particle_handler = ParticleHandler(self.ctx, self.vao_handler.program_handler.programs, self.cam)
         
         self.chunks = {}
         for x in range(6):
@@ -42,8 +47,8 @@ class Scene:
         self.light_handler.dir_light.color = glm.vec3(np.array([1, 1, 1]) - np.array([.8, .9, .6]) * (min(.75, max(.25, (np.sin(self.time / 500)*.5 + .5))) * 2 - .5))
         
         self.vao_handler.program_handler.update_attribs(self)  # Updates the values sent to uniforms
-        self.entity_handler.update(delta_time) # updates entities
         self.objects.update(delta_time)  # Updates the objects
+        self.particle_handler.update(delta_time)  # Updates particles
 
     def modify_terrain(self, magnitude):
         pos = self.ray_cast()
@@ -76,10 +81,11 @@ class Scene:
                                     chunk = f'{int(chunk_pos[0] - x_edge)};{int(chunk_pos[1] - y_edge)};{int(chunk_pos[2] - z_edge)}'
                                     if chunk in self.graphics_engine.scene.chunks:
                                         if magnitude > 0:
-                                            self.graphics_engine.scene.chunks[chunk].feild[local_x][local_y][local_z] += magnitude / ((abs(x) + abs(y) + abs(z)) * .5 * width + .0001)
+                                            self.graphics_engine.scene.chunks[chunk].field[local_x][local_y][local_z] += magnitude / ((abs(x) + abs(y) + abs(z)) * .5 * width + .0001)
+                                            self.graphics_engine.scene.chunks[chunk].materials[local_x][local_y][local_z] = 3
                                         else:
-                                            self.graphics_engine.scene.chunks[chunk].feild[local_x][local_y][local_z] += magnitude /  .5 * width + .0001
-                                        self.graphics_engine.scene.chunks[chunk].feild[local_x][local_y][local_z] = max(min(self.graphics_engine.scene.chunks[chunk].feild[local_x][local_y][local_z], 1.0), -1.0)
+                                            self.graphics_engine.scene.chunks[chunk].field[local_x][local_y][local_z] += magnitude /  .5 * width + .0001
+                                        self.graphics_engine.scene.chunks[chunk].field[local_x][local_y][local_z] = max(min(self.graphics_engine.scene.chunks[chunk].field[local_x][local_y][local_z], 1.0), -1.0)
                                         if chunk not in chunks:
                                             chunks.append(chunk)
             for chunk in chunks:
@@ -93,7 +99,7 @@ class Scene:
             pos = self.cam.position + step_size * i
             cam_chunk = f'{int(pos.x // CHUNK_SIZE)};{int(pos.y // CHUNK_SIZE)};{int(pos.z // CHUNK_SIZE)}'
             if cam_chunk in self.chunks:
-                if self.chunks[cam_chunk].feild[int(pos.x) % CHUNK_SIZE][int(pos.y) % CHUNK_SIZE][int(pos.z) % CHUNK_SIZE] > 0:
+                if self.chunks[cam_chunk].field[int(pos.x) % CHUNK_SIZE][int(pos.y) % CHUNK_SIZE][int(pos.z) % CHUNK_SIZE] > 0:
                     ray_cast_pos = pos
                     break
 
@@ -101,18 +107,22 @@ class Scene:
 
     def render_buffers(self):
         self.buffer_handler.buffers['frame'].use()   # Frame Buffer
-        self.objects.render(False, light=True)
+        self.objects.render('skybox', light=False, object_types=('skybox'))
+        self.objects.render(False, light=True, object_types=('container', 'metal_box', 'wooden_box'))
         self.objects.render(False, light=True, objs=self.chunks.values())
+        self.ctx.enable(flags=mgl.BLEND)
+        self.particle_handler.render()
+        self.ctx.disable(flags=mgl.BLEND)
         self.buffer_handler.buffers['normal'].use()  # Normal Buffer
-        self.objects.render('buffer_normal', 'normal', ('container', 'metal_box', 'meshes'))
+        self.objects.render('buffer_normal', 'normal', ('container', 'metal_box', 'wooden_box', 'meshes'))
         self.objects.render('buffer_normal', 'normal', objs=self.chunks.values())
         self.buffer_handler.buffers['depth'].use()   # Depth Buffer
-        self.objects.render('buffer_depth', 'depth', ('container', 'metal_box', 'meshes'))
+        self.objects.render('buffer_depth', 'depth', ('container', 'metal_box', 'wooden_box', 'meshes'))
         self.objects.render('buffer_depth', 'depth', objs=self.chunks.values())
         self.shadow_fbo.clear() # Shadow Buffer
         self.shadow_fbo.use()
         self.objects.apply_shadow_shader_uniforms()
-        self.objects.render('shadow_map', 'shadow', ('container', 'metal_box', 'meshes', 'cat'))
+        self.objects.render('shadow_map', 'shadow', ('container', 'metal_box', 'wooden_box', 'meshes', 'cat'))
         self.objects.render('shadow_map', 'shadow', objs=self.chunks.values())
 
     def render_filters(self):
@@ -144,7 +154,3 @@ class Scene:
         self.render_buffers()  # Renders the standard buffers
         self.render_filters()  # Renders and filter buffers
         self.render_screen() # Renders buffers to screen
-        
-    def set_camera(self, camera):
-        self.cam = camera
-        self.entity_handler.set_player_camera(self.cam)

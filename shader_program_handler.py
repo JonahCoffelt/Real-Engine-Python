@@ -4,7 +4,8 @@ PROGRAMS = {
     'default' : 'default',
     'mesh' : 'mesh',
     'skybox' : 'skybox',
-    'shadow_map' : 'shadow_map'
+    'shadow_map' : 'shadow_map',
+    'particle' : 'particle'
 }
 
 class ProgramHandler:
@@ -57,6 +58,7 @@ class ProgramHandler:
             'm_view_sky' : glm.mat4(glm.mat3(scene.cam.m_view)),
             'u_resolution' : glm.vec2(scene.graphics_engine.app.win_size),
             'time' : glm.float32(scene.time),
+            'm_proj' : scene.cam.m_proj,
 
             'shadowMap' : scene.texture_handler.textures['shadow_map_texture'],
             'u_texture_skybox' : scene.texture_handler.textures['skybox']
@@ -64,12 +66,12 @@ class ProgramHandler:
 
         self.SHADER_ATTRIBS = {
             'default' : [
-                ['view_pos', 'm_view_light', 'u_resolution', 'm_view', 'view_pos'],  # Variables
+                ['view_pos', 'm_view_light', 'u_resolution', 'm_view'],  # Variables
                 ['shadowMap'],  # Textures
                 {'light' : True, 'material' : True}  # Components
             ],
             'mesh' : [
-                ['view_pos', 'm_view_light', 'u_resolution', 'm_view', 'view_pos'],  # Variables
+                ['view_pos', 'm_view_light', 'u_resolution', 'm_view'],  # Variables
                 ['shadowMap'],  # Textures
                 {'light' : True, 'material' : False}  # Components
             ],
@@ -90,6 +92,11 @@ class ProgramHandler:
             ],
             'buffer_depth' : [
                 ['m_view'],  # Variables
+                [],  # Textures
+                {'light' : False, 'material' : False}  # Components
+            ],
+            'particle' : [
+                ['m_view', 'm_proj'],  # Variables
                 [],  # Textures
                 {'light' : False, 'material' : False}  # Components
             ]

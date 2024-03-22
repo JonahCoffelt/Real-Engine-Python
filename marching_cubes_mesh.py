@@ -99,7 +99,7 @@ class ChunkMeshVBO():
         return vbo
 
     def get_vertex_data(self):
-        vertex_data = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0]], dtype='f4')
+        vertex_data = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0] for i in range(3)], dtype='f4')
         for z in range(self.CHUNK_SIZE - 1):
             for y in range(self.CHUNK_SIZE - 1):
                 for x in range(self.CHUNK_SIZE - 1):
@@ -111,5 +111,5 @@ class ChunkMeshVBO():
 
         return vertex_data
     
-    def destroy(self):
-        self.vbo.release()
+    def release(self):
+        ...
