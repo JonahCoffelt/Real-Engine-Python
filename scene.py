@@ -3,9 +3,11 @@ from texture_handler import TextureHandler
 from light_handler import LightHandler
 from buffer_handler import BufferHandler
 from entity_handler import EntityHandler, ObjectHandler
+from particle_handler import ParticleHandler
 from marching_cubes_chunk import Chunk, CHUNK_SIZE
 import numpy as np
 import glm
+import moderngl as mgl
 
 
 class Scene:
@@ -21,10 +23,11 @@ class Scene:
         self.vao_handler.set_up()
         self.light_handler = LightHandler()
         self.vao_handler.program_handler.set_attribs(self)
-        self.entity_handler = EntityHandler()
         self.object_handler = ObjectHandler(self)
+        self.entity_handler = EntityHandler(self.object_handler, self.cam)
+
+        self.particle_handler = ParticleHandler(self.ctx, self.vao_handler.program_handler.programs, self.cam)
         
-        # Generate island of chunks 
         self.chunks = {}
         for x in range(6):
             for y in range(3):
@@ -40,10 +43,13 @@ class Scene:
 
     def update(self, delta_time):
         #self.time += self.graphics_engine.app.delta_time
-        #self.light_handler.dir_light.color = glm.vec3(np.array([1, 1, 1]) - np.array([.8, .9, .6]) * (min(.75, max(.25, (np.sin(self.time / 500)*.5 + .5))) * 2 - .5))
+
+        self.light_handler.dir_light.color = glm.vec3(np.array([1, 1, 1]) - np.array([.8, .9, .6]) * (min(.75, max(.25, (np.sin(self.time / 500)*.5 + .5))) * 2 - .5))
         
         self.vao_handler.program_handler.update_attribs(self)  # Updates the values sent to uniforms
+        self.entity_handler.update(delta_time)
         self.object_handler.update(delta_time)  # Updates the objects
+        self.particle_handler.update(delta_time)  # Updates particles
 
     def modify_terrain(self, magnitude):
         pos = self.ray_cast()
@@ -89,25 +95,25 @@ class Scene:
     def ray_cast(self):
         ray_cast_pos = None
 
-        # Define a standard step in the look direction
         step_size = glm.vec3(np.cos(np.deg2rad(self.cam.yaw)) * np.cos(np.deg2rad(self.cam.pitch)), np.sin(np.deg2rad(self.cam.pitch)), np.sin(np.deg2rad(self.cam.yaw)) * np.cos(np.deg2rad(self.cam.pitch))) * .5
-        # Traverse forward with the step size
         for i in range(150):
             pos = self.cam.position + step_size * i
             cam_chunk = f'{int(pos.x // CHUNK_SIZE)};{int(pos.y // CHUNK_SIZE)};{int(pos.z // CHUNK_SIZE)}'
             if cam_chunk in self.chunks:
-                if self.chunks[cam_chunk].field[int(pos.x) % CHUNK_SIZE][int(pos.y) % CHUNK_SIZE][int(pos.z) % CHUNK_SIZE] > 0: # Check if point is above curface level
+                if self.chunks[cam_chunk].field[int(pos.x) % CHUNK_SIZE][int(pos.y) % CHUNK_SIZE][int(pos.z) % CHUNK_SIZE] > 0:
                     ray_cast_pos = pos
                     break
 
         return ray_cast_pos
 
     def render_buffers(self):
-        # Renders each of the buffers
         self.buffer_handler.buffers['frame'].use()   # Frame Buffer
         self.object_handler.render('skybox', light=False, object_types=('skybox'))
-        self.object_handler.render(False, light=False, object_types=('container', 'metal_box', 'wooden_box'))
-        self.object_handler.render(False, light=False, objs=self.chunks.values())
+        self.object_handler.render(False, light=True, object_types=('container', 'metal_box', 'wooden_box'))
+        self.object_handler.render(False, light=True, objs=self.chunks.values())
+        self.ctx.enable(flags=mgl.BLEND)
+        self.particle_handler.render()
+        self.ctx.disable(flags=mgl.BLEND)
         self.buffer_handler.buffers['normal'].use()  # Normal Buffer
         self.object_handler.render('buffer_normal', 'normal', ('container', 'metal_box', 'wooden_box', 'meshes'))
         self.object_handler.render('buffer_normal', 'normal', objs=self.chunks.values())
@@ -149,3 +155,8 @@ class Scene:
         self.render_buffers()  # Renders the standard buffers
         self.render_filters()  # Renders and filter buffers
         self.render_screen() # Renders buffers to screen
+
+    def set_camera(self, camera):
+        self.cam = camera
+        self.entity_handler.set_player_camera(self.cam)
+        self.particle_handler.cam = self.cam

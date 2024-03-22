@@ -27,13 +27,16 @@ class ObjectHandler:
         Creates objects in the scene
         """
         self.objects.append(Object(self, self.scene, model.SkyBoxModel, program_name='skybox', vao='skybox', obj_type='skybox'))
+        
+        #for x in range(10):  
+            #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', scale=(10, .5, 10), pos = (randint(-30, 30), randint(-40, 0), randint(-30, 30)), gravity = False, immovable = True, rot = (randint(-30, 30), 0, randint(-30, 30))))
+        self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', scale=(15, .5, 15), pos = (0, -2, 0), gravity = False, immovable = True))
+        
+        self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='container', obj_type='container', scale=(1, 1, 1), pos = (0, -2, 0), gravity = False, immovable = True))
 
-        self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(-20, -1, -20), scale=(15, .5, 15), gravity=False, immovable=True))
 
-        for _ in range(10):
-            self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(randint(-20, -5), randint(5, 20), randint(-20, -5)), scale=(.5, .5, .5)))
-            self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='wooden_box', obj_type='wooden_box', pos=(randint(-20, -5), randint(5, 20), randint(-20, -5)), scale=(.5, .5, .5)))
-            
+        for i in range(10):
+            self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(randint(-10, 10), randint(0, 15), randint(-10, 10)), rot = (randint(0, 120), 0, randint(0, 120)), scale=(.5, .5, .5)))
 
     def update(self, delta_time):
     
@@ -118,6 +121,10 @@ class ObjectHandler:
                 self.write_shader_uniforms(program, obj.obj_type, mat)
             obj.render(render_type)
 
+            
+    def add_object(self, object):
+        self.objects.append(object)
+        return object
 
 class Object:
     def __init__(self, obj_handler, scene, model, program_name='default', vao='cube', material='container', obj_type='none', pos=(0, 0, 0), rot=(0, 0, 0), scale=(1, 1, 1), hitbox_type = 'cube', hitbox_file_name = None, rot_vel = 0.001, rot_axis = (0, 0, 0), vel = (0, 0, 0), mass = 1, immovable = False, gravity = True):
@@ -141,6 +148,7 @@ class Object:
         self.mass = mass if not immovable else 1e10
 
         self.on_init(model, vao=vao, hitbox_type=hitbox_type, hitbox_file_name=hitbox_file_name, rot_vel=rot_vel, rot_axis=rot_axis, vel=vel)
+
 
     def on_init(self, model, vao='cube', hitbox_type = 'cube', hitbox_file_name = None, rot_vel = 0, rot_axis = (0, 0, 0), vel = (0, 0, 0)):
         self.model = model(self, self.scene, vao)
@@ -211,7 +219,9 @@ class Object:
     # setter methods
     def set_hitbox(self, hitbox): self.hitbox = hitbox
     def set_pos(self, pos): self.pos = pos
-    def set_rot(self, rot): self.rot = rot
+    def set_rot(self, rot): 
+        self.rot = rot
+        self.rot_point = R.as_quat(R.from_euler('zyx', self.rot))
     
     # modifier methods
     def move(self, vec, delta_time):

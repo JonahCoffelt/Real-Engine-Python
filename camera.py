@@ -89,7 +89,7 @@ class Camera:
     
 class FollowCamera(Camera):
     
-    def __init__(self, app, followed, yaw=-90, pitch=0, radius = 10):
+    def __init__(self, app, followed, yaw=-90, pitch=0, radius = 7):
         
         self.followed = followed
         self.radius = radius
@@ -99,9 +99,6 @@ class FollowCamera(Camera):
     def update(self):
         self.rotate()
         self.update_pos()
-        for event in pg.event.get():
-            if event.type == pg.MOUSEWHEEL:
-                self.radius += event.y
         self.update_camera_vectors()
         self.m_view = self.get_view_matrix()
         
@@ -109,7 +106,7 @@ class FollowCamera(Camera):
         return glm.lookAt(self.position, self.followed.pos, self.up)
     
     def update_pos(self):
-        self.position = self.followed.pos + self.forward * self.radius
+        self.position = self.followed.pos - self.forward * self.radius
         
     def rotate(self):
         """
@@ -117,5 +114,5 @@ class FollowCamera(Camera):
         """
         rel_x, rel_y = pg.mouse.get_rel()
         self.yaw += rel_x * SENSITIVITY
-        self.pitch += rel_y * SENSITIVITY
+        self.pitch -= rel_y * SENSITIVITY
         self.pitch = max(-89, min(89, self.pitch))

@@ -18,6 +18,7 @@ class BufferHandler:
         # Create standard buffers
         for buffer in BUFFERS: self.buffers[buffer] = self.get_buffer(buffer, BUFFERS[buffer])
 
+        print(self.buffers)
 
     
     def get_buffer(self, name, program):

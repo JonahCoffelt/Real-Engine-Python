@@ -58,7 +58,7 @@ class Game:
         self.mine_duration = .04
         while self.run:
             pg.display.set_caption(str(round(self.clock.get_fps())))
-            self.delta_time = self.clock.tick(60)
+            self.delta_time = self.clock.tick()
             self.mine_timer += self.delta_time / 1000
             self.check_events()  # Checks for window events
             self.graphics_engine.update(self.delta_time * 0.001)  # Render and update calls
