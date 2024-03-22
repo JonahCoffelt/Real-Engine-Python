@@ -46,8 +46,8 @@ class PhysicsEngine():
         
         point1, point2 = self.distance_point_to_plane(obj1.hitbox, normal2), self.distance_point_to_plane(obj2.hitbox, normal1)
         
-        if not obj1.immovable: self.get_collision_result(obj1.hitbox, normal2, point1, 0.5, 0, delta_time)
-        if not obj2.immovable: self.get_collision_result(obj2.hitbox, normal1, point2, 0.5, 0, delta_time)
+        if not obj1.immovable: self.get_collision_result(obj1.hitbox, normal2, point1, 0.5, 10, delta_time)
+        if not obj2.immovable: self.get_collision_result(obj2.hitbox, normal1, point2, 0.5, 10, delta_time)
         
         return obj1, obj2
     
@@ -55,43 +55,38 @@ class PhysicsEngine():
         
         # translational velocity
         reflected_vel = glm.reflect(hitbox1.vel, normal2)
-        
-        # splits perp and para components
-        parallel_component = glm.dot(reflected_vel, normal2) * normal2
-        perpendicular_component = reflected_vel - parallel_component
+        parallel, perpendicular = self.get_components(reflected_vel, normal2)
         
         # friction and elasticity
-        parallel_component *= elasticity_factor
-        perpendicular_component *= (1 - friction_factor * delta_time)
-        
-        reflected_vel = parallel_component + perpendicular_component
-        
-        # gets velocity based of goofy momentum conservation but not really
-        """new_vel = glm.normalize(new_vel)
-        new_vel *= tot_vel / 2"""
-        
-        """# set low velocities to zero
-        for i in range(len(new_vel)):
-            if abs(new_vel[i]) < 0.1:
-                new_vel[i] = 0"""
-                
-        # sets new velocity
-        hitbox1.set_vel(reflected_vel)
+        parallel *= elasticity_factor
+        perpendicular *= (1 - friction_factor * delta_time)
+        reflected_vel = parallel + perpendicular
         
         # rotational velocity
-        radius = hitbox1.get_center() - close_point
+        radius = glm.normalize(hitbox1.get_center() - close_point)
+        rad_par, rad_perp = self.get_components(radius, normal2)
         
         # gravitational vs lateral rotation
-        if glm.length(perpendicular_component) < 9.8:
+        if glm.length(perpendicular) < 1 and glm.dot((0, 1, 0), normal2) > 0:
             aor = glm.cross(radius, normal2)
-            vel = glm.dot(normal2, radius)
+            
+            # pretend that the objects rotation is increasing with the acceleration due to gravity
+            if aor == hitbox1.rot_axis: vel = hitbox1.rot_vel
+            else: vel = glm.dot(normal2, radius) * 0.1
         else: 
-            aor = glm.cross(radius, perpendicular_component)
-            vel = glm.length(perpendicular_component) / (glm.length(radius) * 2 * glm.pi())
+            aor = glm.cross(radius, perpendicular)
+            vel = glm.length(perpendicular) / (glm.length(radius) * glm.pi())
         
-        # sets rotational velocity variables
+        # sets rotational and translational velocity variables
+        hitbox1.set_vel(reflected_vel)# - rad_perp * glm.length(hitbox1.vel))
         hitbox1.set_rot_axis(aor)
         hitbox1.set_rot_vel(vel)
+        
+        
+    def get_components(self, vec, normal):
+        parallel = glm.dot(vec, normal) * normal
+        perpendicular = vec - parallel
+        return parallel, perpendicular
     
     def get_colliding_points(self, simplex):
     
