@@ -29,9 +29,9 @@ class Scene:
         self.particle_handler = ParticleHandler(self.ctx, self.vao_handler.program_handler.programs, self.cam)
         
         self.chunks = {}
-        for x in range(6):
+        for x in range(2):
             for y in range(3):
-                for z in range(6):
+                for z in range(2):
                     self.chunks[f'{x};{y};{z}'] = (Chunk(self.ctx, self.vao_handler.program_handler.programs, self, (x, y, z)))
 
         # Shadow map buffer

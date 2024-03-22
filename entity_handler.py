@@ -67,7 +67,7 @@ class Player(Entity):
         if keys[pg.K_d]:
             self.obj.pos += self.cam.right * velocity
         if keys[pg.K_SPACE]:
-            self.obj.hitbox.vel += glm.vec3(0, 0.1, 0)
+            self.obj.hitbox.vel += glm.vec3(0, 50, 0) * delta_time
             
         self.obj.set_rot((0, -glm.radians(self.cam.yaw), 0))
             

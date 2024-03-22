@@ -12,7 +12,7 @@ SEED = random.randrange(1000)
 
 def generate_island(field, materials, chunk_x, chunk_y, chunk_z) -> np.array:
     center = CHUNK_SIZE / 2
-    world_size = CHUNK_SIZE * 6
+    world_size = CHUNK_SIZE * 2
     for local_z in range(CHUNK_SIZE + 1):
         for local_x in range(CHUNK_SIZE + 1):
             global_x, global_z = local_x + chunk_x * CHUNK_SIZE, local_z + chunk_z * CHUNK_SIZE

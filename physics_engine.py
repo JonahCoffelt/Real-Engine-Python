@@ -1,12 +1,29 @@
 from physics_binary_search import *
+from hitboxes import Hitbox
+import numpy as np
 
 class PhysicsEngine():
     
-    def __init__(self, gravity_strength):
+    def __init__(self, gravity_strength, dummy):
         
         self.gravity_strength = gravity_strength
         self.gjk = GJK()
         self.pbs = PBS(self)
+        self.dummy = dummy
+        
+    def resolve_terrain_collisions(self, objs, delta_time, chunks):
+        for obj in objs:
+            if obj.immovable: continue
+            for chunk in chunks.values():
+                pos = np.array(chunk.pos) * 10
+                for i in range(len(chunk.VBO.positions)):
+                    self.dummy.set_hitbox(Hitbox(self.dummy, chunk.VBO.positions[i] + pos, [[0, 1, 2]], (1, 1, 1), (0, 0, 0), 0, (0, 0, 0)))
+                    
+                    #if not self.detect_broad_collision(obj.hitbox, self.dummy.hitbox): continue
+                    collided = self.gjk.get_gjk_collision(obj.hitbox, self.dummy.hitbox)
+                    if not collided: continue
+                    
+                    self.resolve_collision(obj, self.dummy, delta_time)
         
     # object to object collisions
     def resolve_collisions(self, objs, delta_time):
@@ -67,7 +84,7 @@ class PhysicsEngine():
         rad_par, rad_perp = self.get_components(radius, normal2)
         
         # gravitational vs lateral rotation
-        if glm.length(perpendicular) < 1 and glm.dot((0, 1, 0), normal2) > 0:
+        if glm.length(reflected_vel) < 1 and glm.dot((0, 1, 0), normal2) > 0:
             aor = glm.cross(radius, normal2)
             
             # pretend that the objects rotation is increasing with the acceleration due to gravity
