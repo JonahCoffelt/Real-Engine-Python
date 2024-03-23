@@ -4,7 +4,7 @@ from light_handler import LightHandler
 from buffer_handler import BufferHandler
 from entity_handler import EntityHandler, ObjectHandler
 from particle_handler import ParticleHandler
-from marching_cubes_chunk import Chunk, CHUNK_SIZE
+from chunk_handler import ChunkHandler
 import numpy as np
 import glm
 import moderngl as mgl
@@ -23,16 +23,10 @@ class Scene:
         self.vao_handler.set_up()
         self.light_handler = LightHandler()
         self.vao_handler.program_handler.set_attribs(self)
+        self.chunk_handler = ChunkHandler(self)
         self.object_handler = ObjectHandler(self)
         self.entity_handler = EntityHandler(self.object_handler, self.cam)
-
         self.particle_handler = ParticleHandler(self.ctx, self.vao_handler.program_handler.programs, self.cam)
-        
-        self.chunks = {}
-        for x in range(6):
-            for y in range(3):
-                for z in range(6):
-                    self.chunks[f'{x};{y};{z}'] = (Chunk(self.ctx, self.vao_handler.program_handler.programs, self, (x, y, z)))
 
         # Shadow map buffer
         self.shadow_texture = self.texture_handler.textures['shadow_map_texture']
@@ -51,80 +45,25 @@ class Scene:
         self.object_handler.update(delta_time)  # Updates the objects
         self.particle_handler.update(delta_time)  # Updates particles
 
-    def modify_terrain(self, magnitude):
-        pos = self.ray_cast()
-        width = 1
-        if pos:
-            chunks = []
-            for x in range(-width, width + 1):
-                for y in range(-width, width + 1):
-                    for z in range(-width, width + 1):
-                        local_pos = [int((pos.x + x)) % CHUNK_SIZE, int((pos.y + y)) % CHUNK_SIZE, int((pos.z + z)) % CHUNK_SIZE]
-                        chunk_pos = [int((pos.x + x)) // CHUNK_SIZE, int((pos.y + y)) // CHUNK_SIZE, int((pos.z + z)) // CHUNK_SIZE]
-
-                        edge_chunks = [1, 1, 1]
-                        if local_pos[0] == 0:
-                            edge_chunks[0] = 2
-                        if local_pos[1] == 0:
-                            edge_chunks[1] = 2
-                        if local_pos[2] == 0:
-                            edge_chunks[2] = 2
-
-                        for x_edge in range(edge_chunks[0]):
-                            for y_edge in range(edge_chunks[1]):
-                                for z_edge in range(edge_chunks[2]):
-                                    local_x = local_pos[0]
-                                    if x_edge: local_x = CHUNK_SIZE
-                                    local_y = local_pos[1]
-                                    if y_edge: local_y = CHUNK_SIZE
-                                    local_z = local_pos[2]
-                                    if z_edge: local_z = CHUNK_SIZE
-                                    chunk = f'{int(chunk_pos[0] - x_edge)};{int(chunk_pos[1] - y_edge)};{int(chunk_pos[2] - z_edge)}'
-                                    if chunk in self.graphics_engine.scene.chunks:
-                                        if magnitude > 0:
-                                            self.graphics_engine.scene.chunks[chunk].field[local_x][local_y][local_z] += magnitude / ((abs(x) + abs(y) + abs(z)) * .5 * width + .0001)
-                                            self.graphics_engine.scene.chunks[chunk].materials[local_x][local_y][local_z] = 3
-                                        else:
-                                            self.graphics_engine.scene.chunks[chunk].field[local_x][local_y][local_z] += magnitude /  .5 * width + .0001
-                                        self.graphics_engine.scene.chunks[chunk].field[local_x][local_y][local_z] = max(min(self.graphics_engine.scene.chunks[chunk].field[local_x][local_y][local_z], 1.0), -1.0)
-                                        if chunk not in chunks:
-                                            chunks.append(chunk)
-            for chunk in chunks:
-                self.graphics_engine.scene.chunks[chunk].generate_mesh()
-
-    def ray_cast(self):
-        ray_cast_pos = None
-
-        step_size = glm.vec3(np.cos(np.deg2rad(self.cam.yaw)) * np.cos(np.deg2rad(self.cam.pitch)), np.sin(np.deg2rad(self.cam.pitch)), np.sin(np.deg2rad(self.cam.yaw)) * np.cos(np.deg2rad(self.cam.pitch))) * .5
-        for i in range(150):
-            pos = self.cam.position + step_size * i
-            cam_chunk = f'{int(pos.x // CHUNK_SIZE)};{int(pos.y // CHUNK_SIZE)};{int(pos.z // CHUNK_SIZE)}'
-            if cam_chunk in self.chunks:
-                if self.chunks[cam_chunk].field[int(pos.x) % CHUNK_SIZE][int(pos.y) % CHUNK_SIZE][int(pos.z) % CHUNK_SIZE] > 0:
-                    ray_cast_pos = pos
-                    break
-
-        return ray_cast_pos
-
     def render_buffers(self):
         self.buffer_handler.buffers['frame'].use()   # Frame Buffer
         self.object_handler.render('skybox', light=False, object_types=('skybox'))
         self.object_handler.render(False, light=True, object_types=('container', 'metal_box', 'wooden_box'))
-        self.object_handler.render(False, light=True, objs=self.chunks.values())
+        self.object_handler.render(False, light=True, objs=self.chunk_handler.chunks.values())
         self.ctx.enable(flags=mgl.BLEND)
         self.particle_handler.render()
         self.ctx.disable(flags=mgl.BLEND)
         self.buffer_handler.buffers['normal'].use()  # Normal Buffer
         self.object_handler.render('buffer_normal', 'normal', ('container', 'metal_box', 'wooden_box', 'meshes'))
-        self.object_handler.render('buffer_normal', 'normal', objs=self.chunks.values())
+        self.object_handler.render('buffer_normal', 'normal', objs=self.chunk_handler.chunks.values())
         self.buffer_handler.buffers['depth'].use()   # Depth Buffer
         self.object_handler.render('buffer_depth', 'depth', ('container', 'metal_box', 'wooden_box', 'meshes'))
-        self.object_handler.render('buffer_depth', 'depth', objs=self.chunks.values())
+        self.object_handler.render('buffer_depth', 'depth', objs=self.chunk_handler.chunks.values())
         self.shadow_fbo.clear() # Shadow Buffer
         self.shadow_fbo.use()
         self.object_handler.apply_shadow_shader_uniforms()
         self.object_handler.render('shadow_map', 'shadow', ('container', 'metal_box', 'wooden_box', 'meshes', 'cat'))
-        self.object_handler.render('shadow_map', 'shadow', objs=self.chunks.values())
+        self.object_handler.render('shadow_map', 'shadow', objs=self.chunk_handler.chunks.values())
 
     def render_filters(self):
         sharpen_buffer = self.buffer_handler.buffers['edge_detect']

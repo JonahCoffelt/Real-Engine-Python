@@ -1,4 +1,5 @@
 from object_handler import *
+from spell_handler import SpellHandler
 import pygame as pg
 
 class EntityHandler():
@@ -6,12 +7,13 @@ class EntityHandler():
     def __init__(self, object_handler : ObjectHandler, cam):
         
         self.object_handler = object_handler
+        #self.spell_handler = SpellHandler(object_handler)
         self.entities = []
         self.on_init(cam)
         
     def on_init(self, cam):
         
-        player = Player(self.object_handler.add_object(Object(self.object_handler, self.object_handler.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(randint(-10, 10), randint(0, 15), randint(-10, 10)), scale=(.5, .5, .5))), cam, 100)
+        player = Player(self, self.object_handler.add_object(Object(self.object_handler, self.object_handler.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(-10, 10, -10), scale=(.5, .5, .5))), cam, 100)
         self.entities.append(player)
         
     def get_ragdoll_objects(self):
@@ -38,8 +40,9 @@ class EntityHandler():
 
 class Entity():
     
-    def __init__(self, obj : Object, health, speed = 1, ragdoll = False):
+    def __init__(self, entity_handler : EntityHandler, obj : Object, health, speed = 1, ragdoll = False):
         
+        self.entity_handler = entity_handler
         self.ragdoll = ragdoll
         self.obj = obj
         self.health = health
@@ -49,10 +52,11 @@ class Entity():
         
 class Player(Entity):
     
-    def __init__(self, obj : Object, cam, health, speed = 5, ragdoll = False):
+    def __init__(self, entity_handler : EntityHandler, obj : Object, cam, health, speed = 5, ragdoll = False):
         
-        super().__init__(obj, health, speed, ragdoll)
+        super().__init__(entity_handler, obj, health, speed, ragdoll)
         self.cam = cam
+        #self.spell = self.entity_handler.spell_handler.create_random_spell()
         
     def move(self, delta_time):
         
@@ -67,7 +71,7 @@ class Player(Entity):
         if keys[pg.K_d]:
             self.obj.pos += self.cam.right * velocity
         if keys[pg.K_SPACE]:
-            self.obj.hitbox.vel += glm.vec3(0, 0.1, 0)
+            self.obj.hitbox.vel += glm.vec3(0, 50, 0) * delta_time
             
         self.obj.set_rot((0, -glm.radians(self.cam.yaw), 0))
             

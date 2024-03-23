@@ -46,11 +46,11 @@ class Game:
 
         if pg.mouse.get_pressed()[0] and self.mine_timer > self.mine_duration:
             self.mine_timer = 0
-            self.graphics_engine.scene.modify_terrain(0.2)
+            self.graphics_engine.scene.chunk_handler.modify_terrain(0.2)
 
         if pg.mouse.get_pressed()[2] and self.mine_timer > self.mine_duration:
             self.mine_timer = 0
-            self.graphics_engine.scene.modify_terrain(-.05)
+            self.graphics_engine.scene.chunk_handler.modify_terrain(-.05)
 
     def start(self):
         self.run = True
@@ -62,7 +62,6 @@ class Game:
             self.mine_timer += self.delta_time / 1000
             self.check_events()  # Checks for window events
             self.graphics_engine.update(self.delta_time * 0.001)  # Render and update calls
-
 
 if __name__ == '__main__':
     game = Game()

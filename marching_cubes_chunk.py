@@ -12,7 +12,7 @@ SEED = random.randrange(1000)
 
 def generate_island(field, materials, chunk_x, chunk_y, chunk_z) -> np.array:
     center = CHUNK_SIZE / 2
-    world_size = CHUNK_SIZE * 6
+    world_size = CHUNK_SIZE * 12
     for local_z in range(CHUNK_SIZE + 1):
         for local_x in range(CHUNK_SIZE + 1):
             global_x, global_z = local_x + chunk_x * CHUNK_SIZE, local_z + chunk_z * CHUNK_SIZE
@@ -70,6 +70,19 @@ class Chunk:
         self.VBO = ChunkMeshVBO(self.ctx, self.field, self.materials, self.surf_lvl)
 
         self.set_vaos()
+        
+    def get_close_cubes(self, obj):
+        
+        possible_cubes = []
+        for vertex in obj.hitbox.vertices:
+            possible_cubes.append(self.get_cube_from_point(vertex))
+        
+        return list(possible_cubes)
+            
+    def get_cube_from_point(self, point):
+        
+        x, y, z = int(point[0])%10, int(point[1])%10 , int(point[2])%10
+        return self.VBO.get_single_vertex_data(x, y, z) + np.array(self.pos) * 10
 
     def generate_mesh(self):
 

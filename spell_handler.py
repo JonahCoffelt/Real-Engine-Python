@@ -1,13 +1,17 @@
 import numpy as np
 import random
+from object_handler import Object
+from model import BaseModel
 
 class SpellHandler():
     
-    def __init__(self):
+    def __init__(self, object_handler):
         
         # spell program handlers
         self.launch_handler = LaunchHandler()
         self.spread_handler = SpreadHandler()
+        
+        self.object_handler = object_handler
         
         # saved spells list
         self.spells = []
@@ -19,7 +23,7 @@ class SpellHandler():
                 'straight' : 1
             },
             'spread_type' : {
-                'vertical' : 0,
+                #'vertical' : 0,
                 'horizontal' : 1
             }
         }
@@ -36,9 +40,18 @@ class SpellHandler():
         Angle: no point change, max = 90 degrees or pi/2
         """
         
-    def create_random_spell(self, cost):
+    def create_random_spell(self):
         
-        ...
+        launch_type = random.choice(self.spell_attributes['launch_type'].keys())
+        spread_type = random.choice(self.spell_attributes['spread_type'].keys())
+        damage = random.randint(1, 10)
+        radius = random.uniform(0.1, 3.0)
+        speed = random.uniform(0.1, 2)
+        force = random.uniform(0.1, 3)
+        count = random.randint(1, 5)
+        angle = random.uniform(np.pi/3, np.pi)
+        
+        return Spell(self, damage, radius, speed, force, spread_type, launch_type, count, angle, True)
     
 class LaunchHandler():
     
@@ -137,17 +150,19 @@ class Spell():
         
         # returns a list of bullets using launch program
         match self.launch_type:
-            case 'straight': return [Bullet(pos, self.spell_handler.launch_handler.get_straight(direction, self.speed)) for direction in directions]
-            case 'lob': return [Bullet(pos, self.spell_handler.launch_handler.get_lob(direction, self.speed, -9.8)) for direction in directions]
+            case 'straight': return [Bullet(self, pos, self.spell_handler.launch_handler.get_straight(direction, self.speed)) for direction in directions]
+            case 'lob': return [Bullet(self, pos, self.spell_handler.launch_handler.get_lob(direction, self.speed, -9.8)) for direction in directions]
             case _: assert False, 'launch program does not exist'
         
 class Bullet():
     
-    def __init__(self, pos, launch_program):
+    def __init__(self, spell : Spell, pos, launch_program):
         
-        self.pos = pos
         self.launch_program = launch_program
+        self.spell = spell
+        self.obj = self.spell.spell_handler.object_handler.add_object(Object(self, self.spell.spell_handler.object_handler, BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos = pos, rot = (0, 0, 0), scale=(.2, .2, .2)))
         
     def move(self):
         
         self.pos = self.launch_program(self.pos)
+        

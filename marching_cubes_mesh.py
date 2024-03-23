@@ -124,5 +124,11 @@ class ChunkMeshVBO():
 
         return vertex_data
     
+    def get_single_vertex_data(self, x, y, z):
+        cube_data = get_cube(self.field, np.array([0, 0, 0]), edge_table, tri_table, self.surf_lvl, x, y, z)[:,3:6]
+        cube_data = cube_data.reshape((len(cube_data)//3, 3, 3))
+        
+        return cube_data
+    
     def release(self):
         ...
