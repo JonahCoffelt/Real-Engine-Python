@@ -18,7 +18,7 @@ class ObjectHandler:
         self.light_handler = self.scene.light_handler
         self.material_handler = MaterialHandler(self.scene.texture_handler.textures)
         
-        self.pe = PhysicsEngine(-9.8)
+        self.pe = PhysicsEngine(-9.8, Object(self, self.scene, model.BaseModel, program_name = 'default', material='metal_box', scale=(1, 1, 1), pos=(0, 0, 0), gravity = False, immovable = True), self.scene.chunk_handler)
 
         self.on_init()
 
@@ -26,17 +26,16 @@ class ObjectHandler:
         """
         Creates objects in the scene
         """
-        self.objects.append(Object(self, self.scene, model.SkyBoxModel, program_name='skybox', vao='skybox', obj_type='skybox'))
+        self.objects.append(Object(self, self.scene, model.SkyBoxModel, program_name='skybox', vao='skybox', obj_type='skybox', immovable = True, gravity = False))
         
         #for x in range(10):  
             #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', scale=(10, .5, 10), pos = (randint(-30, 30), randint(-40, 0), randint(-30, 30)), gravity = False, immovable = True, rot = (randint(-30, 30), 0, randint(-30, 30))))
-        self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', scale=(15, .5, 15), pos = (0, -2, 0), gravity = False, immovable = True))
+        #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', scale=(15, .5, 15), pos = (0, -2, 0), gravity = False, immovable = True))
         
-        self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='container', obj_type='container', scale=(1, 1, 1), pos = (0, -2, 0), gravity = False, immovable = True))
+        #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='container', obj_type='container', scale=(1, 1, 1), pos = (0, -2, 0), gravity = False, immovable = True))
 
-
-        for i in range(10):
-            self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(randint(-10, 10), randint(0, 15), randint(-10, 10)), rot = (randint(0, 120), 0, randint(0, 120)), scale=(.5, .5, .5)))
+        #for i in range(0):
+            #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(randint(-10, 10), randint(0, 15), randint(-10, 10)), rot = (randint(0, 120), 0, randint(0, 120)), scale=(.5, .5, .5)))
 
     def update(self, delta_time):
     
@@ -63,6 +62,7 @@ class ObjectHandler:
                 
         # object - object collisions
         self.pe.resolve_collisions(self.objects, delta_time)
+        self.pe.resolve_terrain_collisions(self.objects, delta_time)
 
     def write_shader_uniforms(self, program_name, obj_type=None, material=None):
         """
@@ -120,7 +120,6 @@ class ObjectHandler:
                 else: mat = obj.obj_type
                 self.write_shader_uniforms(program, obj.obj_type, mat)
             obj.render(render_type)
-
             
     def add_object(self, object):
         self.objects.append(object)

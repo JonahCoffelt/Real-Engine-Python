@@ -12,7 +12,7 @@ SEED = random.randrange(1000)
 
 def generate_island(field, materials, chunk_x, chunk_y, chunk_z) -> np.array:
     center = CHUNK_SIZE / 2
-    world_size = CHUNK_SIZE * 6
+    world_size = CHUNK_SIZE * 12
     for local_z in range(CHUNK_SIZE + 1):
         for local_x in range(CHUNK_SIZE + 1):
             global_x, global_z = local_x + chunk_x * CHUNK_SIZE, local_z + chunk_z * CHUNK_SIZE
@@ -52,8 +52,9 @@ def generate_island(field, materials, chunk_x, chunk_y, chunk_z) -> np.array:
 
 
 class Chunk:
-    def __init__(self, ctx, programs, scene, pos: tuple):
+    def __init__(self, ctx, chunks, programs, scene, pos: tuple):
         self.ctx = ctx
+        self.chunks = chunks
         self.programs = programs
         self.scene = scene
         self.pos = pos
@@ -67,9 +68,22 @@ class Chunk:
         self.materials = np.zeros(shape=(CHUNK_SIZE + 1, CHUNK_SIZE + 1, CHUNK_SIZE + 1), dtype='int8')
         self.field, self.materials = generate_island(self.field, self.materials, *pos)
 
-        self.VBO = ChunkMeshVBO(self.ctx, self.field, self.materials, self.surf_lvl)
+        self.VBO = ChunkMeshVBO(self.ctx, self.chunks, self.pos, self.field, self.materials, self.surf_lvl)
 
         self.set_vaos()
+        
+    def get_close_cubes(self, obj):
+        
+        possible_cubes = []
+        for vertex in obj.hitbox.vertices:
+            possible_cubes.append(self.get_cube_from_point(vertex))
+        
+        return list(possible_cubes)
+            
+    def get_cube_from_point(self, point):
+        
+        x, y, z = int(point[0])%10, int(point[1])%10 , int(point[2])%10
+        return self.VBO.get_single_vertex_data(x, y, z) + np.array(self.pos) * 10
 
     def generate_mesh(self):
 
@@ -77,7 +91,7 @@ class Chunk:
         for vao in self.vaos.values():
             vao.release()
 
-        self.VBO = ChunkMeshVBO(self.ctx, self.field, self.materials, self.surf_lvl)
+        self.VBO = ChunkMeshVBO(self.ctx, self.chunks, self.pos, self.field, self.materials, self.surf_lvl, use_neighbors=True)
 
         self.set_vaos()
 

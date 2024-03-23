@@ -7,3 +7,5 @@ material_IDs = {
     3 : np.array([0.5, 0.5, 0.5], dtype='f4'),  # Stone
     4 : np.array([0.9, 0.9, 0.9], dtype='f4'),  # Snow
 }
+
+color_to_ID = {}

@@ -14,7 +14,7 @@ class Game:
         pg.display.gl_set_attribute(pg.GL_CONTEXT_MAJOR_VERSION, 3)
         pg.display.gl_set_attribute(pg.GL_CONTEXT_MINOR_VERSION, 3)
         pg.display.gl_set_attribute(pg.GL_CONTEXT_PROFILE_MASK, pg.GL_CONTEXT_PROFILE_CORE)
-        # Pygame display init
+        # Pygame display initd
         pg.display.set_mode(self.win_size, flags=pg.OPENGL | pg.DOUBLEBUF | pg.RESIZABLE)
         # Lock mouse in place and hide
         pg.event.set_grab(True)
@@ -46,11 +46,11 @@ class Game:
 
         if pg.mouse.get_pressed()[0] and self.mine_timer > self.mine_duration:
             self.mine_timer = 0
-            self.graphics_engine.scene.modify_terrain(0.2)
+            self.graphics_engine.scene.chunk_handler.modify_terrain(0.2)
 
         if pg.mouse.get_pressed()[2] and self.mine_timer > self.mine_duration:
             self.mine_timer = 0
-            self.graphics_engine.scene.modify_terrain(-.05)
+            self.graphics_engine.scene.chunk_handler.modify_terrain(-.05)
 
     def start(self):
         self.run = True
@@ -62,7 +62,6 @@ class Game:
             self.mine_timer += self.delta_time / 1000
             self.check_events()  # Checks for window events
             self.graphics_engine.update(self.delta_time * 0.001)  # Render and update calls
-
 
 if __name__ == '__main__':
     game = Game()
