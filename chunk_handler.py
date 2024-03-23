@@ -17,7 +17,7 @@ class ChunkHandler():
                 for z in range(12):
                     self.chunks[f'{x};{y};{z}'] = (Chunk(self.scene.ctx, self.chunks, self.scene.vao_handler.program_handler.programs, self.scene, (x, y, z)))
         
-        add_voxel_model(self.chunks, 'car', (15, 10, 15))
+        add_voxel_model(self.chunks, 'castle', (10, 4, 10))
 
         for chunk in list(self.chunks.values()):
             chunk.generate_mesh()
@@ -46,26 +46,27 @@ class ChunkHandler():
     def modify_terrain(self, magnitude):
         pos = self.ray_cast()
         width = 1
-        if pos:
-            for x in range(-width, width + 1):
-                for y in range(-width, width + 1):
-                    for z in range(-width, width + 1):
-                        local_pos = [int((pos.x + x)) % CHUNK_SIZE, int((pos.y + y)) % CHUNK_SIZE, int((pos.z + z)) % CHUNK_SIZE]
-                        chunk_pos = [int((pos.x + x)) // CHUNK_SIZE, int((pos.y + y)) // CHUNK_SIZE, int((pos.z + z)) // CHUNK_SIZE]
+        if not pos: return
+        points = [(x, y, z) for x in range(-width, width + 1) for y in range(-width, width + 1) for z in range(-width, width + 1)]
+        [self.modify_point(int((pos.x + point[0])), int((pos.y + point[1])), int((pos.z + point[2])), magnitude / ((abs(point[0]) + abs(point[1]) + abs(point[2])) * .5 * width + .0001)) for point in points]
 
-                        chunk = f'{int(chunk_pos[0])};{int(chunk_pos[1])};{int(chunk_pos[2])}'
+    def modify_point(self, x, y, z, magnitude, material=False):
+        local_pos = [x % CHUNK_SIZE, y % CHUNK_SIZE, z % CHUNK_SIZE]
+        chunk_pos = [x // CHUNK_SIZE, y // CHUNK_SIZE, z // CHUNK_SIZE]
 
-                        self.chunks[chunk].field[local_pos[0]][local_pos[1]][local_pos[2]] += magnitude / ((abs(x) + abs(y) + abs(z)) * .5 * width + .0001)
-                        self.chunks[chunk].materials[local_pos[0]][local_pos[1]][local_pos[2]] = 3
+        chunk = f'{int(chunk_pos[0])};{int(chunk_pos[1])};{int(chunk_pos[2])}'
 
-                        edges = [(x, y, z) for x in range(0, 1 + int(local_pos[0] == 0)) for y in range(0, 1 + int(local_pos[1] == 0)) for z in range(0, 1 + int(local_pos[2] == 0))]
-                        for edge in edges:
-                            edge_chunk_key = f'{int(chunk_pos[0]) - edge[0]};{int(chunk_pos[1]) - edge[1]};{int(chunk_pos[2]) - edge[2]}'
-                            if edge_chunk_key in self.update_chunks: continue
-                            if edge_chunk_key not in self.chunks: continue
-                            self.update_chunks.append(edge_chunk_key)
+        self.chunks[chunk].field[local_pos[0]][local_pos[1]][local_pos[2]] += magnitude
+        if magnitude > 0:
+            self.chunks[chunk].materials[local_pos[0]][local_pos[1]][local_pos[2]] = 3
 
-                
+        edges = [(x, y, z) for x in range(0, 1 + int(local_pos[0] == 0)) for y in range(0, 1 + int(local_pos[1] == 0)) for z in range(0, 1 + int(local_pos[2] == 0))]
+        for edge in edges:
+            edge_chunk_key = f'{int(chunk_pos[0]) - edge[0]};{int(chunk_pos[1]) - edge[1]};{int(chunk_pos[2]) - edge[2]}'
+            if edge_chunk_key in self.update_chunks: continue
+            if edge_chunk_key not in self.chunks: continue
+            self.update_chunks.append(edge_chunk_key)
+
     def ray_cast(self):
         ray_cast_pos = None
 

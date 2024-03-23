@@ -30,7 +30,8 @@ def get_field_from_voxels(path, dim):
     return [field, materials]
 
 voxel_model_info = {
-    'car' : (8, 8, 8)
+    'car' : (25, 25, 40),
+    'castle' : (25, 25, 25)
 }
 
 voxel_models = {
