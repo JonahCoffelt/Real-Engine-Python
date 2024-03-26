@@ -13,26 +13,18 @@ class PhysicsEngine():
         self.chunk_handler = chunk_handler
         
     def resolve_terrain_collisions(self, objs, delta_time):
+        
         for obj in objs:
-            if obj.immovable: continue
             for chunk in self.chunk_handler.get_close_chunks(obj):
-                """pos = np.array(chunk.pos) * 10
-                for i in range(len(chunk.VBO.positions)):
-                    self.dummy.set_hitbox(Hitbox(self.dummy, chunk.VBO.positions[i] + pos, [[0, 1, 2]], (1, 1, 1), (0, 0, 0), 0, (0, 0, 0)))
-                    
-                    collided = self.gjk.get_gjk_collision(obj.hitbox, self.dummy.hitbox)
-                    if not collided: continue
-                    
-                    self.resolve_collision(obj, self.dummy, delta_time)"""
-                    
-                pos = np.array(chunk.pos) * 10
                 for cube in chunk.get_close_cubes(obj):
-                    
                     for triangle in cube:
+                        
                         self.dummy.set_hitbox(Hitbox(self.dummy, triangle, [[0, 1, 2]], (1, 1, 1), (0, 0, 0), 0, (0, 0, 0)))
                         
                         collided = self.gjk.get_gjk_collision(obj.hitbox, self.dummy.hitbox)
                         if not collided: continue
+                        
+                        obj.last_collided = 'terrain'
                         
                         self.resolve_collision(obj, self.dummy, delta_time)
         
@@ -53,6 +45,9 @@ class PhysicsEngine():
                 # narrow collision
                 collided = self.gjk.get_gjk_collision(objs[i].hitbox, objs[j].hitbox)
                 if not collided: continue
+                
+                # sets last collisions
+                objs[i].last_collided, objs[j].last_collided = objs[j], objs[i]
                 
                 # collision resolution
                 self.resolve_collision(objs[i], objs[j], delta_time)

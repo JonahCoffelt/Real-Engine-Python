@@ -80,6 +80,7 @@ class GJK():
         return False, vec
     
     def handle_simplex_tetra(self):
+        
         vec_da = self.simplex[3][0] - self.simplex[0][0]
         vec_db = self.simplex[3][0] - self.simplex[1][0]
         vec_dc = self.simplex[3][0] - self.simplex[2][0]
