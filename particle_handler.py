@@ -22,42 +22,22 @@ class ParticleHandler:
         for particle_index in list(reversed(order)):
             self.particles[particle_index].render(self.cam)
 
-    def add_particles(self, clr=(1.0, 1.0, 1.0), pos=(0, 0, 0), vel=(0, 3, 0), accel=(0, -10, 0)):
-            self.particles.append(Particle(self.ctx, self.programs['particle'], self.particle_vbo, clr=clr, pos=pos, vel=vel, accel=accel))
-
     def update(self, dt):
-        removes = []
-        if dt < .5:
-            for particle in self.particles:
-                particle.update(dt)
-                if particle.life < 0:
-                    removes.append(particle)
-        for particle in removes:
-            self.particles.remove(particle)
+        for particle in self.particles:
+            particle.update(dt)
 
 
 class Particle:
-    def __init__(self, ctx, program, vbo, clr=(1.0, 1.0, 1.0), pos=(0, 0, 0), vel=(0, 4, 0), accel=(0, -1, 0)):
+    def __init__(self, ctx, program, vbo, pos=(0, 0, 0)):
         self.ctx = ctx
         self.program = program
         self.pos = glm.vec3(*pos)
-        self.color = glm.vec3(*clr)
+        self.color = glm.vec3(*[0.0, abs(self.pos.y/10)%1/2+.5, abs(self.pos.x/10)%1/2+.5])
         #self.color = glm.vec3(*[random.uniform(0, 1) for i in range(3)])
         self.vao = self.ctx.vertex_array(program, [(vbo.vbo, vbo.format, *vbo.attribs)], skip_errors=True)
-
-        self.life = 2
-        self.position = np.array([self.pos.x, self.pos.y, self.pos.z], dtype='f4')
-        self.velocity = np.array([*vel], dtype='f4')
-        self.acceleration = np.array([*accel], dtype='f4')
-
     
     def update(self, dt):
-        self.velocity += self.acceleration * dt
-        self.position += self.velocity * dt
-
-        self.pos = glm.vec3(self.position)
-
-        self.life -= dt
+        ...
 
     def get_model_matrix(self, cam):
         m_model = glm.mat4()

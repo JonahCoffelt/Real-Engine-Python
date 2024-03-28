@@ -52,9 +52,8 @@ def generate_island(field, materials, chunk_x, chunk_y, chunk_z) -> np.array:
 
 
 class Chunk:
-    def __init__(self, ctx, chunks, programs, scene, pos: tuple):
+    def __init__(self, ctx, programs, scene, pos: tuple):
         self.ctx = ctx
-        self.chunks = chunks
         self.programs = programs
         self.scene = scene
         self.pos = pos
@@ -68,7 +67,7 @@ class Chunk:
         self.materials = np.zeros(shape=(CHUNK_SIZE + 1, CHUNK_SIZE + 1, CHUNK_SIZE + 1), dtype='int8')
         self.field, self.materials = generate_island(self.field, self.materials, *pos)
 
-        self.VBO = ChunkMeshVBO(self.ctx, self.chunks, self.pos, self.field, self.materials, self.surf_lvl)
+        self.VBO = ChunkMeshVBO(self.ctx, self.field, self.materials, self.surf_lvl)
 
         self.set_vaos()
         
@@ -91,7 +90,7 @@ class Chunk:
         for vao in self.vaos.values():
             vao.release()
 
-        self.VBO = ChunkMeshVBO(self.ctx, self.chunks, self.pos, self.field, self.materials, self.surf_lvl, use_neighbors=True)
+        self.VBO = ChunkMeshVBO(self.ctx, self.field, self.materials, self.surf_lvl)
 
         self.set_vaos()
 

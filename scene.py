@@ -8,7 +8,6 @@ from chunk_handler import ChunkHandler
 import numpy as np
 import glm
 import moderngl as mgl
-import random
 
 
 class Scene:
@@ -39,15 +38,12 @@ class Scene:
     def update(self, delta_time):
         #self.time += self.graphics_engine.app.delta_time
 
-        self.particle_handler.add_particles(clr=(0.25, random.uniform(.5, 1), random.uniform(.5, 1)), pos=(0, 2, 0),vel=(random.uniform(-2, 2), random.uniform(5, 8), random.uniform(-2, 2)))
-
         self.light_handler.dir_light.color = glm.vec3(np.array([1, 1, 1]) - np.array([.8, .9, .6]) * (min(.75, max(.25, (np.sin(self.time / 500)*.5 + .5))) * 2 - .5))
         
         self.vao_handler.program_handler.update_attribs(self)  # Updates the values sent to uniforms
         self.entity_handler.update(delta_time)
         self.object_handler.update(delta_time)  # Updates the objects
         self.particle_handler.update(delta_time)  # Updates particles
-        self.chunk_handler.update()
 
     def render_buffers(self):
         self.buffer_handler.buffers['frame'].use()   # Frame Buffer

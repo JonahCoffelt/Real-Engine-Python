@@ -90,45 +90,30 @@ def get_cube(field, material, edge_table, tri_table, surf_lvl, x, y, z):
     
 
 class ChunkMeshVBO():
-    def __init__(self, ctx, chunks, pos, field, materials, surf_lvl, use_neighbors=False):
-        self.ctx = ctx
-        self.chunks = chunks
-        self.pos = pos
+    def __init__(self, ctx, field, materials, surf_lvl):
         self.field = field
         self.materials = materials 
         self.CHUNK_SIZE = len(self.field)
         self.surf_lvl = surf_lvl
-        self.vbo = self.get_vbo(use_neighbors)
+        self.ctx = ctx
+        self.vbo = self.get_vbo()
         self.format = '3f 3f 3f'
         self.attribs = ['in_normal', 'in_position', 'in_material']
 
-    def get_vbo(self, use_neighbors=True):
-        vertex_data = self.get_vertex_data(use_neighbors)
+    def get_vbo(self):
+        vertex_data = self.get_vertex_data()
         vbo = self.ctx.buffer(vertex_data)
         return vbo
 
-    def get_vertex_data(self, use_neighbors=True):
+    def get_vertex_data(self):
         vertex_data = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0] for i in range(3)], dtype='f4')
-
-        if use_neighbors:
-            n = self.CHUNK_SIZE+1
-            field = self.field[:,:,:]
-            if f'{self.pos[0]+1};{self.pos[1]};{self.pos[2]}' in self.chunks: field[-1,:n,:n] = self.chunks[f'{self.pos[0]+1};{self.pos[1]};{self.pos[2]}'].field[0, :n, :n]
-            if f'{self.pos[0]};{self.pos[1]+1};{self.pos[2]}' in self.chunks: field[:n,-1,:n] = self.chunks[f'{self.pos[0]};{self.pos[1]+1};{self.pos[2]}'].field[:n, 0, :n]
-            if f'{self.pos[0]};{self.pos[1]};{self.pos[2]+1}' in self.chunks: field[:n,:n,-1] = self.chunks[f'{self.pos[0]};{self.pos[1]};{self.pos[2]+1}'].field[:n, :n, 0]
-            if f'{self.pos[0]+1};{self.pos[1]+1};{self.pos[2]}' in self.chunks: field[-1,-1,:n] = self.chunks[f'{self.pos[0]+1};{self.pos[1]+1};{self.pos[2]}'].field[0, 0, :n]
-            if f'{self.pos[0]};{self.pos[1]+1};{self.pos[2]+1}' in self.chunks: field[:n,-1,-1] = self.chunks[f'{self.pos[0]};{self.pos[1]+1};{self.pos[2]+1}'].field[:n, 0, 0]
-            if f'{self.pos[0]+1};{self.pos[1]};{self.pos[2]+1}' in self.chunks: field[-1,:n,-1] = self.chunks[f'{self.pos[0]+1};{self.pos[1]};{self.pos[2]+1}'].field[0, :n, 0]
-            #if f'{self.pos[0]+1};{self.pos[1]+1};{self.pos[2]+1}' in self.chunks: field[-1,:-1,-1] = self.chunks[f'{self.pos[0]+1};{self.pos[1]+1};{self.pos[2]+1}'].field[0, 0, 0]
-        else:
-            field = self.field
-
-
+        #self.positions = np.zeros(shape=(3, 3), dtype='f4')
+        #self.norms = np.zeros(shape=(1, 3), dtype='f4')
         for z in range(self.CHUNK_SIZE - 1):
             for y in range(self.CHUNK_SIZE - 1):
                 for x in range(self.CHUNK_SIZE - 1):
                     material = material_IDs[self.materials[x][y][z]]
-                    cube_data = get_cube(field, material, edge_table, tri_table, self.surf_lvl, x, y, z)
+                    cube_data = get_cube(self.field, material, edge_table, tri_table, self.surf_lvl, x, y, z)
                     if len(cube_data):
                         vertex_data = np.vstack([vertex_data, cube_data], dtype='f4')
 
