@@ -5,6 +5,7 @@ from buffer_handler import BufferHandler
 from entity_handler import EntityHandler, ObjectHandler
 from particle_handler import ParticleHandler
 from chunk_handler import ChunkHandler
+from spatial_partitioning import SpationalPartitionHandler
 import numpy as np
 import glm
 import moderngl as mgl
@@ -18,6 +19,7 @@ class Scene:
         self.cam = self.graphics_engine.camera
         self.time = 0
 
+        # handle deez nuts
         self.vao_handler = VAOHandler(self.ctx)
         self.texture_handler = TextureHandler(self.graphics_engine.app)
         self.buffer_handler = BufferHandler(self)
@@ -39,7 +41,7 @@ class Scene:
     def update(self, delta_time):
         #self.time += self.graphics_engine.app.delta_time
 
-        self.particle_handler.add_particles(clr=(0.25, random.uniform(.5, 1), random.uniform(.5, 1)), pos=(0, 2, 0),vel=(random.uniform(-2, 2), random.uniform(5, 8), random.uniform(-2, 2)))
+        self.particle_handler.add_particle(clr=(0.25, random.uniform(.5, 1), random.uniform(.5, 1)), pos=(0, 2, 0),vel=(random.uniform(-2, 2), random.uniform(5, 8), random.uniform(-2, 2)))
 
         self.light_handler.dir_light.color = glm.vec3(np.array([1, 1, 1]) - np.array([.8, .9, .6]) * (min(.75, max(.25, (np.sin(self.time / 500)*.5 + .5))) * 2 - .5))
         

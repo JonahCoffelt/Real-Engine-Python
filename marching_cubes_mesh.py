@@ -122,8 +122,7 @@ class ChunkMeshVBO():
             #if f'{self.pos[0]+1};{self.pos[1]+1};{self.pos[2]+1}' in self.chunks: field[-1,:-1,-1] = self.chunks[f'{self.pos[0]+1};{self.pos[1]+1};{self.pos[2]+1}'].field[0, 0, 0]
         else:
             field = self.field
-
-
+            
         for z in range(self.CHUNK_SIZE - 1):
             for y in range(self.CHUNK_SIZE - 1):
                 for x in range(self.CHUNK_SIZE - 1):
