@@ -4,9 +4,6 @@ out vec4 FragColor;
 in vec3 Color;
 in vec3 pos;
 
-uniform vec3 u_Color;
-
-
 float clampSDF(float value) {
     if (value > 0.0){
         value = 0.0;
@@ -51,5 +48,6 @@ void main()
     //float distance = sdEquilateralTriangle(vec2(pos.x, pos.y), 1);
     //float distance = clampSDF(sdHexagram(vec2(pos.x, pos.y), .5));
     //float distance = clampSDF(sdMoon(vec2(pos.x, pos.y), .5, 1, .75));
-    FragColor = vec4(u_Color, -distance);
+
+    FragColor = vec4(Color, -distance);
 }

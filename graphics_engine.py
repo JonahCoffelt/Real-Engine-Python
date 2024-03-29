@@ -16,8 +16,8 @@ class GraphicsEngine:
         self.scene  = Scene(self)
         
         # creates attached cam to scene object
-        self.camera = FollowCamera(self.app, self.scene.object_handler.objects[-1])
-        self.scene.set_camera(self.camera)
+        #self.camera = FollowCamera(self.app, self.scene.object_handler.objects[-1])
+        #self.scene.set_camera(self.camera)
 
     def update(self, delta_time):
         self.ctx.clear(color=(0.08, 0.16, 0.18))

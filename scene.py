@@ -27,7 +27,7 @@ class Scene:
         self.chunk_handler = ChunkHandler(self)
         self.object_handler = ObjectHandler(self)
         self.entity_handler = EntityHandler(self.object_handler, self.cam)
-        self.particle_handler = ParticleHandler(self.ctx, self.vao_handler.program_handler.programs, self.cam)
+        self.particle_handler = ParticleHandler(self.ctx, self.vao_handler.program_handler.programs, self.vao_handler.vbo_handler.vbos['ico'], self.cam)
 
         # Shadow map buffer
         self.shadow_texture = self.texture_handler.textures['shadow_map_texture']
@@ -39,7 +39,7 @@ class Scene:
     def update(self, delta_time):
         #self.time += self.graphics_engine.app.delta_time
 
-        self.particle_handler.add_particles(clr=(0.25, random.uniform(.5, 1), random.uniform(.5, 1)), pos=(0, 2, 0),vel=(random.uniform(-2, 2), random.uniform(5, 8), random.uniform(-2, 2)))
+        #self.particle_handler.add_particles(clr=(0.25, random.uniform(.5, 1), random.uniform(.5, 1)), pos=(0, 2, 0),vel=(random.uniform(-2, 2), random.uniform(5, 8), random.uniform(-2, 2)))
 
         self.light_handler.dir_light.color = glm.vec3(np.array([1, 1, 1]) - np.array([.8, .9, .6]) * (min(.75, max(.25, (np.sin(self.time / 500)*.5 + .5))) * 2 - .5))
         
@@ -54,9 +54,7 @@ class Scene:
         self.object_handler.render('skybox', light=False, object_types=('skybox'))
         self.object_handler.render(False, light=True, object_types=('container', 'metal_box', 'wooden_box'))
         self.object_handler.render(False, light=True, objs=self.chunk_handler.chunks.values())
-        self.ctx.enable(flags=mgl.BLEND)
         self.particle_handler.render()
-        self.ctx.disable(flags=mgl.BLEND)
         self.buffer_handler.buffers['normal'].use()  # Normal Buffer
         self.object_handler.render('buffer_normal', 'normal', ('container', 'metal_box', 'wooden_box', 'meshes'))
         self.object_handler.render('buffer_normal', 'normal', objs=self.chunk_handler.chunks.values())

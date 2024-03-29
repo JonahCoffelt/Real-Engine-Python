@@ -11,7 +11,7 @@ SPEED = 0.01
 SENSITIVITY = 0.15
 
 class Camera:
-    def __init__(self, app, position=(0, 3, 35), yaw=-90, pitch=0):
+    def __init__(self, app, position=(0.0, 3.0, 35.0), yaw=-90, pitch=0):
         self.app = app
         self.aspect_ratio = app.win_size[0] / app.win_size[1]
         # Position

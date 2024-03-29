@@ -38,7 +38,7 @@ class ObjectHandler:
             #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(randint(-10, 10), randint(0, 15), randint(-10, 10)), rot = (randint(0, 120), 0, randint(0, 120)), scale=(.5, .5, .5)))
 
     def update(self, delta_time):
-    
+
         for obj in self.objects:
                 
             # checks if object needs physics calculations  
@@ -124,6 +124,9 @@ class ObjectHandler:
     def add_object(self, object):
         self.objects.append(object)
         return object
+    
+    def delete_object(self, object):
+        self.objects
 
 class Object:
     def __init__(self, obj_handler, scene, model, program_name='default', vao='cube', material='container', obj_type='none', pos=(0, 0, 0), rot=(0, 0, 0), scale=(1, 1, 1), hitbox_type = 'cube', hitbox_file_name = None, rot_vel = 0.001, rot_axis = (0, 0, 0), vel = (0, 0, 0), mass = 1, immovable = False, gravity = True):
@@ -145,9 +148,11 @@ class Object:
         self.immovable = immovable
         self.gravity = gravity
         self.mass = mass if not immovable else 1e10
+        
+        # interaction variables
+        self.last_collided = None
 
         self.on_init(model, vao=vao, hitbox_type=hitbox_type, hitbox_file_name=hitbox_file_name, rot_vel=rot_vel, rot_axis=rot_axis, vel=vel)
-
 
     def on_init(self, model, vao='cube', hitbox_type = 'cube', hitbox_file_name = None, rot_vel = 0, rot_axis = (0, 0, 0), vel = (0, 0, 0)):
         self.model = model(self, self.scene, vao)
@@ -217,10 +222,13 @@ class Object:
     
     # setter methods
     def set_hitbox(self, hitbox): self.hitbox = hitbox
-    def set_pos(self, pos): self.pos = pos
+    def set_pos(self, pos): 
+        self.pos = glm.vec3(pos)
+        self.model.update()
     def set_rot(self, rot): 
-        self.rot = rot
+        self.rot = glm.vec3(rot)
         self.rot_point = R.as_quat(R.from_euler('zyx', self.rot))
+        self.model.update()
     
     # modifier methods
     def move(self, vec, delta_time):
