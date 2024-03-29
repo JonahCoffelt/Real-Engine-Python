@@ -1,88 +1,116 @@
 import numpy as np
 import glm
+from numba import njit
 import random
+import moderngl as mgl
+
+
+#  Particle Format
+#  x, y, z, r, g, b, scale, life ...
+#  vx, vy, vz, ax, ay, az
+
+
+@njit
+def distance(a, b):
+    return np.sum((a - b) **2, axis=1)
+
+@njit
+def sort_particles(particles_instances, cam_position):
+    particles = distance(particles_instances[:,:3], cam_position).reshape(particles_instances.shape[0], 1)
+    particles_with_distances = np.hstack((particles, particles_instances))
+    particles_with_distances = particles_with_distances[particles_with_distances[:, 0].argsort()]
+    return particles_with_distances[:,1:][::-1]
+
+@njit
+def update_particle_matrix(particle_instances, dt):
+    particle_instances[:,8:11] += particle_instances[:,11:14] * dt
+    particle_instances[:,:3] += particle_instances[:,8:11] * dt
+    particle_instances[:,7] -= dt/3
+    return particle_instances
+
+@njit
+def get_alive(particles):
+    return particles[particles[:, 7] >= 0]
 
 class ParticleHandler:
-    def __init__(self, ctx, programs, cam) -> None:
+    def __init__(self, ctx, programs, ico_vbo, cam) -> None:
         self.programs = programs
         self.ctx = ctx
         self.cam = cam
-        self.particle_vbo = ParticleVBO(ctx)
-        self.particles = [Particle(self.ctx, self.programs['particle'], self.particle_vbo, pos=(random.randrange(-10, 10) for i in range(3))) for particle in range(50)]
+        self.vbo_2d = ParticleVBO(ctx)
+        self.ico_vbo = ico_vbo
+        self.empty_particle = np.array([0.0 for i in range(14)])
 
-    def render(self):
-        self.programs['particle']['m_view'].write(self.cam.m_view)
-        self.programs['particle']['m_proj'].write(self.cam.m_proj)
+        self.particle_cube_size = 20
+        self.order_update_timer = 0
+
+        self.particle_instances_2d = np.array([[x * 3, y * 3, z * 3, .3, (y % 10) / 20, (z % 10) / 20 + .5, random.uniform(0, 2), 1.0,
+                                            random.uniform(-2, 2), random.uniform(-2, 2), random.uniform(-2, 2), random.uniform(-2, 2), random.uniform(-2, 2), random.uniform(-2, 2)] for x in range(self.particle_cube_size) for y in range(self.particle_cube_size) for z in range(self.particle_cube_size)], dtype='f4')
+        self.particle_instances_3d = np.array([[x * 3, y * 3, z * 3, .3, (y % 10) / 20, (z % 10) / 20 + .5, random.uniform(0, 2), 1.0, 
+                                            random.uniform(-2, 2), random.uniform(-2, 2), random.uniform(-2, 2), random.uniform(-2, 2), random.uniform(-2, 2), random.uniform(-2, 2)] for x in range(self.particle_cube_size) for y in range(self.particle_cube_size) for z in range(self.particle_cube_size)], dtype='f4')
+
+        self.instance_buffer_2d = ctx.buffer(reserve=(14 * 3) * (self.particle_cube_size ** 3))
+        self.instance_buffer_3d = ctx.buffer(reserve=(14 * 3) * (self.particle_cube_size ** 3))
 
         cam_pos = self.cam.position
-        particle_dict = {i : glm.length(particle.pos - cam_pos) for i, particle in enumerate(self.particles)}
-        particle_dict = sorted(particle_dict.items(), key=lambda x:x[1])
-        order = [particle[0] for particle in particle_dict]
+        self.particle_instances_2d = np.array(sort_particles(self.particle_instances_2d, np.array([cam_pos.x, cam_pos.y, cam_pos.z])), dtype='f4', order='C')
+        
+        self.vbo_2d = self.vbo_2d
+        self.vao_2d = self.ctx.vertex_array(self.programs['particle'], [(self.vbo_2d.vbo, self.vbo_2d.format, *self.vbo_2d.attribs), 
+                                                                     (self.instance_buffer_2d, '3f 3f 1f 1f /i', 'in_instance_pos', 'in_instance_color', 'scale', 'life')
+                                                                     ], 
+                                                                     skip_errors=True)
+        self.vbo_3d = self.ico_vbo
+        self.vao_3d = self.ctx.vertex_array(self.programs['particle3d'], [(self.ico_vbo.vbo, self.ico_vbo.format, *self.ico_vbo.attribs), 
+                                                                     (self.instance_buffer_3d, '3f 3f 1f 1f /i', 'in_instance_pos', 'in_instance_color', 'scale', 'life')
+                                                                     ], 
+                                                                     skip_errors=True)
 
-        for particle_index in list(reversed(order)):
-            self.particles[particle_index].render(self.cam)
+    def render(self):
+        cam_pos = self.cam.position
+        self.programs['particle']['m_view'].write(self.cam.m_view)
+        self.programs['particle']['m_proj'].write(self.cam.m_proj)
+        self.programs['particle']['cam'].write(cam_pos)
+        self.programs['particle3d']['m_view'].write(self.cam.m_view)
+        self.programs['particle3d']['m_proj'].write(self.cam.m_proj)
 
-    def add_particles(self, clr=(1.0, 1.0, 1.0), pos=(0, 0, 0), vel=(0, 3, 0), accel=(0, -10, 0)):
-            self.particles.append(Particle(self.ctx, self.programs['particle'], self.particle_vbo, clr=clr, pos=pos, vel=vel, accel=accel))
+        alive_particles = get_alive(self.particle_instances_3d)
+        self.instance_buffer_3d.write(np.array(alive_particles[:,:8], order='C'))
+        self.vao_3d.render(instances=(len(alive_particles)))
+
+        self.ctx.enable(flags=mgl.BLEND)
+        alive_particles = get_alive(self.particle_instances_2d)
+        self.instance_buffer_2d.write(np.array(alive_particles[:,:8], order='C'))
+        self.vao_2d.render(instances=(len(alive_particles)))
+        self.ctx.disable(flags=mgl.BLEND)
+
+    def add_particles(self, type=2, life=1.0, pos=(0, 0, 0), clr=(1.0, 1.0, 1.0), scale=1.0, vel=(0, 3, 0), accel=(0, -10, 0)):
+        if type == 2: particles = self.particle_instances_2d
+        else: particles = self.particle_instances_3d
+
+        if len(get_alive(particles)) == self.particle_cube_size ** 3: return
+
+        n = np.argmax(particles[:,7]<0.0)
+        particles[n] = np.array([*pos, *clr, scale, life, *vel, *accel])
 
     def update(self, dt):
-        removes = []
-        if dt < .5:
-            for particle in self.particles:
-                particle.update(dt)
-                if particle.life < 0:
-                    removes.append(particle)
-        for particle in removes:
-            self.particles.remove(particle)
-
-
-class Particle:
-    def __init__(self, ctx, program, vbo, clr=(1.0, 1.0, 1.0), pos=(0, 0, 0), vel=(0, 4, 0), accel=(0, -1, 0)):
-        self.ctx = ctx
-        self.program = program
-        self.pos = glm.vec3(*pos)
-        self.color = glm.vec3(*clr)
-        #self.color = glm.vec3(*[random.uniform(0, 1) for i in range(3)])
-        self.vao = self.ctx.vertex_array(program, [(vbo.vbo, vbo.format, *vbo.attribs)], skip_errors=True)
-
-        self.life = 2
-        self.position = np.array([self.pos.x, self.pos.y, self.pos.z], dtype='f4')
-        self.velocity = np.array([*vel], dtype='f4')
-        self.acceleration = np.array([*accel], dtype='f4')
-
-    
-    def update(self, dt):
-        self.velocity += self.acceleration * dt
-        self.position += self.velocity * dt
-
-        self.pos = glm.vec3(self.position)
-
-        self.life -= dt
-
-    def get_model_matrix(self, cam):
-        m_model = glm.mat4()
-        # Translate
-        m_model = glm.translate(m_model, self.pos)
-        # Rotate
-        yaw = np.arctan2(self.pos.x - cam.position.x, self.pos.z - cam.position.z)
-        pitch = -np.arctan2(self.pos.y - cam.position.y, np.sqrt(np.power(self.pos.x - cam.position.x, 2) + np.power(self.pos.z - cam.position.z, 2)))
-        m_model = glm.rotate(m_model, yaw, glm.vec3(0, 1, 0))
-        m_model = glm.rotate(m_model, pitch, glm.vec3(1, 0, 0))
-
-        return m_model
-
-    def render(self, cam):
-        self.program['m_model'].write(self.get_model_matrix(cam))
-        self.program['u_Color'].write(self.color)
-        self.vao.render()
-
+        cam_pos = self.cam.position
+        # Update 2D Particle Matrix & Sort by distance from camera
+        alive_particles = get_alive(self.particle_instances_2d)
+        self.particle_instances_2d[:len(alive_particles)] = update_particle_matrix(alive_particles, dt)
+        self.particle_instances_2d[len(alive_particles):] = self.empty_particle
+        self.particle_instances_2d[:len(alive_particles)] = np.array(sort_particles(alive_particles, np.array([cam_pos.x, cam_pos.y, cam_pos.z])), dtype='f4')
+        # Update 3D Particle Matrix
+        alive_particles = get_alive(self.particle_instances_3d)
+        self.particle_instances_3d[:len(alive_particles)] = update_particle_matrix(alive_particles, dt)
+        self.particle_instances_3d[len(alive_particles):] = self.empty_particle
 
 class ParticleVBO:
     def __init__(self, ctx):
         self.ctx = ctx
         self.vbo = self.get_vbo()
-        self.format = '3f 3f'
-        self.attribs = ['in_position', 'in_color']
+        self.format = '3f'
+        self.attribs = ['in_position']
 
     def get_vertex_data(self):
         verticies = np.array([[-1, -1, 0],  # Bottom Left
@@ -96,9 +124,6 @@ class ParticleVBO:
 
         vertex_data = self.get_data(verticies, indicies)
 
-        color_data = np.array([[1.0, 1.0, 1.0] for i in range(len(indicies) * 3)], dtype='f4')
-
-        vertex_data = np.hstack([vertex_data, color_data])
         return vertex_data
     
     @staticmethod

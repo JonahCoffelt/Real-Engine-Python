@@ -10,6 +10,7 @@ class VBOHandler:
         self.vbos['cube'] = CubeVBO(self.ctx)
         self.vbos['quad'] = QuadVBO(self.ctx)
         self.vbos['cat'] = ModelVBO(self.ctx, 'objects/cat/20430_Cat_v1_NEW.obj')
+        self.vbos['ico'] = ModelVBO(self.ctx, 'objects/ico/ico.obj')
         self.vbos['skybox'] = SkyBoxVBO(self.ctx)
         self.vbos['frame'] = FrameVBO(self.ctx)
 

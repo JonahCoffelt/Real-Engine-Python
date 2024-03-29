@@ -5,7 +5,8 @@ PROGRAMS = {
     'mesh' : 'mesh',
     'skybox' : 'skybox',
     'shadow_map' : 'shadow_map',
-    'particle' : 'particle'
+    'particle' : 'particle',
+    'particle3d' : 'particle3d'
 }
 
 class ProgramHandler:
