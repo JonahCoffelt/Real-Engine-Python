@@ -86,7 +86,6 @@ class ParticleHandler:
         if type == 2 and len(self.particle_instances_2d) < (self.particle_cube_size ** 3): self.particle_instances_2d = np.vstack((np.array([*pos, *clr, scale, life, *vel, *accel]), self.particle_instances_2d), dtype='f4')
         elif len(self.particle_instances_3d) < (self.particle_cube_size ** 3): self.particle_instances_3d = np.vstack((np.array([*pos, *clr, scale, life, *vel, *accel]), self.particle_instances_3d), dtype='f4')
 
-
     def update(self, dt):
         cam_pos = self.cam.position
         # Update 2D Particle Matrix & Sort by distance from camera
@@ -127,4 +126,3 @@ class ParticleVBO:
         vertex_data = self.get_vertex_data()
         vbo = self.ctx.buffer(vertex_data)
         return vbo
-    

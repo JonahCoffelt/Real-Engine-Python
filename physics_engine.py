@@ -1,38 +1,41 @@
 from physics_binary_search import *
 from hitboxes import Hitbox
 import numpy as np
+from chunk_handler import CHUNK_SIZE
 
 class PhysicsEngine():
     
-    def __init__(self, gravity_strength, dummy, chunk_handler):
+    def __init__(self, gravity_strength, dummy, chunk_handler, object_handler):
         
         self.gravity_strength = gravity_strength
         self.gjk = GJK()
         self.pbs = PBS(self)
         self.dummy = dummy
         self.chunk_handler = chunk_handler
+        #self.spatial_partition_handler = SpationalPartitionHandler(object_handler)
         
     def resolve_terrain_collisions(self, objs, delta_time):
+        
         for obj in objs:
-            if obj.immovable: continue
             for chunk in self.chunk_handler.get_close_chunks(obj):
-                """pos = np.array(chunk.pos) * 10
-                for i in range(len(chunk.VBO.positions)):
-                    self.dummy.set_hitbox(Hitbox(self.dummy, chunk.VBO.positions[i] + pos, [[0, 1, 2]], (1, 1, 1), (0, 0, 0), 0, (0, 0, 0)))
-                    
-                    collided = self.gjk.get_gjk_collision(obj.hitbox, self.dummy.hitbox)
-                    if not collided: continue
-                    
-                    self.resolve_collision(obj, self.dummy, delta_time)"""
-                    
-                pos = np.array(chunk.pos) * 10
+                
+                """if obj.obj_type == 'wooden_box':
+                    # terrain value testing
+                    for vertex in obj.hitbox.vertices:
+                        if chunk.field[round(vertex.x) % CHUNK_SIZE][round(vertex.y) % CHUNK_SIZE][round(vertex.z) % CHUNK_SIZE] >= 0: 
+                            obj.last_collided = 'terrain'
+                            break"""
+                
                 for cube in chunk.get_close_cubes(obj):
-                    
                     for triangle in cube:
+                        
+                        # regular physics calculation
                         self.dummy.set_hitbox(Hitbox(self.dummy, triangle, [[0, 1, 2]], (1, 1, 1), (0, 0, 0), 0, (0, 0, 0)))
                         
                         collided = self.gjk.get_gjk_collision(obj.hitbox, self.dummy.hitbox)
                         if not collided: continue
+                        
+                        obj.last_collided = 'terrain'
                         
                         self.resolve_collision(obj, self.dummy, delta_time)
         
@@ -40,20 +43,20 @@ class PhysicsEngine():
     def resolve_collisions(self, objs, delta_time):
     
         for i in range(len(objs)):
-            
             if objs[i].obj_type == 'skybox': continue
             for j in range(i + 1, len(objs)):
-                
                 # checks to see if both objects cant be moved
                 if objs[i].immovable and objs[j].immovable: continue
-                
                 # broad collision
                 if not self.detect_broad_collision(objs[i].hitbox, objs[j].hitbox): continue
-                
+                # bullet to bullet collision
+                if objs[i].obj_type == 'wooden_box' == objs[j].obj_type: continue
+                    #if self.chunk_handler.scene.entity_handler.spell_handler.bullet_handler.is_same_spell(objs[i], objs[j]): continue
                 # narrow collision
                 collided = self.gjk.get_gjk_collision(objs[i].hitbox, objs[j].hitbox)
                 if not collided: continue
-                
+                # sets last collisions
+                objs[i].last_collided, objs[j].last_collided = objs[j], objs[i]
                 # collision resolution
                 self.resolve_collision(objs[i], objs[j], delta_time)
                 
@@ -74,8 +77,8 @@ class PhysicsEngine():
         
         point1, point2 = self.distance_point_to_plane(obj1.hitbox, normal2), self.distance_point_to_plane(obj2.hitbox, normal1)
         
-        if not obj1.immovable: self.get_collision_result(obj1.hitbox, normal2, point1, 0.5, 10, delta_time)
-        if not obj2.immovable: self.get_collision_result(obj2.hitbox, normal1, point2, 0.5, 10, delta_time)
+        if not obj1.immovable: self.get_collision_result(obj1.hitbox, normal2, point1, 0.5, 2.5, delta_time)
+        if not obj2.immovable: self.get_collision_result(obj2.hitbox, normal1, point2, 0.5, 2.5, delta_time)
         
         return obj1, obj2
     

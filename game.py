@@ -2,7 +2,8 @@ import sys
 import pygame as pg
 import moderngl as mgl
 from graphics_engine import GraphicsEngine
-
+import glm
+import numpy as np
 
 class Game:
     def __init__(self, win_size=(1600, 900)):
@@ -46,16 +47,13 @@ class Game:
 
         if pg.mouse.get_pressed()[0] and self.mine_timer > self.mine_duration:
             self.mine_timer = 0
-            #self.graphics_engine.scene.chunk_handler.modify_terrain(0.2)
-            self.graphics_engine.scene.chunk_handler.modify_terrain(-.05)
             
-            #self.graphics_engine.scene.entity_handler.entities[0].spell.get_bullets(self.graphics_engine.scene.entity_handler.entities[0].obj.pos + self.graphics_engine.camera.forward*2, np.array([i for i in glm.normalize(self.graphics_engine.scene.entity_handler.entities[0].obj.pos - self.graphics_engine.camera.position)]))
+            self.graphics_engine.scene.entity_handler.entities[0].spell.get_bullets(self.graphics_engine.scene.entity_handler.entities[0].obj.pos + self.graphics_engine.camera.forward, np.array([i for i in glm.normalize(self.graphics_engine.scene.entity_handler.entities[0].obj.pos - self.graphics_engine.camera.position)]))
             
-            #self.graphics_engine.scene.entity_handler.entities[0].spell = self.graphics_engine.scene.entity_handler.spell_handler.create_random_spell()
+            self.graphics_engine.scene.entity_handler.entities[0].spell = self.graphics_engine.scene.entity_handler.spell_handler.create_random_spell()
 
         if pg.mouse.get_pressed()[2] and self.mine_timer > self.mine_duration:
             self.mine_timer = 0
-            #self.graphics_engine.scene.chunk_handler.modify_terrain(-.05)
 
     def start(self):
         self.run = True

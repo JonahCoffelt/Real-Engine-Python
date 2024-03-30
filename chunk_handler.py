@@ -17,13 +17,11 @@ class ChunkHandler():
                 for z in range(12):
                     self.chunks[f'{x};{y};{z}'] = (Chunk(self.scene.ctx, self.chunks, self.scene.vao_handler.program_handler.programs, self.scene, (x, y, z)))
         
-        add_voxel_model(self.chunks, 'car', (10, 4, 10))
+        #add_voxel_model(self.chunks, 'castle', (10, 4, 10))
 
         for chunk in list(self.chunks.values()):
             chunk.generate_mesh()
-
-        
-                    
+            
     def update(self):
         if len(self.update_chunks):
             self.chunks[self.update_chunks[0]].generate_mesh()
@@ -43,8 +41,11 @@ class ChunkHandler():
         if chunk in self.chunks.keys(): return self.chunks[chunk]
         return None
                     
-    def modify_terrain(self, magnitude):
-        pos = self.ray_cast()
+    def modify_terrain(self, magnitude, pos = None):
+        
+        # ray casts from the camera if position is set to none
+        if pos is None: pos = self.ray_cast()
+            
         width = 1
         if not pos: return
         points = [(x, y, z) for x in range(-width, width + 1) for y in range(-width, width + 1) for z in range(-width, width + 1)]
