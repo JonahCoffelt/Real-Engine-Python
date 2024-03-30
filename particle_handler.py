@@ -41,13 +41,11 @@ class ParticleHandler:
         self.ico_vbo = ico_vbo
         self.empty_particle = np.array([0.0 for i in range(14)])
 
-        self.particle_cube_size = 20
+        self.particle_cube_size = 15
         self.order_update_timer = 0
 
-        self.particle_instances_2d = np.array([[x * 3, y * 3, z * 3, .3, (y % 10) / 20, (z % 10) / 20 + .5, random.uniform(0, 2), 1.0,
-                                            random.uniform(-2, 2), random.uniform(-2, 2), random.uniform(-2, 2), random.uniform(-2, 2), random.uniform(-2, 2), random.uniform(-2, 2)] for x in range(self.particle_cube_size) for y in range(self.particle_cube_size) for z in range(self.particle_cube_size)], dtype='f4')
-        self.particle_instances_3d = np.array([[x * 3, y * 3, z * 3, .3, (y % 10) / 20, (z % 10) / 20 + .5, random.uniform(0, 2), 1.0, 
-                                            random.uniform(-2, 2), random.uniform(-2, 2), random.uniform(-2, 2), random.uniform(-2, 2), random.uniform(-2, 2), random.uniform(-2, 2)] for x in range(self.particle_cube_size) for y in range(self.particle_cube_size) for z in range(self.particle_cube_size)], dtype='f4')
+        self.particle_instances_2d = np.zeros(shape=(1,14), dtype='f4')                   
+        self.particle_instances_3d = np.zeros(shape=(1,14), dtype='f4')
 
         self.instance_buffer_2d = ctx.buffer(reserve=(14 * 3) * (self.particle_cube_size ** 3))
         self.instance_buffer_3d = ctx.buffer(reserve=(14 * 3) * (self.particle_cube_size ** 3))
@@ -85,25 +83,19 @@ class ParticleHandler:
         self.ctx.disable(flags=mgl.BLEND)
 
     def add_particles(self, type=2, life=1.0, pos=(0, 0, 0), clr=(1.0, 1.0, 1.0), scale=1.0, vel=(0, 3, 0), accel=(0, -10, 0)):
-        if type == 2: particles = self.particle_instances_2d
-        else: particles = self.particle_instances_3d
+        if type == 2 and len(self.particle_instances_2d) < (self.particle_cube_size ** 3): self.particle_instances_2d = np.vstack((np.array([*pos, *clr, scale, life, *vel, *accel]), self.particle_instances_2d), dtype='f4')
+        elif len(self.particle_instances_3d) < (self.particle_cube_size ** 3): self.particle_instances_3d = np.vstack((np.array([*pos, *clr, scale, life, *vel, *accel]), self.particle_instances_3d), dtype='f4')
 
-        if len(get_alive(particles)) == self.particle_cube_size ** 3: return
-
-        n = np.argmax(particles[:,7]<0.0)
-        particles[n] = np.array([*pos, *clr, scale, life, *vel, *accel])
 
     def update(self, dt):
         cam_pos = self.cam.position
         # Update 2D Particle Matrix & Sort by distance from camera
-        alive_particles = get_alive(self.particle_instances_2d)
-        self.particle_instances_2d[:len(alive_particles)] = update_particle_matrix(alive_particles, dt)
-        self.particle_instances_2d[len(alive_particles):] = self.empty_particle
-        self.particle_instances_2d[:len(alive_particles)] = np.array(sort_particles(alive_particles, np.array([cam_pos.x, cam_pos.y, cam_pos.z])), dtype='f4')
+        self.particle_instances_2d = get_alive(self.particle_instances_2d)
+        self.particle_instances_2d = update_particle_matrix(self.particle_instances_2d, dt)
+        self.particle_instances_2d = np.array(sort_particles(self.particle_instances_2d, np.array([cam_pos.x, cam_pos.y, cam_pos.z])), dtype='f4')
         # Update 3D Particle Matrix
-        alive_particles = get_alive(self.particle_instances_3d)
-        self.particle_instances_3d[:len(alive_particles)] = update_particle_matrix(alive_particles, dt)
-        self.particle_instances_3d[len(alive_particles):] = self.empty_particle
+        self.particle_instances_3d = get_alive(self.particle_instances_3d)
+        self.particle_instances_3d = update_particle_matrix(self.particle_instances_3d, dt)
 
 class ParticleVBO:
     def __init__(self, ctx):

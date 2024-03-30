@@ -2,8 +2,7 @@ import sys
 import pygame as pg
 import moderngl as mgl
 from graphics_engine import GraphicsEngine
-import glm
-import numpy as np
+
 
 class Game:
     def __init__(self, win_size=(1600, 900)):

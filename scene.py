@@ -27,7 +27,7 @@ class Scene:
         self.chunk_handler = ChunkHandler(self)
         self.object_handler = ObjectHandler(self)
         self.entity_handler = EntityHandler(self.object_handler, self.cam)
-        self.particle_handler = ParticleHandler(self.ctx, self.vao_handler.program_handler.programs, self.cam)
+        self.particle_handler = ParticleHandler(self.ctx, self.vao_handler.program_handler.programs, self.vao_handler.vbo_handler.vbos['ico'], self.cam)
 
         # Shadow map buffer
         self.shadow_texture = self.texture_handler.textures['shadow_map_texture']
@@ -39,7 +39,12 @@ class Scene:
     def update(self, delta_time):
         #self.time += self.graphics_engine.app.delta_time
 
-        self.particle_handler.add_particles(clr=(0.25, random.uniform(.5, 1), random.uniform(.5, 1)), pos=(0, 2, 0),vel=(random.uniform(-2, 2), random.uniform(5, 8), random.uniform(-2, 2)))
+        pos = (random.uniform(-1, 1), random.uniform(1.5, 2.5), random.uniform(-1, 1))
+        self.particle_handler.add_particles(type=3, life=.5, scale=2, pos=pos, clr=(random.uniform(.75, 1),        random.uniform(.25, .5),.25), vel=(random.uniform(-2, 2) + pos[0], random.uniform(3, 5), random.uniform(-2, 2) + pos[2]), accel=(random.uniform(-1, 1) - pos[0] * 3, 2, random.uniform(-1, 1) -   pos[2] * 3))
+        self.particle_handler.add_particles(type=3, life=.5, scale=2, pos=(pos[0]/2, pos[1] + 1, pos[2]/2), clr=   (random.uniform(.75, 1), random.uniform(.4, .9),.25), vel=(random.uniform(-1, 1) + pos[0], random.uniform(4, 6), random.uniform(-1, 1) + pos[2]), accel=(random.uniform(-1, 1) - pos[0] * 3, 2,     random.uniform(-1, 1) - pos[2] * 3))
+        smoke_color = random.uniform(.5, .9)
+        self.particle_handler.add_particles(type=3, pos=(0, 3, 0), clr=(smoke_color, smoke_color, smoke_color),    scale=.5, vel=(random.uniform(-1, 1), random.uniform(1, 6), random.uniform(-1, 1)), accel=(random.uniform(-1, 1), random.uniform(-1, 3), random.uniform(-1, 1)))
+
 
         self.light_handler.dir_light.color = glm.vec3(np.array([1, 1, 1]) - np.array([.8, .9, .6]) * (min(.75, max(.25, (np.sin(self.time / 500)*.5 + .5))) * 2 - .5))
         
@@ -54,9 +59,7 @@ class Scene:
         self.object_handler.render('skybox', light=False, object_types=('skybox'))
         self.object_handler.render(False, light=True, object_types=('container', 'metal_box', 'wooden_box'))
         self.object_handler.render(False, light=True, objs=self.chunk_handler.chunks.values())
-        self.ctx.enable(flags=mgl.BLEND)
         self.particle_handler.render()
-        self.ctx.disable(flags=mgl.BLEND)
         self.buffer_handler.buffers['normal'].use()  # Normal Buffer
         self.object_handler.render('buffer_normal', 'normal', ('container', 'metal_box', 'wooden_box', 'meshes'))
         self.object_handler.render('buffer_normal', 'normal', objs=self.chunk_handler.chunks.values())

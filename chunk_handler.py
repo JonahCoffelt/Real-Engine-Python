@@ -17,7 +17,7 @@ class ChunkHandler():
                 for z in range(12):
                     self.chunks[f'{x};{y};{z}'] = (Chunk(self.scene.ctx, self.chunks, self.scene.vao_handler.program_handler.programs, self.scene, (x, y, z)))
         
-        add_voxel_model(self.chunks, 'castle', (10, 4, 10))
+        add_voxel_model(self.chunks, 'car', (10, 4, 10))
 
         for chunk in list(self.chunks.values()):
             chunk.generate_mesh()
