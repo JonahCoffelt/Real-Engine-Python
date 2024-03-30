@@ -39,12 +39,8 @@ class Scene:
     def update(self, delta_time):
         #self.time += self.graphics_engine.app.delta_time
 
-        pos = (random.uniform(-1, 1), random.uniform(1.5, 2.5), random.uniform(-1, 1))
-        self.particle_handler.add_particles(type=3, life=.5, scale=2, pos=pos, clr=(random.uniform(.75, 1),        random.uniform(.25, .5),.25), vel=(random.uniform(-2, 2) + pos[0], random.uniform(3, 5), random.uniform(-2, 2) + pos[2]), accel=(random.uniform(-1, 1) - pos[0] * 3, 2, random.uniform(-1, 1) -   pos[2] * 3))
-        self.particle_handler.add_particles(type=3, life=.5, scale=2, pos=(pos[0]/2, pos[1] + 1, pos[2]/2), clr=   (random.uniform(.75, 1), random.uniform(.4, .9),.25), vel=(random.uniform(-1, 1) + pos[0], random.uniform(4, 6), random.uniform(-1, 1) + pos[2]), accel=(random.uniform(-1, 1) - pos[0] * 3, 2,     random.uniform(-1, 1) - pos[2] * 3))
-        smoke_color = random.uniform(.5, .9)
-        self.particle_handler.add_particles(type=3, pos=(0, 3, 0), clr=(smoke_color, smoke_color, smoke_color),    scale=.5, vel=(random.uniform(-1, 1), random.uniform(1, 6), random.uniform(-1, 1)), accel=(random.uniform(-1, 1), random.uniform(-1, 3), random.uniform(-1, 1)))
-
+        # for fire
+        self.particle_handler.add_fire(pos = (random.uniform(-1, 1), random.uniform(1.5, 2.5), random.uniform(-1, 1)))
 
         self.light_handler.dir_light.color = glm.vec3(np.array([1, 1, 1]) - np.array([.8, .9, .6]) * (min(.75, max(.25, (np.sin(self.time / 500)*.5 + .5))) * 2 - .5))
         
