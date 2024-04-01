@@ -36,7 +36,8 @@ class ProgramHandler:
         self.attrib_values['m_view'] = scene.cam.m_view
         self.attrib_values['view_pos'] = scene.cam.position
         self.attrib_values['m_view_sky'] = glm.mat4(glm.mat3(scene.cam.m_view))
-        self.attrib_values['time'] = glm.float32(scene.time)
+        self.attrib_values['pitch'] = glm.float32(scene.cam.pitch)
+        self.attrib_values['yaw'] = glm.float32(scene.cam.yaw)
 
     def set_attribs(self, scene):
         """
@@ -58,8 +59,9 @@ class ProgramHandler:
             'm_view' : scene.cam.m_view,
             'm_view_sky' : glm.mat4(glm.mat3(scene.cam.m_view)),
             'u_resolution' : glm.vec2(scene.graphics_engine.app.win_size),
-            'time' : glm.float32(scene.time),
             'm_proj' : scene.cam.m_proj,
+            'pitch' : glm.float32(scene.cam.pitch),
+            'yaw' : glm.float32(scene.cam.pitch),
 
             'shadowMap' : scene.texture_handler.textures['shadow_map_texture'],
             'u_texture_skybox' : scene.texture_handler.textures['skybox']
@@ -77,8 +79,8 @@ class ProgramHandler:
                 {'light' : True, 'material' : False}  # Components
             ],
             'skybox' : [
-                ['m_view_sky', 'time'],  # Variables
-                ['u_texture_skybox'],  # Textures
+                ['pitch', 'yaw'],  # Variables
+                [],  # Textures
                 {'light' : False, 'material' : False}  # Components
             ],
             'shadow_map' : [

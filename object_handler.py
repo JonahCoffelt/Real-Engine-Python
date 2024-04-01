@@ -75,8 +75,8 @@ class ObjectHandler:
         attrib_values = self.attrib_values
 
         for attrib in attribs[0]:  # Writes int, float, and vector uniforms
-            if attrib == 'view_pos': program[attrib].write(attrib_values[attrib])
-            if attrib == 'm_view': program[attrib].write(attrib_values[attrib])
+            if attrib == 'view_pos' and program_name != 'skybox': program[attrib].write(attrib_values[attrib])
+            if attrib == 'm_view' and program_name != 'skybox': program[attrib].write(attrib_values[attrib])
             if attrib_values[attrib] == self.currrent_shader_uniforms[program_name][attrib]: continue
             program[attrib].write(attrib_values[attrib])
             self.currrent_shader_uniforms[program_name][attrib] = attrib_values[attrib]
