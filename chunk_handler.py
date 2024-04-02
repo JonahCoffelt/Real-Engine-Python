@@ -9,7 +9,6 @@ import sys
 
 #np.set_printoptions(threshold=sys.maxsize)
 
-@njit
 def get_data(chunks):
     buffer = np.vstack([chunk.VBO.vertex_data for chunk in chunks], dtype='f4')
     vert = np.array(buffer[:,3:6], dtype='f4')
