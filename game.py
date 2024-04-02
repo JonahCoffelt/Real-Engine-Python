@@ -23,6 +23,7 @@ class Game:
         self.ctx = mgl.create_context()
         # Basic Gl setup
         self.ctx.enable(flags=mgl.DEPTH_TEST | mgl.CULL_FACE)
+        #self.ctx.enable(flags=mgl.DEPTH_TEST)
         # Engine
         self.graphics_engine = GraphicsEngine(self)
         # Time variables

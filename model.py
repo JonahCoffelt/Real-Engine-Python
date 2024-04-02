@@ -14,7 +14,7 @@ class BaseModel:
 
         self.on_init()
 
-    def on_init(self):
+    def on_init(self, proj=True):
         # Shadow
         shadow_vao = self.scene.vao_handler.vaos[f'shadow_{self.vao_name}']
         shadow_program = shadow_vao.program
@@ -56,7 +56,14 @@ class BaseModel:
 
 class SkyBoxModel(BaseModel):
     def __init__(self, object, scene, vao):
-        super().__init__(object, scene, vao)
+        self.object = object
+        self.scene = scene
+        self.vao_name = vao
+        self.vao = self.scene.vao_handler.vaos[vao]
+        self.program = self.vao.program
+        self.m_model = self.get_model_matrix()
+        self.vaos = { 'default' : self.vao}
+        self.programs = { 'default' : self.program}
         
     def on_init(self):
         # MVP

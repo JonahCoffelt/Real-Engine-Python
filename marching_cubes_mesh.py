@@ -68,10 +68,6 @@ def get_cube(field, material, edge_table, tri_table, surf_lvl, x, y, z):
 
     verticies = np.zeros(shape=(num_tris, 9), dtype='f4')
 
-    #positions = np.zeros(shape=(num_tris, 3), dtype='f4')
-    #norms = np.zeros(shape=(num_tris//3, 3), dtype='f4')
-
-
     for i in range(num_tris//3):
         v1 = vert_list[tris[i*3]] + pos
         v2 = vert_list[tris[i*3 + 1]] + pos
@@ -82,9 +78,6 @@ def get_cube(field, material, edge_table, tri_table, surf_lvl, x, y, z):
         verticies[i*3    ] = np.array([*norm, *v1, *material], dtype='f4')
         verticies[i*3 + 1] = np.array([*norm, *v2, *material], dtype='f4')
         verticies[i*3 + 2] = np.array([*norm, *v3, *material], dtype='f4')
-
-        #positions[i] = np.array([[*v1], [*v2], [*v3]], dtype='f4')
-        #norms[i] = norm
 
     return verticies
     
@@ -98,14 +91,10 @@ class ChunkMeshVBO():
         self.materials = materials 
         self.CHUNK_SIZE = len(self.field)
         self.surf_lvl = surf_lvl
-        self.vbo = self.get_vbo(use_neighbors)
-        self.format = '3f 3f 3f'
-        self.attribs = ['in_normal', 'in_position', 'in_material']
+        self.get_vbo(use_neighbors)
 
     def get_vbo(self, use_neighbors=True):
-        vertex_data = self.get_vertex_data(use_neighbors)
-        vbo = self.ctx.buffer(vertex_data)
-        return vbo
+        self.vertex_data = self.get_vertex_data(use_neighbors) + np.array([0, 0, 0, self.pos[0]*10, self.pos[1]*10, self.pos[2]*10, 0, 0, 0])
 
     def get_vertex_data(self, use_neighbors=True):
         vertex_data = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0] for i in range(3)], dtype='f4')

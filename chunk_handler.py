@@ -2,7 +2,21 @@ from marching_cubes_chunk import Chunk, CHUNK_SIZE
 import numpy as np
 import glm
 from voxel_marching_cubes_construct import add_voxel_model
+from numba import njit
+import moderngl as mgl
 
+import sys
+
+#np.set_printoptions(threshold=sys.maxsize)
+
+@njit
+def get_data(chunks):
+    buffer = np.vstack([chunk.VBO.vertex_data for chunk in chunks], dtype='f4')
+    vert = np.array(buffer[:,3:6], dtype='f4')
+    vert = vert.reshape((vert.shape[0]//3, 9))
+    inst = np.array(buffer[:,np.r_[0:3,6:9]][::3], dtype='f4')
+    data = np.hstack((vert, inst))
+    return data
 
 class ChunkHandler():
     
@@ -12,22 +26,62 @@ class ChunkHandler():
 
         self.update_chunks = []
 
-        for x in range(12):
+        self.world_size = 24
+
+        self.programs = self.scene.vao_handler.program_handler.programs
+
+        for x in range(self.world_size):
             for y in range(3):
-                for z in range(12):
-                    self.chunks[f'{x};{y};{z}'] = (Chunk(self.scene.ctx, self.chunks, self.scene.vao_handler.program_handler.programs, self.scene, (x, y, z)))
+                for z in range(self.world_size):
+                    self.chunks[f'{x};{y};{z}'] = (Chunk(self.scene.ctx, self.chunks, self.programs, self.scene, (x, y, z)))
         
         add_voxel_model(self.chunks, 'car', (10, 4, 10))
 
         for chunk in list(self.chunks.values()):
             chunk.generate_mesh()
 
+        self.instance_buffer_data = get_data(list(self.chunks.values()))
+        self.depth_instance_buffer_data = np.array(self.instance_buffer_data[:,0:9], order='C')
+
+        self.instance_buffer = self.scene.ctx.buffer(reserve=(18 * 3) * (10 ** 3) * (self.world_size ** 2 * 3))
+        self.depth_instance_buffer = self.scene.ctx.buffer(reserve=(9 * 3) * (11 ** 3) * (self.world_size ** 2 * 3))
+
+        self.triangle_vbo = self.scene.ctx.buffer(np.array([[0, 1, 2]], dtype='int'))
         
+        self.vao = self.scene.ctx.vertex_array(self.programs['mesh'], [(self.triangle_vbo, '1i', 'id'), 
+                                                                      (self.instance_buffer, '3f 3f 3f 3f 3f /i', 'in_i_pos0', 'in_i_pos1', 'in_i_pos2', 'in_i_norm', 'in_i_mat')], skip_errors=True)
+
+        self.depth_vao = self.scene.ctx.vertex_array(self.programs['mesh_depth'], [(self.triangle_vbo, '1i', 'id'), 
+                                                                     (self.depth_instance_buffer, 
+                                                                      '3f 3f 3f /i', 
+                                                                      'in_i_pos0', 'in_i_pos1', 'in_i_pos2')], skip_errors=True)
+
+
+        self.instance_buffer.write(self.instance_buffer_data)
+        self.depth_instance_buffer.write(self.depth_instance_buffer_data)
+
+    def render_instanced(self):
+        self.programs['mesh']['m_proj'].write(self.scene.cam.m_proj)
+        self.programs['mesh']['m_view'].write(self.scene.cam.m_view)
+        self.programs['mesh']['m_view_light'].write(self.scene.light_handler.dir_light.m_view_light)
+
+        self.vao.render(instances=(len(self.instance_buffer_data)))
+
+    def render_depth(self):
+        self.programs['mesh_depth']['m_proj'].write(self.scene.cam.m_proj)
+        self.programs['mesh_depth']['m_view'].write(self.scene.cam.m_view)
+        self.depth_vao.render(instances=(len(self.depth_instance_buffer_data)))
                     
     def update(self):
         if len(self.update_chunks):
             self.chunks[self.update_chunks[0]].generate_mesh()
             self.update_chunks.pop(0)
+
+            self.instance_buffer_data = get_data(list(self.chunks.values()))
+            self.depth_instance_buffer_data = np.array(self.instance_buffer_data[:,0:9], order='C')
+            self.instance_buffer.write(self.instance_buffer_data)
+            self.depth_instance_buffer.write(self.depth_instance_buffer_data)
+
 
     def get_close_chunks(self, obj):
         possible_chunks = set([])
@@ -51,11 +105,14 @@ class ChunkHandler():
         [self.modify_point(int((pos.x + point[0])), int((pos.y + point[1])), int((pos.z + point[2])), magnitude / ((abs(point[0]) + abs(point[1]) + abs(point[2])) * .5 * width + .0001)) for point in points]
 
     def modify_point(self, x, y, z, magnitude, material=False):
+
         local_pos = [x % CHUNK_SIZE, y % CHUNK_SIZE, z % CHUNK_SIZE]
         chunk_pos = [x // CHUNK_SIZE, y // CHUNK_SIZE, z // CHUNK_SIZE]
 
         chunk = f'{int(chunk_pos[0])};{int(chunk_pos[1])};{int(chunk_pos[2])}'
 
+        if chunk not in self.chunks: return
+        
         self.chunks[chunk].field[local_pos[0]][local_pos[1]][local_pos[2]] += magnitude
         if magnitude > 0:
             self.chunks[chunk].materials[local_pos[0]][local_pos[1]][local_pos[2]] = 3
@@ -80,3 +137,4 @@ class ChunkHandler():
                     break
 
         return ray_cast_pos
+
