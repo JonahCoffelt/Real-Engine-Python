@@ -1,12 +1,12 @@
 import glm
-from gjk import *
+from gjk import GJK
 
 class PBS():
     
     def __init__(self, pe):
         
-        self.gjk = GJK()
         self.pe = pe
+        self.gjk = GJK()
         
         # binary search variables
         self.low = 0

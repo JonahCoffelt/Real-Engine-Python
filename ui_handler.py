@@ -59,7 +59,7 @@ class UI_Handler:
 
         self.mouse_pos = pg.mouse.get_pos()
         self.mouse_buttons = pg.mouse.get_pressed()
-        self.keys = pg.key.get_just_pressed()
+        self.keys = pg.key.get_pressed()
 
         for key in self.hotkeys[self.screen]:
             if self.keys[key]: 

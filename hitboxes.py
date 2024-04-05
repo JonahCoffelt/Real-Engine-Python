@@ -1,4 +1,5 @@
 import glm
+import numpy as np
 
 class Hitbox():
     
@@ -24,7 +25,7 @@ class Hitbox():
         
     def scale_dimensions(self):
         
-        self.dimensions = self.obj.scale * self.dimensions
+        self.dimensions = np.array([i for i in self.obj.scale * self.dimensions])
         
     def get_center(self):
         
@@ -70,7 +71,7 @@ class Hitbox():
         return norm
     
     # setter methods
-    def set_vel(self, vel): self.vel = vel
+    def set_vel(self, vel): self.vel = glm.vec3(vel)
         
     def set_rot_vel(self, rot_vel): self.rot_vel = rot_vel
         

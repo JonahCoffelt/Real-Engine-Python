@@ -4,7 +4,7 @@ import moderngl as mgl
 TEXTURES = {
     'container' : 'textures/container.png',
     'container_specular' : 'textures/container_specular.png',
-    'metal_box' : 'textures/img_1.png',
+    'metal_box' : 'textures/white.png',
     'wooden_box' : 'textures/img.png',
     'cat' : 'objects/cat/20430_cat_diff_v1.jpg',
 }

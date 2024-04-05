@@ -6,14 +6,14 @@ from entity_handler import EntityHandler, ObjectHandler
 from particle_handler import ParticleHandler
 from chunk_handler import ChunkHandler
 from atmosphere_handler import Atmosphere
-from ui_handler import UI_Handler, surf_to_texture
-
+from ui_handler import UI_Handler
 
 class Scene:
     def __init__(self, graphics_engine) -> None:
         self.graphics_engine = graphics_engine
         self.ctx = graphics_engine.ctx
         self.cam = self.graphics_engine.camera
+        self.time = 0
 
         self.vao_handler = VAOHandler(self.ctx)
         self.texture_handler = TextureHandler(self.graphics_engine.app)
@@ -37,12 +37,6 @@ class Scene:
         self.shadow_frame_skips = 5
 
     def update(self, delta_time):
-        #pos = (random.uniform(-1, 1), random.uniform(1.5, 2.5), random.uniform(-1, 1))
-        #self.particle_handler.add_particles(type=3, life=.5, scale=2, pos=pos, clr=(random.uniform(.75, 1),        random.uniform(.25, .5),.25), vel=(random.uniform(-2, 2) + pos[0], random.uniform(3, 5), random.uniform(-2, 2) + pos[2]), accel=(random.uniform(-1, 1) - pos[0] * 3, 2, random.uniform(-1, 1) -   pos[2] * 3))
-        #self.particle_handler.add_particles(type=3, life=.5, scale=2, pos=(pos[0]/2, pos[1] + 1, pos[2]/2), clr=   (random.uniform(.75, 1), random.uniform(.4, .9),.25), vel=(random.uniform(-1, 1) + pos[0], random.uniform(4, 6), random.uniform(-1, 1) + pos[2]), accel=(random.uniform(-1, 1) - pos[0] * 3, 2,     random.uniform(-1, 1) - pos[2] * 3))
-        #smoke_color = random.uniform(.5, .9)
-        #self.particle_handler.add_particles(type=3, pos=(0, 3, 0), clr=(smoke_color, smoke_color, smoke_color),    scale=.5, vel=(random.uniform(-1, 1), random.uniform(1, 6), random.uniform(-1, 1)), accel=(random.uniform(-1, 1), random.uniform(-1, 3), random.uniform(-1, 1)))
-
         
         self.vao_handler.program_handler.update_attribs(self)  # Updates the values sent to uniforms
         self.entity_handler.update(delta_time)

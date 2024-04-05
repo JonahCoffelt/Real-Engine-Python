@@ -3,9 +3,10 @@ import glm
 from material_handler import MaterialHandler
 from hitboxes import *
 from physics_engine import PhysicsEngine
-from random import randint
 from scipy.spatial.transform import Rotation as R
 from quaternions import *
+from random import uniform
+import time
 
 class ObjectHandler:
     def __init__(self, scene):
@@ -18,7 +19,7 @@ class ObjectHandler:
         self.light_handler = self.scene.light_handler
         self.material_handler = MaterialHandler(self.scene.texture_handler.textures)
         
-        self.pe = PhysicsEngine(-9.8, Object(self, self.scene, model.BaseModel, program_name = 'default', material='metal_box', scale=(1, 1, 1), pos=(0, 0, 0), gravity = False, immovable = True), self.scene.chunk_handler)
+        self.pe = PhysicsEngine(-9.8, self.scene.chunk_handler, Object(self, self.scene, model.BaseModel, program_name = 'default', material='metal_box', scale=(1, 1, 1), pos=(0, 0, 0), gravity = False, immovable = True))
 
         self.on_init()
 
@@ -26,19 +27,12 @@ class ObjectHandler:
         """
         Creates objects in the scene
         """
-        self.objects.append(Object(self, self.scene, model.SkyBoxModel, program_name='skybox', vao='skybox', obj_type='skybox', immovable = True, gravity = False))
+        self.objects.append(Object(self, self.scene, model.SkyBoxModel, program_name='skybox', vao='skybox', obj_type='skybox', immovable = True, gravity = False, pos = (1, 1, 1)))
         
-        #for x in range(10):  
-            #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', scale=(10, .5, 10), pos = (randint(-30, 30), randint(-40, 0), randint(-30, 30)), gravity = False, immovable = True, rot = (randint(-30, 30), 0, randint(-30, 30))))
-        #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', scale=(15, .5, 15), pos = (0, -2, 0), gravity = False, immovable = True))
-        
-        #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='container', obj_type='container', scale=(1, 1, 1), pos = (0, -2, 0), gravity = False, immovable = True))
-
-        #for i in range(0):
-            #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(randint(-10, 10), randint(0, 15), randint(-10, 10)), rot = (randint(0, 120), 0, randint(0, 120)), scale=(.5, .5, .5)))
+        #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', scale=(8, .5, 8), pos = (8, 2, 8), gravity = False, immovable = True))
 
     def update(self, delta_time):
-    
+
         for obj in self.objects:
                 
             # checks if object needs physics calculations  
@@ -54,8 +48,8 @@ class ObjectHandler:
             obj.hitbox.move_tick(delta_time, force, 0)
                 
             # tp object to top if hits death plane
-            if obj.pos[1] < -60: 
-                obj.set_pos(glm.vec3(randint(-20, 20), randint(10, 30), randint(-20, 20)))
+            if obj.pos[1] < 0: 
+                obj.set_pos(glm.vec3(uniform(20, 100), 30, uniform(20, 100)))
                 obj.hitbox.set_vel(glm.vec3(0, 0, 0))
                 obj.hitbox.set_rot_axis(glm.vec3(0, 1, 0))
                 obj.hitbox.set_rot_vel(0)
@@ -101,16 +95,17 @@ class ObjectHandler:
             if not (program == 'default' or program == 'mesh'): continue
             self.write_shader_uniforms('mesh')
 
-    def render(self, program_name, render_type='default', object_types=('container', 'metal_box', 'wooden_box', 'cat', 'skybox', 'meshes'), light=False, objs=False):
+    def render(self, program_name, render_type='default', object_types=('container', 'metal_box', 'wooden_box', 'cat', 'skybox', 'meshes'), light=False, objs=False, prin = False):
         if program_name: self.write_shader_uniforms(program_name)
         if light: # Will write all light if true
             programs = self.scene.vao_handler.program_handler.programs
             for program in programs:
-                if program in ('mesh', 'default'): self.light_handler.write(programs[program])
+                if program in ('mesh', 'default'): self.light_handler.write(programs[program]) 
         # Choose the objects used
         if objs: objects = objs
         else: objects = self.objects
         # loop though each object 
+        timestamp, write, render = time.time(), 0, 0
         for obj in objects:
             if obj.obj_type not in object_types: continue
             if not program_name:
@@ -118,11 +113,17 @@ class ObjectHandler:
                 # Choose the material
                 if obj.obj_type in ('container', 'metal_box', 'wooden_box', 'cat'): mat = obj.material
                 else: mat = obj.obj_type
+                timestamp = time.time() #
                 self.write_shader_uniforms(program, obj.obj_type, mat)
+                write += time.time() - timestamp #
+            timestamp = time.time() #
             obj.render(render_type)
+            render += time.time() - timestamp #
+        if prin: print('write', write, 'render', render)
             
     def add_object(self, object):
         self.objects.append(object)
+        #self.pe.spatial_partition_handler.add_object(object)
         return object
 
 class Object:
@@ -145,9 +146,11 @@ class Object:
         self.immovable = immovable
         self.gravity = gravity
         self.mass = mass if not immovable else 1e10
+        
+        # interaction variables
+        self.last_collided = None
 
         self.on_init(model, vao=vao, hitbox_type=hitbox_type, hitbox_file_name=hitbox_file_name, rot_vel=rot_vel, rot_axis=rot_axis, vel=vel)
-
 
     def on_init(self, model, vao='cube', hitbox_type = 'cube', hitbox_file_name = None, rot_vel = 0, rot_axis = (0, 0, 0), vel = (0, 0, 0)):
         self.model = model(self, self.scene, vao)
@@ -165,7 +168,6 @@ class Object:
 
     def render(self, vao):
         self.model.render(vao)
-        
         
     def define_hitbox_cube(self, vel, rot_vel, rot_axis):
         self.hitbox = CubeHitbox(self, vel, rot_vel, rot_axis)
@@ -201,12 +203,8 @@ class Object:
         p = quaternion_multiply(p, qneg)
         self.rot_point = p[1:]
         
-        try:
-            p = R.from_quat(p)
-            euler_angles = glm.vec3(p.as_euler('zyx'))
-        except:
-            self.rot_point = [1, 0, 0]
-            euler_angles = glm.vec3(0, 0, 0)
+        temp = [0, float(p[1]), float(p[2]), float(p[3])]
+        euler_angles = glm.vec3(*quaternion_to_euler(temp))
             
         self.rot = euler_angles
         self.model.update()
@@ -217,11 +215,16 @@ class Object:
     
     # setter methods
     def set_hitbox(self, hitbox): self.hitbox = hitbox
-    def set_pos(self, pos): self.pos = pos
+    def set_pos(self, pos): 
+        self.pos = glm.vec3(pos)
+        self.model.update()
     def set_rot(self, rot): 
-        self.rot = rot
-        self.rot_point = R.as_quat(R.from_euler('zyx', self.rot))
+        self.rot = glm.vec3(rot)
+        self.rot_point = euler_to_quaternion(self.rot)[1:]
+        self.model.update()
     
-    # modifier methods
     def move(self, vec, delta_time):
         self.pos += vec * delta_time
+        
+    def on_side(self):
+        return max(self.rot_point) > 0.8

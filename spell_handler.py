@@ -1,7 +1,9 @@
 import numpy as np
 import random
-from object_handler import Object
-from model import BaseModel
+from bullet_handler import Bullet, BulletHandler
+from launch_handler import LaunchHandler
+from spread_handler import SpreadHandler
+from casting_handler import CastingHandler
 
 class SpellHandler():
     
@@ -10,8 +12,10 @@ class SpellHandler():
         # spell program handlers
         self.launch_handler = LaunchHandler()
         self.spread_handler = SpreadHandler()
+        self.casting_handler = CastingHandler()
         
         self.object_handler = object_handler
+        self.bullet_handler = BulletHandler(self.object_handler)
         
         # saved spells list
         self.spells = []
@@ -23,8 +27,11 @@ class SpellHandler():
                 'straight' : 1
             },
             'spread_type' : {
-                #'vertical' : 0,
+                'vertical' : 0,
                 'horizontal' : 1
+            },
+            'casting_type' : {
+                'from_self': 0
             }
         }
         
@@ -42,84 +49,25 @@ class SpellHandler():
         
     def create_random_spell(self):
         
-        launch_type = random.choice(self.spell_attributes['launch_type'].keys())
-        spread_type = random.choice(self.spell_attributes['spread_type'].keys())
+        launch_type = random.choice(['straight', 'lob', 'confused'])
+        spread_type = random.choice(['horizontal'])#, 'vertical'])
+        casting_type = random.choice(['from_self'])
         damage = random.randint(1, 10)
-        radius = random.uniform(0.1, 3.0)
-        speed = random.uniform(0.1, 2)
-        force = random.uniform(0.1, 3)
-        count = random.randint(1, 5)
-        angle = random.uniform(np.pi/3, np.pi)
+        radius = random.uniform(0, 3.0)
+        speed = random.uniform(5, 20)
+        force = random.uniform(1, 20)
+        count = random.randint(1, 7)
+        angle = random.uniform(np.pi/24, np.pi/3)
+        color = [random.uniform(0.5, 1) for _ in range(3)]
         
-        return Spell(self, damage, radius, speed, force, spread_type, launch_type, count, angle, True)
+        return Spell(self, damage, radius, speed, force, spread_type, launch_type, casting_type, count, angle, True, color)
     
-class LaunchHandler():
-    
-    def __init__(self):
-        
-        self.programs = {}
-        
-    # functions
-    def get_straight(self, direction, speed):
-        
-        def program(pos):
-            return pos + direction * speed
-            
-        return program
-        
-    def get_lob(self, direction, speed, gravity):
-        
-        def program(pos):
-            pos = pos + direction * speed
-            pos[1] -= gravity
-            return pos
-            
-        return program
-        
-class SpreadHandler():
-    
-    def __init__(self):
-            
-        self.programs = {}
-    
-    def on_init(self):
-        
-        # speard program for single shot
-        def single(direction):
-            return direction
-        self.programs['single'] = single
-        
-    # functions - return list of directions
-    def get_horizontal(self, count, angle):
-        
-        angles = self.get_angles(count, angle)
-        rot_mats = [self.get_xz_rot_mat(a) for a in angles]
-        
-        def program(direction):
-            return [mat * direction for mat in rot_mats]
-        return program
-        
-    def get_vertical(self, count, angle):
-        ...
-        
-    # returns a list of angles to rotate a directional vector
-    def get_angles(self, count, angle):
-        step, a = 2 / (count - 1), angle/2
-        return [(-1 + i * step) * a for i in range(count)]
-        
-    def get_xz_rot_mat(self, angle):
-        return np.matrix([[np.cos(angle), 0, np.sin(angle)], 
-                         [0, 1, 0],
-                         [-np.sin(angle), 0, np.cos(angle)]])
-        
-    def get_xy_rot_mat(self, angle):
-        return np.matrix([[np.cos(angle), -np.sin(angle), 0], 
-                         [np.sin(angle), 0, np.cos(angle)], 
-                         [0, 0, 1]])
+    def update(self, delta_time):
+        self.bullet_handler.update(delta_time)
     
 class Spell():
     
-    def __init__(self, spell_handler : SpellHandler, damage, radius, speed, force = 0, spread_type = 'horizontal', launch_type = 'straight', count = 1, angle = np.pi/3, destructive = False):
+    def __init__(self, spell_handler : SpellHandler, damage, radius, speed, force = 0, spread_type = 'horizontal', launch_type = 'straight', casting_type = 'from_self', count = 1, angle = np.pi/3, destructive = False, color = (1.0, 1.0, 1.0)):
         
         # spell handler to make programs
         self.spell_handler = spell_handler
@@ -132,7 +80,11 @@ class Spell():
         
         # launch program variables
         self.launch_type = launch_type
+        self.casting_type = casting_type
         self.speed = speed
+        
+        # visual variables
+        self.color = color
         
         # gets spread program
         if count == 1: self.spread_program = self.spell_handler.spread_handler.programs['single']
@@ -141,28 +93,26 @@ class Spell():
                 case 'horizontal': self.spread_program = self.spell_handler.spread_handler.get_horizontal(count, angle)
                 case 'vertical': self.spread_program = self.spell_handler.spread_handler.get_vertical(count, angle)
                 case _: assert False, 'spread program does not exist'
+                
+        # gets casting program
+        match casting_type:
+            case 'from_self': self.casting_program = self.spell_handler.casting_handler.get_from_self(count)
+            case _: assert False, 'casting program does not exist'
         
     # returns a list of bullets from the spell
-    def get_bullets(self, pos, direction):
+    def get_bullets(self, pos, dir : np.array, caster):
         
-        # gets all directions of bullets fired
-        directions = self.spread_program(direction)
+        # gets all directions and positions of bullets fired
+        match self.casting_type:
+            case 'from_self': positions, directions = self.casting_program(pos, dir)
+            case 'from_above': positions, directions = self.casting_program(..., dir)
+            case _: assert False, 'casting type error when getting bulltes'
+        directions = self.spread_program(directions)
         
         # returns a list of bullets using launch program
         match self.launch_type:
-            case 'straight': return [Bullet(self, pos, self.spell_handler.launch_handler.get_straight(direction, self.speed)) for direction in directions]
-            case 'lob': return [Bullet(self, pos, self.spell_handler.launch_handler.get_lob(direction, self.speed, -9.8)) for direction in directions]
+            case 'straight': return [self.spell_handler.bullet_handler.add_bullet(Bullet(self, self.spell_handler.bullet_handler, positions[i], directions[i], self.spell_handler.launch_handler.get_straight(directions[i], self.speed))) for i in range(len(positions))]
+            case 'lob': return [self.spell_handler.bullet_handler.add_bullet(Bullet(self, self.spell_handler.bullet_handler, positions[i], directions[i], self.spell_handler.launch_handler.get_lob(self.speed, -0.5))) for i in range(len(positions))]
+            case 'confused': return [self.spell_handler.bullet_handler.add_bullet(Bullet(self, self.spell_handler.bullet_handler, positions[i], directions[i], self.spell_handler.launch_handler.get_confused(directions[i], self.speed))) for i in range(len(positions))]
             case _: assert False, 'launch program does not exist'
-        
-class Bullet():
-    
-    def __init__(self, spell : Spell, pos, launch_program):
-        
-        self.launch_program = launch_program
-        self.spell = spell
-        self.obj = self.spell.spell_handler.object_handler.add_object(Object(self, self.spell.spell_handler.object_handler, BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos = pos, rot = (0, 0, 0), scale=(.2, .2, .2)))
-        
-    def move(self):
-        
-        self.pos = self.launch_program(self.pos)
-        
+            

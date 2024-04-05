@@ -7,9 +7,25 @@ def quaternion_conjugate(quaternion):
         
 def axis_angle_to_quaternion(axis, angle):
     axis = np.array(axis, dtype=float)
-    axis /= np.linalg.norm(axis)
+    mag = np.linalg.norm(axis)
+    if mag != 0: axis /= mag
     rotation_quaternion = np.array([math.cos(angle / 2)] + list(math.sin(angle / 2) * axis))
     return rotation_quaternion
+
+def euler_to_quaternion(e):
+    cph, sph, cth, sth, cps, sps = math.cos(e[0]/2), math.sin(e[0]/2), math.cos(e[1]/2), math.sin(e[1]/2), math.cos(e[2]/2), math.sin(e[2]/2),
+    w = cph*cth*cps + sph*sth*sps
+    x = sph*cth*cps - cph*sth*sps
+    y = cph*sth*cps + sph*cth*sps
+    z = cph*cth*sps - sph*sth*cps
+    return [w, x, y, z]
+
+def quaternion_to_euler(q):
+    w, x, y, z = q[0], q[1], q[2], q[3]
+    phi = math.atan2(2 * (w * x + y * z), 1 - 2 * (x**2 + y**2))
+    theta = math.pi/2 - 2 * math.atan2(math.sqrt(1 + 2 * (w * y - x * z)), math.sqrt(1 - 2 * (w * y - x * z)))
+    psi = math.atan2(2 * (w * z + y * x), 1 - 2 * (y**2 + z**2))
+    return phi, theta, psi
         
 def rotate_quaternion_by_another(q, rotation):
     # Ensure the input quaternions are numpy arrays
@@ -17,7 +33,8 @@ def rotate_quaternion_by_another(q, rotation):
     rotation = np.array(rotation)
 
     # Normalize the rotation quaternion
-    rotation /= np.linalg.norm(rotation)
+    mag = np.linalg.norm(rotation)
+    if mag != 0: rotation /= mag
 
     # Multiply the quaternions to perform rotation
     rotated_q = quaternion_multiply(rotation, q)

@@ -46,7 +46,6 @@ class Camera:
         rel_x, rel_y = pg.mouse.get_rel()
         self.yaw += rel_x * SENSITIVITY
         self.pitch -= rel_y * SENSITIVITY
-        self.yaw = self.yaw % 360
         self.pitch = max(-89, min(89, self.pitch))
 
     def update_camera_vectors(self):
@@ -88,9 +87,15 @@ class Camera:
     def get_projection_matrix(self):
         return glm.perspective(glm.radians(FOV), self.aspect_ratio, NEAR, FAR)
     
+    def looking_at(self):
+        
+        looking_at = self.app.graphics_engine.scene.chunk_handler.ray_cast()
+        if looking_at is None: return self.forward
+        return glm.normalize(looking_at - self.app.graphics_engine.scene.entity_handler.entities[0].obj.pos)
+    
 class FollowCamera(Camera):
     
-    def __init__(self, app, followed, yaw=-90, pitch=0, radius = 7):
+    def __init__(self, app, followed, yaw=-90, pitch=0, radius = 4):
         
         self.followed = followed
         self.radius = radius
@@ -104,10 +109,18 @@ class FollowCamera(Camera):
         self.m_view = self.get_view_matrix()
         
     def get_view_matrix(self):
-        return glm.lookAt(self.position, self.followed.pos, self.up)
+        return glm.lookAt(self.position, self.followed.pos + self.forward * 100, self.up)
     
     def update_pos(self):
-        self.position = self.followed.pos - self.forward * self.radius
+        
+        # resets camera location to expected
+        self.position = self.followed.pos - self.forward * self.radius + self.up * 1 + self.right * 1
+        
+        # finds if camera needs to be moved forward
+        player_pos = self.app.graphics_engine.scene.entity_handler.entities[0].obj.pos
+        back_location = self.app.graphics_engine.scene.chunk_handler.ray_cast_vec(player_pos, glm.normalize(self.position - player_pos), multiplier = self.radius/100, starting_test = 20)
+        
+        if back_location is not None: self.position = back_location 
         
     def rotate(self):
         """

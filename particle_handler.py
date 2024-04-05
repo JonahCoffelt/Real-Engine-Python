@@ -86,7 +86,6 @@ class ParticleHandler:
         if type == 2 and len(self.particle_instances_2d) < (self.particle_cube_size ** 3): self.particle_instances_2d = np.vstack((np.array([*pos, *clr, scale, life, *vel, *accel]), self.particle_instances_2d), dtype='f4')
         elif len(self.particle_instances_3d) < (self.particle_cube_size ** 3): self.particle_instances_3d = np.vstack((np.array([*pos, *clr, scale, life, *vel, *accel]), self.particle_instances_3d), dtype='f4')
 
-
     def update(self, dt):
         cam_pos = self.cam.position
         # Update 2D Particle Matrix & Sort by distance from camera
@@ -96,6 +95,21 @@ class ParticleHandler:
         # Update 3D Particle Matrix
         self.particle_instances_3d = get_alive(self.particle_instances_3d)
         self.particle_instances_3d = update_particle_matrix(self.particle_instances_3d, dt)
+        
+    # particle effects
+    def add_fire(self, pos):
+        self.add_particles(type=3, life=.5, scale=2, pos=pos, clr=(random.uniform(.75, 1), random.uniform(.25, .5),.25), vel=(random.uniform(-2, 2) + pos[0], random.uniform(3, 5), random.uniform(-2, 2) + pos[2]), accel=(random.uniform(-1, 1) - pos[0] * 3, 2, random.uniform(-1, 1) - pos[2] * 3))
+        self.add_particles(type=3, life=.5, scale=2, pos=(pos[0]/2, pos[1] + 1, pos[2]/2), clr=(random.uniform(.75, 1), random.uniform(.4, .9),.25), vel=(random.uniform(-1, 1) + pos[0], random.uniform(4, 6), random.uniform(-1, 1) + pos[2]), accel=(random.uniform(-1, 1) - pos[0] * 3, 2, random.uniform(-1, 1) - pos[2] * 3))
+        smoke_color = random.uniform(.5, .9)
+        self.add_particles(type=3, pos=(0, 3, 0), clr=(smoke_color, smoke_color, smoke_color), scale=.5, vel=(random.uniform(-1, 1), random.uniform(1, 6), random.uniform(-1, 1)), accel=(random.uniform(-1, 1), random.uniform(-1, 3), random.uniform(-1, 1)))
+        
+    def add_explosion(self, pos, radius, clr, count = 15):
+        # explosion particle effect will extend slightly beyond radius
+        for _ in range(count):
+            p = np.array([i + random.uniform(-1.0, 1.0) * radius for i in pos])
+            direction = p - pos
+            scale = radius*2 - np.linalg.norm(direction) + 0.5
+            self.add_particles(pos = p, type = 3, life = 0.25, scale = scale, clr = clr, vel = direction, accel = [random.uniform(-1, 1) for _ in range(3)])
 
 class ParticleVBO:
     def __init__(self, ctx):
@@ -127,4 +141,3 @@ class ParticleVBO:
         vertex_data = self.get_vertex_data()
         vbo = self.ctx.buffer(vertex_data)
         return vbo
-    

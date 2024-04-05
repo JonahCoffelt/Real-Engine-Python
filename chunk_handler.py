@@ -119,12 +119,13 @@ class ChunkHandler():
         if chunk in self.chunks.keys(): return self.chunks[chunk]
         return None
                     
-    def modify_terrain(self, magnitude):
-        pos = self.ray_cast()
+    def modify_terrain(self, magnitude, pos = None):
+        # ray casts from the camera if position is set to none
+        if pos is None: pos = self.ray_cast()
         width = 1
-        if not pos: return
+        if pos is None: return
         points = [(x, y, z) for x in range(-width, width + 1) for y in range(-width, width + 1) for z in range(-width, width + 1)]
-        [self.modify_point(int((pos.x + point[0])), int((pos.y + point[1])), int((pos.z + point[2])), magnitude / ((abs(point[0]) + abs(point[1]) + abs(point[2])) * .5 * width + .0001)) for point in points]
+        [self.modify_point(int((pos[0] + point[0])), int((pos[1] + point[1])), int((pos[2] + point[2])), magnitude / ((abs(point[0]) + abs(point[1]) + abs(point[2])) * .5 * width + .0001)) for point in points]
 
     def modify_point(self, x, y, z, magnitude, material=False):
 
@@ -146,16 +147,29 @@ class ChunkHandler():
             if edge_chunk_key not in self.chunks: continue
             self.update_chunks.append(edge_chunk_key)
 
-    def ray_cast(self):
+    def ray_cast(self, tests = 150, multiplier = 0.5, position = None, test_start = 0):
         ray_cast_pos = None
+        if position is None: position = self.scene.cam.position
 
-        step_size = glm.vec3(np.cos(np.deg2rad(self.scene.cam.yaw)) * np.cos(np.deg2rad(self.scene.cam.pitch)), np.sin(np.deg2rad(self.scene.cam.pitch)), np.sin(np.deg2rad(self.scene.cam.yaw)) * np.cos(np.deg2rad(self.scene.cam.pitch))) * .5
-        for i in range(150):
-            pos = self.scene.cam.position + step_size * i
+        step_size = glm.vec3(np.cos(np.deg2rad(self.scene.cam.yaw)) * np.cos(np.deg2rad(self.scene.cam.pitch)), np.sin(np.deg2rad(self.scene.cam.pitch)), np.sin(np.deg2rad(self.scene.cam.yaw)) * np.cos(np.deg2rad(self.scene.cam.pitch))) * multiplier
+        for i in range(test_start, tests):
+            pos = position + step_size * i
             cam_chunk = f'{int(pos.x // CHUNK_SIZE)};{int(pos.y // CHUNK_SIZE)};{int(pos.z // CHUNK_SIZE)}'
             if cam_chunk in self.chunks:
                 if self.chunks[cam_chunk].field[int(pos.x) % CHUNK_SIZE][int(pos.y) % CHUNK_SIZE][int(pos.z) % CHUNK_SIZE] > 0:
                     ray_cast_pos = pos
                     break
+        return ray_cast_pos
+    
+    def ray_cast_vec(self, origin, vec, tests = 100, multiplier = 1, starting_test = 0):
+        ray_cast_pos = None
 
+        step_size = vec
+        for i in range(starting_test, tests):
+            pos = origin + step_size * i * multiplier
+            cam_chunk = f'{int(pos.x // CHUNK_SIZE)};{int(pos.y // CHUNK_SIZE)};{int(pos.z // CHUNK_SIZE)}'
+            if cam_chunk in self.chunks:
+                if self.chunks[cam_chunk].field[int(pos.x) % CHUNK_SIZE][int(pos.y) % CHUNK_SIZE][int(pos.z) % CHUNK_SIZE] > 0:
+                    ray_cast_pos = pos
+                    break
         return ray_cast_pos
