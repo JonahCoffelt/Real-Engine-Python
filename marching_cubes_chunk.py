@@ -12,7 +12,7 @@ SEED = random.randrange(1000)
 
 def generate_island(field, materials, chunk_x, chunk_y, chunk_z) -> np.array:
     center = CHUNK_SIZE / 2
-    world_size = CHUNK_SIZE * 12
+    world_size = CHUNK_SIZE * 24
     for local_z in range(CHUNK_SIZE + 1):
         for local_x in range(CHUNK_SIZE + 1):
             global_x, global_z = local_x + chunk_x * CHUNK_SIZE, local_z + chunk_z * CHUNK_SIZE
@@ -69,8 +69,6 @@ class Chunk:
         self.field, self.materials = generate_island(self.field, self.materials, *pos)
 
         self.VBO = ChunkMeshVBO(self.ctx, self.chunks, self.pos, self.field, self.materials, self.surf_lvl)
-
-        self.set_vaos()
         
     def get_close_cubes(self, obj):
         
@@ -86,54 +84,5 @@ class Chunk:
         return self.VBO.get_single_vertex_data(x, y, z) + np.array(self.pos) * 10
 
     def generate_mesh(self):
-
-        self.VBO.release()
-        for vao in self.vaos.values():
-            vao.release()
-
         self.VBO = ChunkMeshVBO(self.ctx, self.chunks, self.pos, self.field, self.materials, self.surf_lvl, use_neighbors=True)
 
-        self.set_vaos()
-
-    def render(self, vao):
-        self.model.render(vao)
-
-    def get_vao(self, program, vbo):
-        vao = self.ctx.vertex_array(program, [(vbo.vbo, vbo.format, *vbo.attribs)], skip_errors=True)
-        return vao
-
-    def set_vaos(self):
-        self.vaos = {}
-        self.vaos['default'] = self.get_vao(program=self.programs['mesh'], 
-                                         vbo=self.VBO)
-        self.vaos['shadow'] = self.get_vao(program=self.programs['shadow_map'], 
-                                         vbo=self.VBO)
-        self.vaos['normal'] = self.get_vao(program=self.programs['buffer_normal'], 
-                                         vbo=self.VBO)
-        self.vaos['depth'] = self.get_vao(program=self.programs['buffer_depth'], 
-                                         vbo=self.VBO)
-        
-        self.model = ChunkModel(self.pos, self.scene, self.vaos)
-
-
-class ChunkModel(BaseModel):
-    def __init__(self, pos, scene, vaos) -> None:
-        self.pos = glm.vec3(pos) * (CHUNK_SIZE)
-        self.scene = scene
-        self.vaos = vaos
-        self.camera = scene.graphics_engine.camera
-        self.m_model = self.get_model_matrix()
-
-        self.on_init()
-
-    def on_init(self):
-        self.programs = { 'default' : self.vaos['default'].program, 'normal' : self.vaos['normal'].program, 'depth' : self.vaos['depth'].program, 'shadow' : self.vaos['shadow'].program }
-        for program in self.programs:
-            self.programs[program]['m_proj'].write(self.camera.m_proj)
-
-    def get_model_matrix(self):
-        m_model = glm.mat4()
-        # Translate
-        m_model = glm.translate(m_model, self.pos)
-
-        return m_model

@@ -33,16 +33,18 @@ struct PointLight {
 };
 
 
-#define numPointLights 4
+#define maxNumPointLights 10
+uniform int numLights;
 uniform DirectionalLight dir_light;
-uniform PointLight pointLights[numPointLights];
+uniform PointLight pointLights[maxNumPointLights];
 uniform sampler2DShadow shadowMap;
 uniform vec2 u_resolution;
 uniform vec3 view_pos;
 
 
-float standardLightIntensity = 0.0;
-float cellLightIntensity = 1.0;
+float standardLightIntensity = 0.5;
+float cellLightIntensity = 0.5;
+float specLightIntensity = 0.2;
 
 
 float getSoftShadowX16() {
@@ -94,7 +96,7 @@ vec3 CalcDirLight(DirectionalLight light, vec3 normal, vec3 viewDir){
 
     float shadow = getSoftShadowX16();
 
-    return (ambient + (diffuse + specular) * (shadow/2 + .5));
+    return (ambient + (diffuse + specular * specLightIntensity) * (shadow/2 + .5));
 }
 
 
@@ -134,7 +136,7 @@ void main() {
     vec3 viewDir = vec3(normalize(view_pos - fragPos));
 
     vec3 result = CalcDirLight(dir_light, normal, viewDir);
-    for(int i = 0; i < numPointLights; i++)
+    for(int i = 0; i < numLights; i++)
         result += CalcPointLight(pointLights[i], normal, fragPos, viewDir);  
 
     fragColor = vec4(result, 1.0);

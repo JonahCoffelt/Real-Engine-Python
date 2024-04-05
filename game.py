@@ -17,12 +17,13 @@ class Game:
         # Pygame display init
         pg.display.set_mode(self.win_size, flags=pg.OPENGL | pg.DOUBLEBUF | pg.RESIZABLE)
         # Lock mouse in place and hide
-        pg.event.set_grab(True)
-        pg.mouse.set_visible(False)
+        #pg.event.set_grab(True)
+        #pg.mouse.set_visible(False)
         # MGL Context
         self.ctx = mgl.create_context()
         # Basic Gl setup
         self.ctx.enable(flags=mgl.DEPTH_TEST | mgl.CULL_FACE)
+        #self.ctx.enable(flags=mgl.DEPTH_TEST)
         # Engine
         self.graphics_engine = GraphicsEngine(self)
         # Time variables
@@ -35,14 +36,6 @@ class Game:
             if event.type == pg.QUIT:
                 pg.quit()
                 sys.exit()
-            if event.type == pg.KEYUP:
-                if event.key == pg.K_ESCAPE:  # Unlock mouse
-                    pg.event.set_grab(False)
-                    pg.mouse.set_visible(True)
-                
-            if event.type == pg.MOUSEBUTTONDOWN:  # Lock mouse
-                pg.event.set_grab(True)
-                pg.mouse.set_visible(False)
 
         if pg.mouse.get_pressed()[0] and self.mine_timer > self.mine_duration:
             self.mine_timer = 0

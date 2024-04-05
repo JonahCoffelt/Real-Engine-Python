@@ -2,7 +2,7 @@ import glm
 
 class LightHandler:
     def __init__(self):
-        self.dir_light = DirectionalLight()
+        self.dir_light = DirectionalLight(color=(0.15, .35, .54))
         self.point_lights = [PointLight(pos=(-10, 10, -10), color=(1.0, 0.0, 0.0)), PointLight(pos=(10, 10, 10), color=(0.0, 1.0, 0.0)), PointLight(pos=(-10, 10, -20), color=(0.0, 0.0, 1.0)), PointLight(pos=(-20, 10, -20), color=(1.0, 1.0, 1.0))]
 
     def write(self, program, dir=True, point=True):
@@ -13,6 +13,7 @@ class LightHandler:
             program['dir_light.d'].write(self.dir_light.d)
             program['dir_light.s'].write(self.dir_light.s)
         if point:
+            program[f'numLights'].write(glm.int32(len(self.point_lights)))
             for i, light in enumerate(self.point_lights):
                 program[f'pointLights[{i}].pos'].write(light.pos)
                 program[f'pointLights[{i}].constant'].write(light.constant)

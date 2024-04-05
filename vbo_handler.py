@@ -11,7 +11,7 @@ class VBOHandler:
         self.vbos['quad'] = QuadVBO(self.ctx)
         self.vbos['cat'] = ModelVBO(self.ctx, 'objects/cat/20430_Cat_v1_NEW.obj')
         self.vbos['ico'] = ModelVBO(self.ctx, 'objects/ico/ico.obj')
-        self.vbos['skybox'] = SkyBoxVBO(self.ctx)
+        self.vbos['skybox'] = AdvancedSkyBoxVBO(self.ctx)
         self.vbos['frame'] = FrameVBO(self.ctx)
 
     def desstroy(self):
@@ -130,6 +130,22 @@ class SkyBoxVBO(BaseVBO):
 
         vertex_data = self.get_data(verticies, indicies)
         vertex_data = np.flip(vertex_data, 1).copy(order='C')
+        
+        return vertex_data
+    
+
+class AdvancedSkyBoxVBO(BaseVBO):
+    def __init__(self, ctx):
+        super().__init__(ctx)
+        self.format = '3f'
+        self.attribs = ['in_position']
+
+    def get_vertex_data(self):
+        z = 0.999
+        verticies = [(-1, -1, z), ( 1, 1,  z), (-1,  1, z),
+                     (-1, -1, z), ( 1, -1, z), ( 1,  1, z),]
+
+        vertex_data = np.array(verticies, dtype='f4')   
         
         return vertex_data
 

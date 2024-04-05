@@ -5,10 +5,8 @@ from buffer_handler import BufferHandler
 from entity_handler import EntityHandler, ObjectHandler
 from particle_handler import ParticleHandler
 from chunk_handler import ChunkHandler
-import numpy as np
-import glm
-import moderngl as mgl
-import random
+from atmosphere_handler import Atmosphere
+from ui_handler import UI_Handler, surf_to_texture
 
 
 class Scene:
@@ -16,7 +14,6 @@ class Scene:
         self.graphics_engine = graphics_engine
         self.ctx = graphics_engine.ctx
         self.cam = self.graphics_engine.camera
-        self.time = 0
 
         self.vao_handler = VAOHandler(self.ctx)
         self.texture_handler = TextureHandler(self.graphics_engine.app)
@@ -28,6 +25,9 @@ class Scene:
         self.object_handler = ObjectHandler(self)
         self.entity_handler = EntityHandler(self.object_handler, self.cam)
         self.particle_handler = ParticleHandler(self.ctx, self.vao_handler.program_handler.programs, self.vao_handler.vbo_handler.vbos['ico'], self.cam)
+        self.atmosphere_handler = Atmosphere(self)
+
+        self.ui_handler = UI_Handler(self.ctx, self.buffer_handler.buffers['frame'].vao, self.graphics_engine.app.win_size)
 
         # Shadow map buffer
         self.shadow_texture = self.texture_handler.textures['shadow_map_texture']
@@ -37,40 +37,41 @@ class Scene:
         self.shadow_frame_skips = 5
 
     def update(self, delta_time):
-        #self.time += self.graphics_engine.app.delta_time
+        #pos = (random.uniform(-1, 1), random.uniform(1.5, 2.5), random.uniform(-1, 1))
+        #self.particle_handler.add_particles(type=3, life=.5, scale=2, pos=pos, clr=(random.uniform(.75, 1),        random.uniform(.25, .5),.25), vel=(random.uniform(-2, 2) + pos[0], random.uniform(3, 5), random.uniform(-2, 2) + pos[2]), accel=(random.uniform(-1, 1) - pos[0] * 3, 2, random.uniform(-1, 1) -   pos[2] * 3))
+        #self.particle_handler.add_particles(type=3, life=.5, scale=2, pos=(pos[0]/2, pos[1] + 1, pos[2]/2), clr=   (random.uniform(.75, 1), random.uniform(.4, .9),.25), vel=(random.uniform(-1, 1) + pos[0], random.uniform(4, 6), random.uniform(-1, 1) + pos[2]), accel=(random.uniform(-1, 1) - pos[0] * 3, 2,     random.uniform(-1, 1) - pos[2] * 3))
+        #smoke_color = random.uniform(.5, .9)
+        #self.particle_handler.add_particles(type=3, pos=(0, 3, 0), clr=(smoke_color, smoke_color, smoke_color),    scale=.5, vel=(random.uniform(-1, 1), random.uniform(1, 6), random.uniform(-1, 1)), accel=(random.uniform(-1, 1), random.uniform(-1, 3), random.uniform(-1, 1)))
 
-        pos = (random.uniform(-1, 1), random.uniform(1.5, 2.5), random.uniform(-1, 1))
-        self.particle_handler.add_particles(type=3, life=.5, scale=2, pos=pos, clr=(random.uniform(.75, 1),        random.uniform(.25, .5),.25), vel=(random.uniform(-2, 2) + pos[0], random.uniform(3, 5), random.uniform(-2, 2) + pos[2]), accel=(random.uniform(-1, 1) - pos[0] * 3, 2, random.uniform(-1, 1) -   pos[2] * 3))
-        self.particle_handler.add_particles(type=3, life=.5, scale=2, pos=(pos[0]/2, pos[1] + 1, pos[2]/2), clr=   (random.uniform(.75, 1), random.uniform(.4, .9),.25), vel=(random.uniform(-1, 1) + pos[0], random.uniform(4, 6), random.uniform(-1, 1) + pos[2]), accel=(random.uniform(-1, 1) - pos[0] * 3, 2,     random.uniform(-1, 1) - pos[2] * 3))
-        smoke_color = random.uniform(.5, .9)
-        self.particle_handler.add_particles(type=3, pos=(0, 3, 0), clr=(smoke_color, smoke_color, smoke_color),    scale=.5, vel=(random.uniform(-1, 1), random.uniform(1, 6), random.uniform(-1, 1)), accel=(random.uniform(-1, 1), random.uniform(-1, 3), random.uniform(-1, 1)))
-
-
-        self.light_handler.dir_light.color = glm.vec3(np.array([1, 1, 1]) - np.array([.8, .9, .6]) * (min(.75, max(.25, (np.sin(self.time / 500)*.5 + .5))) * 2 - .5))
         
         self.vao_handler.program_handler.update_attribs(self)  # Updates the values sent to uniforms
         self.entity_handler.update(delta_time)
         self.object_handler.update(delta_time)  # Updates the objects
         self.particle_handler.update(delta_time)  # Updates particles
+        self.atmosphere_handler.update(delta_time)  # Updates the sky and time
         self.chunk_handler.update()
+        self.ui_handler.update()
 
     def render_buffers(self):
         self.buffer_handler.buffers['frame'].use()   # Frame Buffer
-        self.object_handler.render('skybox', light=False, object_types=('skybox'))
+        self.atmosphere_handler.render()
         self.object_handler.render(False, light=True, object_types=('container', 'metal_box', 'wooden_box'))
-        self.object_handler.render(False, light=True, objs=self.chunk_handler.chunks.values())
+        #self.object_handler.render(False, light=True, objs=self.chunk_handler.chunks.values(), prin=True)
+        self.chunk_handler.render_instanced()
         self.particle_handler.render()
         self.buffer_handler.buffers['normal'].use()  # Normal Buffer
         self.object_handler.render('buffer_normal', 'normal', ('container', 'metal_box', 'wooden_box', 'meshes'))
-        self.object_handler.render('buffer_normal', 'normal', objs=self.chunk_handler.chunks.values())
+        #self.object_handler.render('buffer_normal', 'normal', objs=self.chunk_handler.chunks.values())
         self.buffer_handler.buffers['depth'].use()   # Depth Buffer
         self.object_handler.render('buffer_depth', 'depth', ('container', 'metal_box', 'wooden_box', 'meshes'))
-        self.object_handler.render('buffer_depth', 'depth', objs=self.chunk_handler.chunks.values())
+        self.chunk_handler.render_depth()
+        #self.object_handler.render('buffer_depth', 'depth', objs=self.chunk_handler.chunks.values())
         self.shadow_fbo.clear() # Shadow Buffer
         self.shadow_fbo.use()
         self.object_handler.apply_shadow_shader_uniforms()
         self.object_handler.render('shadow_map', 'shadow', ('container', 'metal_box', 'wooden_box', 'meshes', 'cat'))
-        self.object_handler.render('shadow_map', 'shadow', objs=self.chunk_handler.chunks.values())
+        self.chunk_handler.render_shadow()
+        #self.chunk_handler.render_depth()
 
     def render_filters(self):
         sharpen_buffer = self.buffer_handler.buffers['edge_detect']
