@@ -1,6 +1,7 @@
 import glm
 import numpy as np
 
+
 class Hitbox():
     
     def __init__(self, obj, vertices, faces, dimensions, vel = (0, 0, 0), rot_vel = 0, rot_axis = (0, 0, 0)):

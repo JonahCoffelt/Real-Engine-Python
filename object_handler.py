@@ -7,6 +7,8 @@ from scipy.spatial.transform import Rotation as R
 from quaternions import *
 from random import uniform
 import time
+import cudart
+
 
 class ObjectHandler:
     def __init__(self, scene):

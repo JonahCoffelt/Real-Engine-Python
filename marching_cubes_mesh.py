@@ -2,6 +2,8 @@ import numpy as np
 from numba import njit
 from marching_cube_tables import edge_table, tri_table
 from terrain_materials import material_IDs
+import cudart
+
 
 @njit
 def normalized(a):

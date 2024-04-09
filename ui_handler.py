@@ -2,6 +2,8 @@ import pygame as pg
 import numpy as np
 import random
 import moderngl as mgl
+import cudart
+
 
 assets = {'btn_blank' : 'button_blank.png',
           'btn' : 'button.png'}

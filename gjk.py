@@ -1,6 +1,7 @@
 import glm    
 import random
 
+
 class GJK():
     
     def __init__(self): 

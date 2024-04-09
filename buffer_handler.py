@@ -1,3 +1,6 @@
+import cudart
+
+
 BUFFERS = {
     # Name : Prorgam
     'frame' : 'buffer_frame',

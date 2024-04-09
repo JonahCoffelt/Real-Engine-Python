@@ -1,5 +1,6 @@
 from vbo_handler import VBOHandler
 from shader_program_handler import ProgramHandler
+import cudart
 
 
 class VAOHandler:

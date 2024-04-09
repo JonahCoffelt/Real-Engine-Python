@@ -3,7 +3,7 @@ from hitboxes import Hitbox
 import numpy as np
 from chunk_handler import CHUNK_SIZE
 from numba import njit
-import time
+
 
 @njit
 def detect_broad_collision(c1, c20, c21, c22, dim1, dim2):

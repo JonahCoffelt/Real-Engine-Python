@@ -2,6 +2,7 @@ import numpy as np
 from terrain_materials import color_to_ID, material_IDs
 from marching_cubes_chunk import CHUNK_SIZE
 
+
 def get_field_from_voxels(path, dim):
     field = np.zeros(shape=(dim)) - 1
     materials = np.zeros(shape=(dim[0] + 2, dim[1] + 2, dim[2] + 2))

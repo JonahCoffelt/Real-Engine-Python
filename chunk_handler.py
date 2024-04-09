@@ -2,6 +2,8 @@ from marching_cubes_chunk import Chunk, CHUNK_SIZE
 import numpy as np
 import glm
 from voxel_marching_cubes_construct import add_voxel_model
+import cudart
+
 
 RENDER_DISTANCE = 20
 

@@ -1,7 +1,8 @@
 import pygame as pg
 from scene import Scene
 from camera import *
-import time
+import cudart
+
 
 class GraphicsEngine:
     def __init__(self, app) -> None:

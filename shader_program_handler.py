@@ -1,4 +1,6 @@
 import glm
+import cudart
+
 
 PROGRAMS = {
     'default' : 'default',

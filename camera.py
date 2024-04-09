@@ -1,5 +1,7 @@
 import glm
 import pygame as pg
+import cudart
+
 
 # Camera view constants
 FOV = 50  # Degrees

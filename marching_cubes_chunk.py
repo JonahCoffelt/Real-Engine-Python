@@ -2,8 +2,8 @@ import numpy as np
 import glm
 import random
 from marching_cubes_mesh import ChunkMeshVBO
-from numba import njit
-from model import BaseModel
+import cudart
+
 
 
 CHUNK_SIZE = 10

@@ -4,6 +4,8 @@ import moderngl as mgl
 from graphics_engine import GraphicsEngine
 import glm
 import numpy as np
+import cudart
+
 
 class Game:
     def __init__(self, win_size=(1600, 900)):

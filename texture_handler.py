@@ -1,5 +1,7 @@
 import pygame as pg
 import moderngl as mgl
+import cudart
+
 
 TEXTURES = {
     'container' : 'textures/container.png',

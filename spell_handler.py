@@ -4,6 +4,8 @@ from bullet_handler import Bullet, BulletHandler
 from launch_handler import LaunchHandler
 from spread_handler import SpreadHandler
 from casting_handler import CastingHandler
+import cudart
+
 
 class SpellHandler():
     

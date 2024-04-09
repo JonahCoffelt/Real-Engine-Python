@@ -7,6 +7,8 @@ from particle_handler import ParticleHandler
 from chunk_handler import ChunkHandler
 from atmosphere_handler import Atmosphere
 from ui_handler import UI_Handler
+import cudart
+
 
 class Scene:
     def __init__(self, graphics_engine) -> None:

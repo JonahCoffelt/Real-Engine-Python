@@ -3,6 +3,7 @@ import glm
 from numba import njit
 import random
 import moderngl as mgl
+import cudart
 
 
 #  Particle Format

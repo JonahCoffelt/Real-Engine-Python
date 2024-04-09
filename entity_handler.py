@@ -4,6 +4,8 @@ from pathing_handler import PathingHandler
 import pygame as pg
 import glm
 from random import choice, uniform
+import cudart
+
 
 class EntityHandler():
     
