@@ -4,8 +4,11 @@ class LightHandler:
     def __init__(self):
         self.dir_light = DirectionalLight()
         self.point_lights = [PointLight(pos=(-10, 10, -10), color=(1.0, 0.0, 0.0)), PointLight(pos=(10, 10, 10), color=(0.0, 1.0, 0.0)), PointLight(pos=(-10, 10, -20), color=(0.0, 0.0, 1.0)), PointLight(pos=(-20, 10, -20), color=(1.0, 1.0, 1.0))]
+        self.point_lights.append(PointLight(pos=(6, 6, 5), color=(1.0, .6, .2)))
+        self.point_lights.append(PointLight(pos=(18, 6, 5), color=(1.0, .6, .2))) 
 
     def write(self, program, dir=True, point=True):
+        program['numLights'].write(glm.int32(len(self.point_lights)))
         if dir:
             program['dir_light.direction'].write(self.dir_light.dir)
             program['dir_light.color'].write(self.dir_light.color)
@@ -33,7 +36,7 @@ class Light:
 
 
 class DirectionalLight(Light):
-    def __init__(self, direction=(1.0, -1.0, 1.0), ambient=0.4, diffuse=0.6, specular=1.0, color=(1.0, 1.0, 1.0)):
+    def __init__(self, direction=(1.0, -1.0, -1.0), ambient=0.4, diffuse=0.6, specular=1.0, color=(1.0, 1.0, 1.0)):
         super().__init__(ambient, diffuse, specular, color)
         self.dir = glm.vec3(direction)
         self.position = glm.vec3(150, 100, -150)

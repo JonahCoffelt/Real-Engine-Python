@@ -52,6 +52,7 @@ class UI_Handler:
         self.current_elements = self.elements[self.main_menu][:]
 
         self.mouse_states = [False, False, False]
+        self.key_states = pg.key.get_pressed()
 
         self.n_cards = 5
 
@@ -62,7 +63,7 @@ class UI_Handler:
         self.keys = pg.key.get_pressed()
 
         for key in self.hotkeys[self.screen]:
-            if self.keys[key]: 
+            if self.keys[key] and not self.key_states[key]: 
                 for command in self.hotkeys[self.screen][key]: command[0](*command[1])
 
         self.screen()
@@ -70,6 +71,7 @@ class UI_Handler:
         if self.update_texture > 0: self.render()
 
         self.mouse_states = [state for state in self.mouse_buttons]
+        self.key_states = self.keys
 
 
     def render(self):

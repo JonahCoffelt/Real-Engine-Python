@@ -3,7 +3,7 @@ import numpy as np
 import glm
 from voxel_marching_cubes_construct import add_voxel_model
 
-RENDER_DISTANCE = 10
+RENDER_DISTANCE = 20
 
 def get_data(chunks, pos):
     radius = RENDER_DISTANCE//2
@@ -26,7 +26,7 @@ class ChunkHandler():
 
         self.update_chunks = []
 
-        self.world_size = 20
+        self.world_size = 16
 
         self.programs = self.scene.vao_handler.program_handler.programs
 
@@ -35,7 +35,14 @@ class ChunkHandler():
                 for z in range(self.world_size):
                     self.chunks[f'{x};{y};{z}'] = (Chunk(self.scene.ctx, self.chunks, self.programs, self.scene, (x, y, z)))
         
-        #add_voxel_model(self.chunks, 'castle', (10, 4, 10))
+        add_voxel_model(self.chunks, 'room', (2, 3, 2))
+        add_voxel_model(self.chunks, 'cottage', (30, 3, 2))
+
+        #for z in range(3):
+        #    for y in range(3):
+        #        add_voxel_model(self.chunks, 'wall', (2, 1 + y * 8, 2 + z * 10))
+
+        #self.generate_tree((5, 5, 5))
 
         for chunk in list(self.chunks.values()):
             chunk.generate_mesh()
@@ -147,6 +154,27 @@ class ChunkHandler():
             if edge_chunk_key not in self.chunks: continue
             self.update_chunks.append(edge_chunk_key)
 
+    def set_point(self, x, y, z, value, material=False):
+
+        local_pos = [x % CHUNK_SIZE, y % CHUNK_SIZE, z % CHUNK_SIZE]
+        chunk_pos = [x // CHUNK_SIZE, y // CHUNK_SIZE, z // CHUNK_SIZE]
+
+        chunk = f'{int(chunk_pos[0])};{int(chunk_pos[1])};{int(chunk_pos[2])}'
+
+        if chunk not in self.chunks: return
+        
+        self.chunks[chunk].field[local_pos[0]][local_pos[1]][local_pos[2]] = value
+        self.chunks[chunk].materials[local_pos[0] - 1][local_pos[1] - 1][local_pos[2] - 1] = material
+        self.chunks[chunk].materials[local_pos[0]][local_pos[1]][local_pos[2]] = material
+
+        edges = [(x, y, z) for x in range(0, 1 + int(local_pos[0] == 0)) for y in range(0, 1 + int(local_pos[1] == 0)) for z in range(0, 1 + int(local_pos[2] == 0))]
+        for edge in edges:
+            edge_chunk_key = f'{int(chunk_pos[0]) - edge[0]};{int(chunk_pos[1]) - edge[1]};{int(chunk_pos[2]) - edge[2]}'
+            if edge_chunk_key in self.update_chunks: continue
+            if edge_chunk_key not in self.chunks: continue
+            self.update_chunks.append(edge_chunk_key)
+
+
     def ray_cast(self, tests = 150, multiplier = 0.5, position = None, test_start = 0):
         ray_cast_pos = None
         if position is None: position = self.scene.cam.position
@@ -173,3 +201,9 @@ class ChunkHandler():
                     ray_cast_pos = pos
                     break
         return ray_cast_pos
+    
+    def generate_tree(self, pos: tuple):
+        for x in range(-1, 2):
+            for y in range(10):
+                for z in range(-1, 2):
+                    self.set_point(pos[0] + x, pos[1] + y, pos[2] + z, (1 - y/10) - abs(x)/2 - abs(z)/2, material=5)

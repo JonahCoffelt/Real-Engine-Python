@@ -31,7 +31,11 @@ def get_field_from_voxels(path, dim):
 
 voxel_model_info = {
     'car' : (25, 25, 40),
-    'castle' : (20, 20, 20)
+    'castle' : (20, 20, 20),
+    'chess' : (26, 10, 26),
+    'wall' : (10, 10, 10),
+    'room' : (20, 11, 20),
+    'cottage' : (10, 10, 10)
 }
 
 voxel_models = {
@@ -52,9 +56,9 @@ def add_voxel_model(chunks: dict, model: str, pos: tuple):
                 chunk.field[chunk_rel_pos[0]][chunk_rel_pos[1]][chunk_rel_pos[2]] = voxel_models[model][0][rel_x][rel_y][rel_z]
 
     # Update materials
-    for rel_x in range(voxel_model_info[model][0]+2):
-        for rel_y in range(voxel_model_info[model][1]+2):
-            for rel_z in range(voxel_model_info[model][2]+2):
+    for rel_x in range(voxel_model_info[model][0]+1):
+        for rel_y in range(voxel_model_info[model][1]+1):
+            for rel_z in range(voxel_model_info[model][2]+1):
                 x, y, z = rel_x + pos[0] - 1, rel_y + pos[1] - 1, rel_z + pos[2] - 1
                 chunk_pos = (x//CHUNK_SIZE, y//CHUNK_SIZE, z//CHUNK_SIZE)
                 chunk_rel_pos = (int(x%CHUNK_SIZE), int(y%CHUNK_SIZE), int(z%CHUNK_SIZE))

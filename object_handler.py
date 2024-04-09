@@ -58,6 +58,7 @@ class ObjectHandler:
         self.pe.resolve_collisions(self.objects, delta_time)
         self.pe.resolve_terrain_collisions(self.objects, delta_time)
 
+
     def write_shader_uniforms(self, program_name, obj_type=None, material=None):
         """
         This is the primary method for sending unforms to the shader programs.

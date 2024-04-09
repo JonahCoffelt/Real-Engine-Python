@@ -84,7 +84,7 @@ vec3 CalcDirLight(DirectionalLight light, vec3 normal, vec3 viewDir){
 
     vec3 lightDir = normalize(-light.direction);
 
-    float diff = max(dot(normal, lightDir), 0.0);
+    float diff = max(dot(abs(normal), lightDir), 0.0);
     float cellDiff = clamp_value(diff);
 
     vec3 reflectDir = reflect(-lightDir, normal);
@@ -115,7 +115,8 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir){
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
 
     vec3 ambient = light.a * light.color * groundColor;
-    vec3 diffuse = (light.d * cellDiff * light.color * groundColor) * cellLightIntensity + (light.d * diff * light.color * groundColor) * standardLightIntensity;
+    //vec3 diffuse = (light.d * cellDiff * light.color * groundColor) * cellLightIntensity + (light.d * diff * light.color * groundColor) * standardLightIntensity;
+    vec3 diffuse = light.d * diff * light.color * groundColor;
     vec3 specular = light.s * spec * light.color * groundColor;
 
     ambient *= attenuation;

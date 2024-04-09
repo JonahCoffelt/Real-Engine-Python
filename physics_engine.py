@@ -3,6 +3,7 @@ from hitboxes import Hitbox
 import numpy as np
 from chunk_handler import CHUNK_SIZE
 from numba import njit
+import time
 
 @njit
 def detect_broad_collision(c1, c20, c21, c22, dim1, dim2):
@@ -26,7 +27,6 @@ class PhysicsEngine():
         self.chunk_handler = chunk_handler
         
     def resolve_terrain_bullet_collisions(self, bullets):
-
         for bullet in bullets:
             chunk = self.chunk_handler.get_chunk_from_point(bullet.pos)
             if chunk is None: continue
@@ -51,8 +51,7 @@ class PhysicsEngine():
                 
                 bullet.has_collided = True
         
-    def resolve_terrain_collisions(self, objs, delta_time):
-        
+    def resolve_terrain_collisions(self, objs, delta_time):        
         for obj in objs:
             for chunk in self.chunk_handler.get_close_chunks(obj):
                 for cube in chunk.get_close_cubes(obj):
@@ -67,6 +66,7 @@ class PhysicsEngine():
                         obj.last_collided = 'terrain'
                         
                         self.resolve_collision(obj, self.dummy, delta_time)
+        
         
     # object to object collisions
     def resolve_collisions(self, objs, delta_time):
