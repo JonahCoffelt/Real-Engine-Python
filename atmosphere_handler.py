@@ -14,11 +14,11 @@ class Atmosphere:
 
         self.time = 0
         self.sky_colors = {
-            6 :  np.array([[0, 17, 127],   [0, 63, 132],      [0, 109, 137] ,  [30, 109, 137]],  dtype='f4'), # Night end, sunrise begin
-            9 :  np.array([[0, 114, 130],  [130, 137.5, 93],  [240, 161, 56],  [240, 161, 56]],  dtype='f4'), # Sunrise
+            3 :  np.array([[0, 17, 127],   [0, 63, 132],      [0, 109, 137] ,  [30, 109, 137]],  dtype='f4'), # Night end, sunrise begin
+            6 :  np.array([[0, 114, 130],  [130, 137.5, 93],  [240, 161, 56],  [240, 161, 56]],  dtype='f4'), # Sunrise
             11 : np.array([[59, 147, 255], [87, 162.5, 255],  [115, 178, 255], [255, 255, 255]], dtype='f4'), # Day
-            17 : np.array([[59, 147, 255], [87, 162.5, 255],  [115, 178, 255], [255, 255, 255]], dtype='f4'), # Day end, sunset begin
-            20 : np.array([[0, 23, 145],   [92.5, 51.5, 140], [185, 80, 135],  [185, 80, 135]],  dtype='f4'), # Sunset
+            16 : np.array([[59, 147, 255], [87, 162.5, 255],  [115, 178, 255], [255, 255, 255]], dtype='f4'), # Day end, sunset begin
+            19 : np.array([[0, 23, 145],   [92.5, 51.5, 140], [185, 80, 135],  [185, 80, 135]],  dtype='f4'), # Sunset
             22 : np.array([[0, 17, 127],   [0, 63, 132],      [0, 109, 137] ,  [30, 109, 137]],  dtype='f4'), # Night
         }
         self.times = np.array(list(self.sky_colors.keys()))
@@ -42,11 +42,13 @@ class Atmosphere:
         self.time = self.time % 24
         time_index = np.searchsorted(self.times, self.time)
 
+
         t1, t2 = self.times[time_index - 1], self.times[time_index%6]
         color1, color2 = self.sky_colors[t1], self.sky_colors[t2]
 
         color = (color2 - color1) / (t2 - t1) * (self.time - t1) + color1
 
+        self.sky_program[f'time'].write(glm.float32(self.time))
         self.sky_program[f'color1'].write(color[0] / 255)
         self.sky_program[f'color2'].write(color[1] / 255)
         self.sky_program[f'color3'].write(color[2] / 255)

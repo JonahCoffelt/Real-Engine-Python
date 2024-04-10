@@ -15,14 +15,18 @@ uniform star_struct stars[numStars];
 uniform float pitch;
 uniform float yaw;
 
+uniform float time;
+
 uniform vec3 color1;
 uniform vec3 color2;
 uniform vec3 color3;
 
+vec3 moon_color = vec3(150, 150, 250)/255;
+vec3 sun_color = vec3(250, 250, 140)/255;
+
 
 vec3 color;
 const float deg2rad = 0.0174533;
-vec2 moon = vec2(45, 115);
 
 
 void main() {
@@ -38,7 +42,12 @@ void main() {
     float height = sphere_pos.y * cos(clipCoords.x * 50 * deg2rad);
     height += sin(x * 13 + height * 5)/60 + cos(z * 13 - height * 5)/60;
 
-    float moon_brightness = min(2.5 / pow(sqrt(pow(phi - moon.y, 2) + pow(theta - moon.x, 2)), 2), 1.0);
+    float moon_sun_side = 180.0;
+    if (time > 12.0) {
+        moon_sun_side = 0;
+    }
+    float moon_brightness = min(2.5 / pow(sqrt(pow(phi - abs((time - 12) * 15), 2) + pow(theta - moon_sun_side - 90, 2)), 2), 1.0);
+    float sun_brightness = min(2.5 / pow(sqrt(pow(phi + abs((time - 12) * 15) - 180, 2) + pow(theta - (180 - moon_sun_side) - 90, 2)), 2), 1.0);
 
     float star_brightness = 0.0;
     for (int i = 0; i < numStars; i++) {
@@ -53,5 +62,5 @@ void main() {
         color = vec3((color3 - color2) / (-1 - 0) * (height - 0) + color2);
     }
 
-    fragColor = vec4(color + vec3(moon_brightness/1.3) + vec3(star_brightness), 1.0);
+    fragColor = vec4(color + vec3(moon_brightness/1.3) * moon_color + vec3(sun_brightness/1.3) * sun_color + vec3(star_brightness) * max(cos(time * 0.261791666667), 0), 1.0);
 }
