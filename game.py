@@ -24,6 +24,7 @@ class Game:
         pg.mouse.set_visible(False)
         # MGL Context
         self.ctx = mgl.create_context()
+        print(self.ctx.viewport)
         # Basic Gl setup
         self.ctx.enable(flags=mgl.DEPTH_TEST | mgl.CULL_FACE)
         # Engine
@@ -38,6 +39,12 @@ class Game:
             if event.type == pg.QUIT:
                 pg.quit()
                 sys.exit()
+            if event.type == pg.VIDEORESIZE:
+                ui = self.graphics_engine.scene.ui_handler
+                ui.win_size = (event.w, event.h)
+                ui.surf = pg.Surface((event.w, event.h)).convert_alpha()
+                ui.update_texture = 2
+                self.ctx.viewport = (0, 0, event.w, event.h)
 
         if pg.mouse.get_pressed()[0] and self.mine_timer > self.mine_duration:
             self.mine_timer = 0
