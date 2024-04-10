@@ -1,8 +1,8 @@
 from marching_cubes_chunk import Chunk, CHUNK_SIZE
 import numpy as np
 import glm
-from voxel_marching_cubes_construct import add_voxel_model
 import cudart
+from structure_handler import StructureHandler
 
 
 RENDER_DISTANCE = 20
@@ -25,7 +25,6 @@ class ChunkHandler():
     def __init__(self, scene):
         self.scene = scene
         self.chunks = {}
-
         self.update_chunks = []
 
         self.world_size = 16
@@ -36,22 +35,13 @@ class ChunkHandler():
             for y in range(3):
                 for z in range(self.world_size):
                     self.chunks[f'{x};{y};{z}'] = (Chunk(self.scene.ctx, self.chunks, self.programs, self.scene, (x, y, z)))
-        
-        add_voxel_model(self.chunks, 'room', (2, 3, 2))
-        add_voxel_model(self.chunks, 'cottage', (30, 3, 2))
-
-        #for z in range(3):
-        #    for y in range(3):
-        #        add_voxel_model(self.chunks, 'wall', (2, 1 + y * 8, 2 + z * 10))
-
-        #self.generate_tree((5, 5, 5))
-
-        for chunk in list(self.chunks.values()):
-            chunk.generate_mesh()
 
         self.chunk_pos = (self.scene.cam.position.x//10, self.scene.cam.position.y//10, self.scene.cam.position.z//10)
 
-        #self.instance_buffer_data = get_data(list(self.chunks.values()))
+    def after_init(self):
+        self.structure_handler = StructureHandler(self, self.scene.light_handler, self.scene.particle_handler.emitter_handler)
+        for chunk in list(self.chunks.values()):
+            chunk.generate_mesh()
         self.instance_buffer_data = get_data(self.chunks, self.chunk_pos)
         self.depth_instance_buffer_data = np.array(self.instance_buffer_data[:,0:9], order='C')
 

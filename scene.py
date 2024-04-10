@@ -28,8 +28,9 @@ class Scene:
         self.entity_handler = EntityHandler(self.object_handler, self.cam)
         self.particle_handler = ParticleHandler(self.ctx, self.vao_handler.program_handler.programs, self.vao_handler.vbo_handler.vbos['ico'], self.cam)
         self.atmosphere_handler = Atmosphere(self)
-
         self.ui_handler = UI_Handler(self.ctx, self.buffer_handler.buffers['frame'].vao, self.graphics_engine.app.win_size)
+
+        self.chunk_handler.after_init()
 
         # Shadow map buffer
         self.shadow_texture = self.texture_handler.textures['shadow_map_texture']

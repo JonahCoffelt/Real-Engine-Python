@@ -33,7 +33,7 @@ struct PointLight {
 };
 
 
-#define maxNumPointLights 10
+#define maxNumPointLights 50
 uniform int numLights;
 uniform DirectionalLight dir_light;
 uniform PointLight pointLights[maxNumPointLights];
@@ -105,7 +105,7 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir){
 
     vec3 lightDir = normalize(light.pos - fragPos);
 
-    float diff = max(dot(normal, lightDir), 0.0);
+    float diff = max(dot(normal, abs(lightDir)), 0.0);
     float cellDiff = clamp_value(diff);
 
     vec3 reflectDir = reflect(-lightDir, normal);

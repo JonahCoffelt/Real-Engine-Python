@@ -5,9 +5,10 @@ import cudart
 class LightHandler:
     def __init__(self):
         self.dir_light = DirectionalLight()
-        self.point_lights = [PointLight(pos=(-10, 10, -10), color=(1.0, 0.0, 0.0)), PointLight(pos=(10, 10, 10), color=(0.0, 1.0, 0.0)), PointLight(pos=(-10, 10, -20), color=(0.0, 0.0, 1.0)), PointLight(pos=(-20, 10, -20), color=(1.0, 1.0, 1.0))]
-        self.point_lights.append(PointLight(pos=(6, 6, 5), color=(1.0, .6, .2)))
-        self.point_lights.append(PointLight(pos=(18, 6, 5), color=(1.0, .6, .2))) 
+        self.point_lights = []
+
+    def add_light(self, pos=(0, 0, 0), color=(1.0, 1.0, 1.0), brightness=1.0):
+        self.point_lights.append(PointLight(pos=pos, color=color, diffuse=brightness))
 
     def write(self, program, dir=True, point=True):
         program['numLights'].write(glm.int32(len(self.point_lights)))

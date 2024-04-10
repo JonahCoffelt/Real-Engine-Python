@@ -1,8 +1,8 @@
 import numpy as np
-import glm
 from numba import njit
 import random
 import moderngl as mgl
+from particle_emitter_handler import ParticleEmitterHandler
 import cudart
 
 
@@ -38,6 +38,8 @@ class ParticleHandler:
         self.programs = programs
         self.ctx = ctx
         self.cam = cam
+        self.emitter_handler = ParticleEmitterHandler(self)
+
         self.vbo_2d = ParticleVBO(ctx)
         self.ico_vbo = ico_vbo
         self.empty_particle = np.array([0.0 for i in range(14)])
@@ -88,6 +90,7 @@ class ParticleHandler:
         elif len(self.particle_instances_3d) < (self.particle_cube_size ** 3): self.particle_instances_3d = np.vstack((np.array([*pos, *clr, scale, life, *vel, *accel]), self.particle_instances_3d), dtype='f4')
 
     def update(self, dt):
+        self.emitter_handler.update(dt)
         cam_pos = self.cam.position
         # Update 2D Particle Matrix & Sort by distance from camera
         self.particle_instances_2d = get_alive(self.particle_instances_2d)
