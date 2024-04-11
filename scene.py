@@ -43,7 +43,7 @@ class Scene:
         
         self.vao_handler.program_handler.update_attribs(self)  # Updates the values sent to uniforms
         self.entity_handler.update(delta_time)
-        #self.object_handler.update(delta_time)  # Updates the objects
+        self.object_handler.update(delta_time)  # Updates the objects
         self.particle_handler.update(delta_time)  # Updates particles
         self.atmosphere_handler.update(delta_time)  # Updates the sky and time
         self.chunk_handler.update()

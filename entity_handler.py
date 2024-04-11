@@ -4,8 +4,6 @@ from pathing_handler import PathingHandler
 import pygame as pg
 import glm
 from random import choice, uniform
-import cudart
-
 
 class EntityHandler():
     
@@ -73,6 +71,7 @@ class Entity():
         self.entity_handler = entity_handler
         self.ragdoll = ragdoll
         self.obj = obj
+        self.max_health = health
         self.health = health
         self.speed = speed
         
@@ -134,8 +133,8 @@ class Player(Entity):
             # launches player with rotation
             direction = glm.normalize(glm.vec3(np.cos(np.deg2rad(self.cam.yaw)) * np.cos(np.deg2rad(self.cam.pitch)), np.sin(np.deg2rad(self.cam.pitch)), np.sin(np.deg2rad(self.cam.yaw)) * np.cos(np.deg2rad(self.cam.pitch))))
             self.obj.hitbox.rot_axis = glm.normalize(glm.cross(direction, (0, 1, 0)))
-            self.obj.hitbox.vel += direction * 10
-            self.obj.hitbox.rot_vel = 2*np.pi
+            self.obj.hitbox.vel = direction * 5
+            self.obj.hitbox.rot_vel = np.pi
             self.ragdoll = True
         
         if self.ragdoll: return
@@ -156,7 +155,7 @@ class Player(Entity):
             key_pressed = True
             
         if key_pressed:
-            self.obj.set_rot((0, -glm.radians(self.cam.yaw), 0))
+            self.obj.set_rot([0, -glm.radians(self.cam.yaw), 0])
             
     def set_camera(self, camera):
         self.cam = camera

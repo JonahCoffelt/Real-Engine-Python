@@ -119,7 +119,8 @@ class FollowCamera(Camera):
         self.position = self.followed.pos - self.forward * self.radius + self.up * 1 + self.right * 1
         
         # finds if camera needs to be moved forward
-        player_pos = self.app.graphics_engine.scene.entity_handler.entities[0].obj.pos
+        player_pos = [i for i in self.app.graphics_engine.scene.entity_handler.entities[0].obj.pos]
+        player_pos[1] += 1
         back_location = self.app.graphics_engine.scene.chunk_handler.ray_cast_vec(player_pos, glm.normalize(self.position - player_pos), multiplier = self.radius/100, starting_test = 20)
         
         if back_location is not None: self.position = back_location 

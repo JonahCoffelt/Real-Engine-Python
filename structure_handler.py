@@ -19,7 +19,17 @@ structures = {
         'enities' : [
 
         ]
-    }
+    },
+    # single chunk dead end halls and connector hall
+    'room-eastdead' : {'model' : 'room-eastdead', 'lights' : [], 'particles' : [], 'entities' : []},
+    'room-northdead' : {'model' : 'room-northdead', 'lights' : [], 'particles' : [], 'entities' : []},
+    'room-omnihall' : {'model' : 'room-omnihall', 'lights' : [], 'particles' : [], 'entities' : []},
+    'room-southdead' : {'model' : 'room-southdead', 'lights' : [], 'particles' : [], 'entities' : []},
+    'room-westdead' : {'model' : 'room-westdead', 'lights' : [], 'particles' : [], 'entities' : []},
+    'room-nshall' : {'model' : 'room-nshall', 'lights' : [], 'particles' : [], 'entities' : []},
+    'room-diner' : {'model' : 'room-diner', 'lights' : [], 'particles' : [], 'entities' : []},
+    'room-northstair' : {'model' : 'room-northstair', 'lights' : [], 'particles' : [], 'entities' : []},
+    'room-biglibrary' : {'model' : 'room-biglibrary', 'lights' : [], 'particles' : [], 'entities' : []},
 }
 
 

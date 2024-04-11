@@ -36,7 +36,16 @@ voxel_model_info = {
     'chess' : (26, 10, 26),
     'wall' : (10, 10, 10),
     'room' : (20, 11, 20),
-    'cottage' : (10, 10, 10)
+    'cottage' : (10, 10, 10),
+    'room-eastdead' : (10, 10, 10),
+    'room-northdead' : (10, 10, 10),
+    'room-southdead' : (10, 10, 10),
+    'room-westdead' : (10, 10, 10),
+    'room-nshall' : (10, 10, 10),
+    'room-omnihall' : (10, 10, 10),
+    'room-diner' : (20, 10, 20),
+    'room-northstair' : (20, 20, 10),
+    'room-biglibrary' : (30, 20, 30),
 }
 
 voxel_models = {
