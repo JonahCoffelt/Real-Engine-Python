@@ -3,7 +3,6 @@ import glm
 from material_handler import MaterialHandler
 from hitboxes import *
 from physics_engine import PhysicsEngine
-from scipy.spatial.transform import Rotation as R
 from quaternions import *
 from random import uniform
 import time
@@ -126,7 +125,6 @@ class ObjectHandler:
             
     def add_object(self, object):
         self.objects.append(object)
-        #self.pe.spatial_partition_handler.add_object(object)
         return object
 
 class Object:
@@ -194,22 +192,17 @@ class Object:
         self.model.update()
         
     def move_tick_rot(self, delta_time):
-        
         p = [0] + self.rot_point
-        
         theta = delta_time * self.hitbox.rot_vel
-        
+        if theta == 0: 
+            self.model.update()
+            return
         q = axis_angle_to_quaternion(self.hitbox.rot_axis, theta)
         qneg = quaternion_conjugate(q)
-        
         p = quaternion_multiply(q, p)
-        p = quaternion_multiply(p, qneg)
+        p = normalize4(quaternion_multiply(p, qneg))
         self.rot_point = p[1:]
-        
-        temp = [0, float(p[1]), float(p[2]), float(p[3])]
-        euler_angles = glm.vec3(*quaternion_to_euler(temp))
-            
-        self.rot = euler_angles
+        self.rot = glm.vec3(*quaternion_to_euler([0] + self.rot_point))
         self.model.update()
         
     def get_cartesian_vertices(self):

@@ -3,7 +3,7 @@ import numpy as np
 import glm
 import cudart
 from structure_handler import StructureHandler
-
+from dungeon_generation import DungeonHandler
 
 RENDER_DISTANCE = 20
 
@@ -32,7 +32,7 @@ class ChunkHandler():
         self.programs = self.scene.vao_handler.program_handler.programs
 
         for x in range(self.world_size):
-            for y in range(3):
+            for y in range(4):
                 for z in range(self.world_size):
                     self.chunks[f'{x};{y};{z}'] = (Chunk(self.scene.ctx, self.chunks, self.programs, self.scene, (x, y, z)))
 
@@ -40,6 +40,7 @@ class ChunkHandler():
 
     def after_init(self):
         self.structure_handler = StructureHandler(self, self.scene.light_handler, self.scene.particle_handler.emitter_handler)
+        self.dungeon_handler = DungeonHandler((15, 2, 15))
         for chunk in list(self.chunks.values()):
             chunk.generate_mesh()
         self.instance_buffer_data = get_data(self.chunks, self.chunk_pos)
@@ -66,6 +67,13 @@ class ChunkHandler():
 
         self.instance_buffer.write(self.instance_buffer_data)
         self.depth_instance_buffer.write(self.depth_instance_buffer_data)
+        self.generate_dungeon()
+        
+    def generate_dungeon(self):
+        
+        self.dungeon_handler.generate_dungeon()
+        for pos, room in self.dungeon_handler.room_spawns.items():
+            self.structure_handler.add_structure(room.file_name, [i * 10 + 10 for i in pos])
 
     def render_instanced(self):
         self.programs['mesh']['m_proj'].write(self.scene.cam.m_proj)

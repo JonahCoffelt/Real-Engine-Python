@@ -4,6 +4,7 @@ from pathing_handler import PathingHandler
 import pygame as pg
 import glm
 from random import choice, uniform
+from config import config
 import cudart
 
 
@@ -73,6 +74,7 @@ class Entity():
         self.entity_handler = entity_handler
         self.ragdoll = ragdoll
         self.obj = obj
+        self.max_health = health
         self.health = health
         self.speed = speed
         
@@ -129,34 +131,34 @@ class Player(Entity):
     def move(self, delta_time):
         
         keys = pg.key.get_pressed()
-        if keys[pg.K_SPACE] and self.obj.last_collided is not None:
+        if keys[config['controls']['up']] and self.obj.last_collided is not None:
             
             # launches player with rotation
             direction = glm.normalize(glm.vec3(np.cos(np.deg2rad(self.cam.yaw)) * np.cos(np.deg2rad(self.cam.pitch)), np.sin(np.deg2rad(self.cam.pitch)), np.sin(np.deg2rad(self.cam.yaw)) * np.cos(np.deg2rad(self.cam.pitch))))
             self.obj.hitbox.rot_axis = glm.normalize(glm.cross(direction, (0, 1, 0)))
-            self.obj.hitbox.vel += direction * 10
-            self.obj.hitbox.rot_vel = 2*np.pi
+            self.obj.hitbox.vel = direction * 5
+            self.obj.hitbox.rot_vel = np.pi
             self.ragdoll = True
         
         if self.ragdoll: return
         
         velocity = self.speed * delta_time
         key_pressed = False
-        if keys[pg.K_w]:
+        if keys[config['controls']['forward']]:
             self.obj.pos += glm.normalize(glm.vec3(self.cam.forward.x, 0, self.cam.forward.z)) * velocity
             key_pressed = True
-        if keys[pg.K_s]:
+        if keys[config['controls']['backward']]:
             self.obj.pos -= glm.normalize(glm.vec3(self.cam.forward.x, 0, self.cam.forward.z)) * velocity
             key_pressed = True
-        if keys[pg.K_a]:
+        if keys[config['controls']['left']]:
             self.obj.pos -= self.cam.right * velocity
             key_pressed = True
-        if keys[pg.K_d]:
+        if keys[config['controls']['right']]:
             self.obj.pos += self.cam.right * velocity
             key_pressed = True
             
         if key_pressed:
-            self.obj.set_rot((0, -glm.radians(self.cam.yaw), 0))
+            self.obj.set_rot([0, -glm.radians(self.cam.yaw), 0])
             
     def set_camera(self, camera):
         self.cam = camera

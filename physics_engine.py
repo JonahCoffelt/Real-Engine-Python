@@ -14,10 +14,6 @@ def detect_broad_collision(c1, c20, c21, c22, dim1, dim2):
 
 class PhysicsEngine():
     
-    def get_bullet_dimensions(self, pos, scale):
-        
-        return [pos + (x, y, z) for z in (-scale, scale) for y in (-scale, scale) for x in (-scale, scale)]
-    
     def __init__(self, gravity_strength, chunk_handler, dummy):
         
         self.gjk = GJK()
@@ -25,6 +21,11 @@ class PhysicsEngine():
         self.pbs = PBS(self)
         self.dummy = dummy
         self.chunk_handler = chunk_handler
+        detect_broad_collision(np.array([1, 1, 1], dtype = 'f4'), 1, 1, 1, np.array([1, 1, 1], dtype = 'f4'), np.array([1, 1, 1], dtype = 'f4'))
+        
+    def get_bullet_dimensions(self, pos, scale):
+        
+        return [pos + (x, y, z) for z in (-scale, scale) for y in (-scale, scale) for x in (-scale, scale)]
         
     def resolve_terrain_bullet_collisions(self, bullets):
         for bullet in bullets:

@@ -1,16 +1,17 @@
 import glm
 import pygame as pg
+from config import config
 import cudart
 
 
 # Camera view constants
-FOV = 50  # Degrees
+FOV = config['graphics']['FOV']  # Degrees
 NEAR = 0.1
-FAR = 250
+FAR = config['graphics']['far_plane_distance']
 
 # Camera movement constants
 SPEED = 0.01
-SENSITIVITY = 0.15
+SENSITIVITY = config['controls']['sensitivity'] / 10
 
 class Camera:
     def __init__(self, app, position=(0, 3, 35), yaw=-90, pitch=0):
@@ -32,11 +33,17 @@ class Camera:
         # Projection matrix
         self.m_proj = self.get_projection_matrix()
 
+        self.paused = False
+
     def update(self):
         self.move()
         self.rotate()
         self.update_camera_vectors()
         self.m_view = self.get_view_matrix()
+
+    def update_settings(self):
+        self.m_view = self.get_view_matrix()
+        self.m_proj = self.get_projection_matrix()
 
     def get_m_view(self):
         return self.m_view
@@ -45,7 +52,13 @@ class Camera:
         """
         Rotates the camera based on the amount of mouse movement.
         """
+        if not config['runtime']['simulate']: 
+            self.paused = True
+            return
         rel_x, rel_y = pg.mouse.get_rel()
+        if self.paused:
+            self.paused = False
+            return
         self.yaw += rel_x * SENSITIVITY
         self.pitch -= rel_y * SENSITIVITY
         self.pitch = max(-89, min(89, self.pitch))
@@ -68,19 +81,20 @@ class Camera:
         """
         Checks for button presses and updates vectors accordingly. 
         """
+        if not config['runtime']['simulate']: return
         velocity = SPEED * self.app.delta_time
         keys = pg.key.get_pressed()
-        if keys[pg.K_w]:
+        if keys[config['controls']['forward']]:
             self.position += glm.normalize(glm.vec3(self.forward.x, 0, self.forward.z)) * velocity
-        if keys[pg.K_s]:
+        if keys[config['controls']['backward']]:
             self.position -= glm.normalize(glm.vec3(self.forward.x, 0, self.forward.z)) * velocity
-        if keys[pg.K_a]:
+        if keys[config['controls']['left']]:
             self.position -= self.right * velocity
-        if keys[pg.K_d]:
+        if keys[config['controls']['right']]:
             self.position += self.right * velocity
-        if keys[pg.K_SPACE]:
+        if keys[config['controls']['up']]:
             self.position += self.UP * velocity
-        if keys[pg.K_LSHIFT]:
+        if keys[config['controls']['down']]:
             self.position -= self.UP * velocity
 
     def get_view_matrix(self):
@@ -128,7 +142,13 @@ class FollowCamera(Camera):
         """
         Rotates the camera based on the amount of mouse movement.
         """
+        if not config['runtime']['simulate']: 
+            self.paused = True
+            return
         rel_x, rel_y = pg.mouse.get_rel()
+        if self.paused:
+            self.paused = False
+            return
         self.yaw += rel_x * SENSITIVITY
         self.pitch -= rel_y * SENSITIVITY
         self.pitch = max(-89, min(89, self.pitch))

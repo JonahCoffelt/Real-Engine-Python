@@ -39,7 +39,7 @@ struct PointLight {
 };
 
 
-#define maxNumPointLights 50
+#define maxNumPointLights 100
 uniform int numLights;
 uniform Material material;
 uniform DirectionalLight dir_light;
@@ -51,6 +51,7 @@ uniform vec3 view_pos;
 
 float standardLightIntensity = 0.5;
 float cellLightIntensity = 0.5;
+float PLR = 3.0; // Point Light Range
 
 
 float getSoftShadowX16() {
@@ -108,6 +109,11 @@ vec3 CalcDirLight(DirectionalLight light, vec3 normal, vec3 viewDir){
 
 
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir){
+
+    if (!(light.pos.x - PLR < fragPos.x && fragPos.x < light.pos.x + PLR && light.pos.y - PLR < fragPos.y && fragPos.y < light.pos.y + PLR && light.pos.z - PLR < fragPos.z && fragPos.z < light.pos.z + PLR)) {
+        return vec3(0);
+    }
+
     float gamma = 2.2;
 
     vec3 lightDir = normalize(light.pos - fragPos);

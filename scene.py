@@ -1,3 +1,4 @@
+from config import config
 from vao_handler import VAOHandler
 from texture_handler import TextureHandler
 from light_handler import LightHandler
@@ -43,7 +44,7 @@ class Scene:
         
         self.vao_handler.program_handler.update_attribs(self)  # Updates the values sent to uniforms
         self.entity_handler.update(delta_time)
-        #self.object_handler.update(delta_time)  # Updates the objects
+        self.object_handler.update(delta_time)  # Updates the objects
         self.particle_handler.update(delta_time)  # Updates particles
         self.atmosphere_handler.update(delta_time)  # Updates the sky and time
         self.chunk_handler.update()
@@ -95,7 +96,9 @@ class Scene:
         frame_vao.render()
 
     def render(self, delta_time):
-        self.update(delta_time)  # Updates objects, time, and uniforms
+        self.ui_handler.update()
+        if config['runtime']['simulate']: self.update(delta_time)  # Updates objects, time, and uniforms
+        if not config['runtime']['render']: return
         self.render_buffers()  # Renders the standard buffers
         self.render_filters()  # Renders and filter buffers
         self.render_screen() # Renders buffers to screen

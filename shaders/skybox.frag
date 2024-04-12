@@ -16,6 +16,9 @@ uniform float pitch;
 uniform float yaw;
 
 uniform float time;
+uniform float FOV;
+uniform float aspectRatio;
+
 
 uniform vec3 color1;
 uniform vec3 color2;
@@ -30,8 +33,8 @@ const float deg2rad = 0.0174533;
 
 
 void main() {
-    float theta = mod((yaw + clipCoords.x * 50), 360);
-    float phi = (pitch + 90 + clipCoords.y * 28.125);
+    float theta = mod((yaw + clipCoords.x * FOV), 360);
+    float phi = (pitch + 90 + clipCoords.y * (FOV / aspectRatio));
 
     float x = sin(phi * deg2rad) * cos(theta * deg2rad);
     float y = cos(phi * deg2rad);

@@ -1,6 +1,7 @@
 import numpy as np
 import random
 import glm
+from config import config
 import cudart
 
 
@@ -9,6 +10,9 @@ class Atmosphere:
         self.scene = scene
         self.sky_program = scene.vao_handler.program_handler.programs['skybox']
         self.dir_light = scene.light_handler.dir_light
+
+        self.sky_program['FOV'].write(glm.float32(config['graphics']['FOV']))
+        self.sky_program['aspectRatio'].write(glm.float32(config['graphics']['aspect_ratio']))
 
         self.stars = np.array([[random.uniform(0, 360), random.uniform(105, 140), random.uniform(15, 30)/10000] for i in range(40)], dtype='f4')
 
