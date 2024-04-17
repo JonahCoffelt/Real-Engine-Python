@@ -1,5 +1,9 @@
 from voxel_marching_cubes_construct import add_voxel_model
 
+# model : model_name
+# lights : ((x, y, z), (idk), idk)
+# particles : (type, (x, y, z), idk)
+# entities : ((x, y, z), square_radius, probability)
 
 structures = {
     'basic_room' : {
@@ -16,22 +20,32 @@ structures = {
             ('fire', (4, 4, 16), None),
             ('fire', (16, 4, 16), None)
         ],
-        'enities' : [
+        'entities' : [
 
         ]
     },
     # single chunk dead end halls and connector hall
     'room-eastdead' : {'model' : 'room-eastdead', 'lights' : [], 'particles' : [], 'entities' : []},
-    'room-northdead' : {'model' : 'room-northdead', 'lights' : [], 'particles' : [], 'entities' : []},
+    'room-northdead' : {'model' : 'room-northdead', 'lights' : [], 'particles' : [], 'entities' : []}, # doubles as spawn room
     'room-omnihall' : {'model' : 'room-omnihall', 'lights' : [], 'particles' : [], 'entities' : []},
     'room-southdead' : {'model' : 'room-southdead', 'lights' : [], 'particles' : [], 'entities' : []},
     'room-westdead' : {'model' : 'room-westdead', 'lights' : [], 'particles' : [], 'entities' : []},
     'room-nshall' : {'model' : 'room-nshall', 'lights' : [], 'particles' : [], 'entities' : []},
-    'room-diner' : {'model' : 'room-diner', 'lights' : [], 'particles' : [], 'entities' : []},
-    'room-northstair' : {'model' : 'room-northstair', 'lights' : [], 'particles' : [], 'entities' : []},
-    'room-biglibrary' : {'model' : 'room-biglibrary', 'lights' : [], 'particles' : [], 'entities' : []},
-}
 
+    # basic stairs
+    'room-northstair' : {'model' : 'room-northstair', 'lights' : [], 'particles' : [], 'entities' : []},
+    
+    # dungeon rooms
+    'room-diner' : {'model' : 'room-diner', 'lights' : [], 'particles' : [], 
+        'entities' : [
+            ((10, 3, 10), 5, 1)
+        ]},
+    'room-biglibrary' : {'model' : 'room-biglibrary', 'lights' : [], 'particles' : [], 
+        'entities' : [
+            ((15, 3, 15), 5, 1)
+        ]},
+    'room-boss' : {'model' : 'room-boss', 'lights' : [], 'particles' : [], 'entities' : []},
+}
 
 class StructureHandler:
     def __init__(self, chunk_handler, light_handler, particle_emitter_handler):

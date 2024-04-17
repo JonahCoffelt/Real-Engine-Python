@@ -4,6 +4,8 @@ class BulletHandler():
         
         self.object_handler = object_handler
         self.bullets = []
+        self.pe_time = 0
+        self.pe_wait_time = 1/60
         
     def update(self, delta_time):
         
@@ -12,8 +14,11 @@ class BulletHandler():
             bullet.move(delta_time)
         
         # bullet collision
-        self.object_handler.pe.resolve_terrain_bullet_collisions(self.bullets)
-        self.object_handler.pe.resolve_object_bullet_collisions(self.object_handler.objects, self.bullets)
+        self.pe_time += delta_time
+        if self.pe_time > self.pe_wait_time:
+            self.pe_time = 0
+            self.object_handler.pe.resolve_terrain_bullet_collisions(self.bullets)
+            self.object_handler.pe.resolve_object_bullet_collisions(self.object_handler.objects, self.bullets)
         
     def add_bullet(self, bullet):
         
@@ -22,9 +27,10 @@ class BulletHandler():
         
 class Bullet():
     
-    def __init__(self, spell, bullet_handler : BulletHandler, pos, direction, launch_program):
+    def __init__(self, spell, bullet_handler : BulletHandler, pos, direction, launch_program, caster):
         
         # hierarchy variables
+        self.caster = caster
         self.spell = spell
         self.launch_program = launch_program
         self.bullet_handler = bullet_handler
@@ -65,13 +71,13 @@ class Bullet():
     def execute(self):
         
         # bullet aftermath
-        self.bullet_handler.object_handler.scene.chunk_handler.modify_terrain(-self.spell.radius, self.pos)
+        self.bullet_handler.object_handler.scene.chunk_handler.modify_terrain(-self.spell.terrain_radius, self.pos, self.spell.element.terrain_material)
         self.bullet_handler.object_handler.scene.particle_handler.add_explosion(pos = self.pos, radius = self.spell.radius, clr = self.spell.color)
         
         # applies affects to nearby entities
         entities = self.bullet_handler.object_handler.scene.entity_handler.get_entities_in_radius(self.pos, self.spell.radius)
         for entity, direction in entities.items():
-            entity.obj.hitbox.set_vel(direction * self.spell.force)
+            entity.take_hit(self.spell, self.pos)
         
         # removes bullet from game
         self.remove_self()

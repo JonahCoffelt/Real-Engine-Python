@@ -14,7 +14,6 @@ class MaterialHandler:
         self.materials['meshes'] = BaseMaterial('metal_box', 'metal_box', 64.0, self.textures)
         self.materials['cat'] = BaseMaterial('cat', 'cat', 64.0, self.textures)
 
-
 class BaseMaterial:
     def __init__(self, diffuse: str, specular: str, specular_constant: str, textures):
         self.d = textures[diffuse]

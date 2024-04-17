@@ -20,7 +20,6 @@ def get_data(chunks, pos):
     data = np.hstack((vert, inst))
     return data
 
-
 class ChunkHandler():    
     def __init__(self, scene):
         self.scene = scene
@@ -69,11 +68,12 @@ class ChunkHandler():
         self.depth_instance_buffer.write(self.depth_instance_buffer_data)
         self.generate_dungeon()
         
-    def generate_dungeon(self):
+    def generate_dungeon(self, power = 100):
         
         self.dungeon_handler.generate_dungeon()
         for pos, room in self.dungeon_handler.room_spawns.items():
             self.structure_handler.add_structure(room.file_name, [i * 10 + 10 for i in pos])
+        self.scene.entity_handler.spawn_enemies_in_dungeon(power)
 
     def render_instanced(self):
         self.programs['mesh']['m_proj'].write(self.scene.cam.m_proj)
@@ -126,15 +126,15 @@ class ChunkHandler():
         if chunk in self.chunks.keys(): return self.chunks[chunk]
         return None
                     
-    def modify_terrain(self, magnitude, pos = None):
+    def modify_terrain(self, magnitude, pos = None, material = 3):
         # ray casts from the camera if position is set to none
         if pos is None: pos = self.ray_cast()
         width = 1
         if pos is None: return
         points = [(x, y, z) for x in range(-width, width + 1) for y in range(-width, width + 1) for z in range(-width, width + 1)]
-        [self.modify_point(int((pos[0] + point[0])), int((pos[1] + point[1])), int((pos[2] + point[2])), magnitude / ((abs(point[0]) + abs(point[1]) + abs(point[2])) * .5 * width + .0001)) for point in points]
+        [self.modify_point(int((pos[0] + point[0])), int((pos[1] + point[1])), int((pos[2] + point[2])), magnitude / ((abs(point[0]) + abs(point[1]) + abs(point[2])) * .5 * width + .0001), material) for point in points]
 
-    def modify_point(self, x, y, z, magnitude, material=False):
+    def modify_point(self, x, y, z, magnitude, material=3):
 
         local_pos = [x % CHUNK_SIZE, y % CHUNK_SIZE, z % CHUNK_SIZE]
         chunk_pos = [x // CHUNK_SIZE, y // CHUNK_SIZE, z // CHUNK_SIZE]
@@ -145,7 +145,7 @@ class ChunkHandler():
         
         self.chunks[chunk].field[local_pos[0]][local_pos[1]][local_pos[2]] += magnitude
         if magnitude > 0:
-            self.chunks[chunk].materials[local_pos[0]][local_pos[1]][local_pos[2]] = 3
+            self.chunks[chunk].materials[local_pos[0]][local_pos[1]][local_pos[2]] = material
 
         edges = [(x, y, z) for x in range(0, 1 + int(local_pos[0] == 0)) for y in range(0, 1 + int(local_pos[1] == 0)) for z in range(0, 1 + int(local_pos[2] == 0))]
         for edge in edges:

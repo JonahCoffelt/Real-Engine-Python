@@ -105,7 +105,7 @@ class Camera:
     
     def looking_at(self):
         
-        looking_at = self.app.graphics_engine.scene.chunk_handler.ray_cast()
+        looking_at = self.app.graphics_engine.scene.chunk_handler.ray_cast(test_start = 5)
         if looking_at is None: return self.forward
         return glm.normalize(looking_at - self.app.graphics_engine.scene.entity_handler.entities[0].obj.pos)
     

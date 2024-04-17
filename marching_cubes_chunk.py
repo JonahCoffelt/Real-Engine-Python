@@ -64,9 +64,9 @@ class Chunk:
         self.obj_type = 'meshes'
         self.program_name = 'mesh'
 
-        self.field = np.zeros(shape=(CHUNK_SIZE + 1, CHUNK_SIZE + 1, CHUNK_SIZE + 1), dtype='f4')
-        self.materials = np.zeros(shape=(CHUNK_SIZE + 1, CHUNK_SIZE + 1, CHUNK_SIZE + 1), dtype='int8')
-        self.field, self.materials = generate_island(self.field, self.materials, *pos)
+        self.field = np.ones(shape=(CHUNK_SIZE + 1, CHUNK_SIZE + 1, CHUNK_SIZE + 1), dtype='f4')
+        self.materials = np.ones(shape=(CHUNK_SIZE + 1, CHUNK_SIZE + 1, CHUNK_SIZE + 1), dtype='int8')
+        #self.field, self.materials = generate_island(self.field, self.materials, *pos)
 
         self.VBO = ChunkMeshVBO(self.ctx, self.chunks, self.pos, self.field, self.materials, self.surf_lvl)
         

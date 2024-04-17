@@ -20,7 +20,10 @@ class ObjectHandler:
         self.light_handler = self.scene.light_handler
         self.material_handler = MaterialHandler(self.scene.texture_handler.textures)
         
+        # for physics
         self.pe = PhysicsEngine(-9.8, self.scene.chunk_handler, Object(self, self.scene, model.BaseModel, program_name = 'default', material='metal_box', scale=(1, 1, 1), pos=(0, 0, 0), gravity = False, immovable = True))
+        self.pe_time = 0
+        self.pe_wait_time = 1/60
 
         self.on_init()
 
@@ -33,32 +36,29 @@ class ObjectHandler:
         #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', scale=(8, .5, 8), pos = (8, 2, 8), gravity = False, immovable = True))
 
     def update(self, delta_time):
-
+        if delta_time > 1/15: return
         for obj in self.objects:
                 
             # checks if object needs physics calculations  
             if obj.immovable: continue    
-                
             # changes pos of all models in scene based off hitbox vel
             obj.move_tick(delta_time)
-                
             # changes velocity based off euler steps
             force = glm.vec3(0, 0, 0)
-            if obj.gravity: 
-                force[1] = self.pe.gravity_strength
+            if obj.gravity: force[1] = self.pe.gravity_strength
             obj.hitbox.move_tick(delta_time, force, 0)
-                
             # tp object to top if hits death plane
             if obj.pos[1] < 0: 
-                obj.set_pos(glm.vec3(uniform(20, 100), 30, uniform(20, 100)))
+                #obj.set_pos(glm.vec3(uniform(20, 100), 30, uniform(20, 100)))
                 obj.hitbox.set_vel(glm.vec3(0, 0, 0))
                 obj.hitbox.set_rot_axis(glm.vec3(0, 1, 0))
                 obj.hitbox.set_rot_vel(0)
-                
         # object - object collisions
-        self.pe.resolve_collisions(self.objects, delta_time)
-        self.pe.resolve_terrain_collisions(self.objects, delta_time)
-
+        self.pe_time += delta_time
+        if self.pe_time > self.pe_wait_time and delta_time < 1/30:
+            self.pe.resolve_collisions(self.objects, delta_time)
+            self.pe.resolve_terrain_collisions(self.objects, delta_time)
+            self.pe_time = 0
 
     def write_shader_uniforms(self, program_name, obj_type=None, material=None):
         """

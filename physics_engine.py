@@ -5,7 +5,7 @@ from chunk_handler import CHUNK_SIZE
 from numba import njit
 
 
-@njit
+#@njit
 def detect_broad_collision(c1, c20, c21, c22, dim1, dim2):
 
     if dim1[0] == dim2[0] and dim1[1] == dim2[1] and dim1[2] == dim2[2]:
@@ -21,18 +21,23 @@ class PhysicsEngine():
         self.pbs = PBS(self)
         self.dummy = dummy
         self.chunk_handler = chunk_handler
-        detect_broad_collision(np.array([1, 1, 1], dtype = 'f4'), 1, 1, 1, np.array([1, 1, 1], dtype = 'f4'), np.array([1, 1, 1], dtype = 'f4'))
+        #detect_broad_collision(np.array([1, 1, 1], dtype = 'f4'), 1, 1, 1, np.array([1, 1, 1], dtype = 'f4'), np.array([1, 1, 1], dtype = 'f4'))
         
     def get_bullet_dimensions(self, pos, scale):
         
         return [pos + (x, y, z) for z in (-scale, scale) for y in (-scale, scale) for x in (-scale, scale)]
         
     def resolve_terrain_bullet_collisions(self, bullets):
+        
         for bullet in bullets:
+            # gets chunk and checks if position is fully filled
             chunk = self.chunk_handler.get_chunk_from_point(bullet.pos)
             if chunk is None: continue
+            if chunk.field[int(bullet.pos[0]) % CHUNK_SIZE][int(bullet.pos[1]) % CHUNK_SIZE][int(bullet.pos[2]) % CHUNK_SIZE] > 0.98:
+                bullet.has_collided = True
+                continue
+            # checks the individual triangles on the chunk cube
             for triangle in chunk.get_cube_from_point(bullet.pos):
-                
                 collided = self.gjk.get_gjk_collision(Hitbox(self.dummy, triangle, [[0, 1, 2]], (1, 1, 1), (0, 0, 0), 0, (0, 0, 0)), Hitbox(self.dummy, self.get_bullet_dimensions(bullet.pos, 0.1), [[x, y, z] for z in (-1, 1) for y in (-1, 1) for x in (-1, 1)], [1, 1, 1]))
                 if not collided: continue
                 bullet.has_collided = True
@@ -41,15 +46,13 @@ class PhysicsEngine():
     
         for obj in objs:
             obj_hitbox, obj_pos, obj_dimensions = obj.hitbox, np.array([i for i in obj.pos]), obj.hitbox.dimensions
-            
             for bullet in bullets:
+                if bullet.caster is obj: continue
                 # broad collision
                 if not detect_broad_collision(obj_pos, bullet.pos[0], bullet.pos[1], bullet.pos[2], obj_dimensions, np.array([1, 1, 1], dtype = 'f4')): continue
-                
                 # narrow collision
                 collided = self.gjk.get_gjk_collision(obj_hitbox, Hitbox(self.dummy, [bullet.pos], [[0, 0, 0]], [1, 1, 1]))
                 if not collided: continue
-                
                 bullet.has_collided = True
         
     def resolve_terrain_collisions(self, objs, delta_time):        
@@ -67,7 +70,6 @@ class PhysicsEngine():
                         obj.last_collided = 'terrain'
                         
                         self.resolve_collision(obj, self.dummy, delta_time)
-        
         
     # object to object collisions
     def resolve_collisions(self, objs, delta_time):
@@ -107,7 +109,7 @@ class PhysicsEngine():
         # moves object to position before collision
         self.pbs.uncollide_objects(obj1, obj2, normal1, normal2, delta_time)
         
-        point1, point2 = self.distance_point_to_plane(obj1.hitbox, normal2), self.distance_point_to_plane(obj2.hitbox, normal1)
+        point1, point2 = self.distance_point_to_plane(obj1.hitbox, normal2, obj1.pos[1] > obj2.pos[1]), self.distance_point_to_plane(obj2.hitbox, normal1, obj1.pos[1] > obj2.pos[1])
         
         if not obj1.immovable: self.get_collision_result(obj1.hitbox, normal2, point1, 0.5, 2.5, delta_time)
         if not obj2.immovable: self.get_collision_result(obj2.hitbox, normal1, point2, 0.5, 2.5, delta_time)
@@ -130,7 +132,7 @@ class PhysicsEngine():
         rad_par, rad_perp = self.get_components(radius, normal2)
         
         # gravitational vs lateral rotation
-        if glm.length(reflected_vel) < 3 and glm.dot((0, 1, 0), normal2) > 0 and False:
+        if glm.length(reflected_vel) < 3 and glm.dot((0, 1, 0), normal2) > 0:
             aor = glm.cross(radius, normal2)
             
             # pretend that the objects rotation is increasing with the acceleration due to gravity if aor == hitbox1.rot_axis: vel = hitbox1.rot_vel
@@ -151,12 +153,12 @@ class PhysicsEngine():
         perpendicular = vec - parallel
         return parallel, perpendicular
     
-    def get_colliding_points(self, simplex):
+    def get_colliding_points(self):
     
         # creates dictionary of vertices and their closest values
         vertex_dict = {}
         vertices = []
-        for vertex in simplex:
+        for vertex in self.gjk.simplex:
 
             minimum = glm.min(vertex[0])
             vertex_dict[minimum] = vertex[1]
@@ -193,14 +195,16 @@ class PhysicsEngine():
         
         return glm.normalize(normal)
     
-    def distance_point_to_plane(self, hitbox, normal):
+    def distance_point_to_plane(self, hitbox, normal, above):
         
         vertices = hitbox.vertices
         best = ([glm.vec3(0, 0, 0)], 1e10)
+        mod = 1e6
+        if above: mod = -1e6
         
         for vertex in vertices:
             
-            distance = abs(normal[1]*vertex[1] + normal[2]*vertex[2] + normal[0]*vertex[0] - 1e6) / glm.length(normal)
+            distance = abs(normal[1]*vertex[1] + normal[2]*vertex[2] + normal[0]*vertex[0] + mod) / glm.length(normal)
             distance = round(distance, 5)
             if distance < best[1]: best = ([vertex], distance)
             

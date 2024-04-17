@@ -28,7 +28,7 @@ config = {
         'volume' : 25.0
     },
     'graphics' : {
-        'FOV' : 90.0,
+        'FOV' : 75.0,
         'aspect_ratio' : 16/9,
         'render_distance' : 10,
         'far_plane_distance' : 250,
