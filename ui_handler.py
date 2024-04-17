@@ -3,7 +3,9 @@ import numpy as np
 import random
 import moderngl as mgl
 from config import config
+from sheet_spliter import load_sheet
 from text_handler import TextHandler
+from ui_screen_data import ScreenData, special_keys, element_indicies, launch_type_indicies, spread_type_indiceis
 import cudart
 
 
@@ -19,87 +21,87 @@ def surf_to_texture(ctx, surf):
     return tex
 
 
+class Element:
+    def __init__(self, name):
+        self.name = name
+
+class Spell:
+    def __init__(self, element: tuple, count: int, damage: int, radius: float, speed: float, force: float, spread_type: str, launch_type: str):
+        self.element = element.name  # (fire, water, air, brown, psychic, electric, acid, light, dark, ice)
+        self.count = count  # 1-9
+        self.damage = damage  # 1-99
+        self.radius = radius  # Unlimited
+        self.force = force  # Unlimited
+        self.spread_type = spread_type  # ('vertical', 'horizontal')
+        self.launch_type = launch_type  # ('lob', 'straight', 'confused')
+
+def get_rand_card():
+    elements = ('fire', 'water', 'air', 'brown', 'psychic', 'electric', 'acid', 'light', 'dark', 'ice')
+    spread_types = ('vertical', 'horizontal')
+    launch_types = ('lob', 'straight', 'confused')
+    element = Element(elements[random.randrange(len(elements))])
+    spread = spread_types[random.randrange(len(spread_types))]
+    launch = launch_types[random.randrange(len(launch_types))]
+    return Spell(element, random.randrange(1, 9), random.randrange(1, 99),  random.randrange(1, 9), random.uniform(0, 9.9), random.uniform(0, 9.9), spread, launch)
+
+
 class UI_Handler:
     def __init__(self, ctx, frame_vao, win_size=(900, 600)):
         self.ctx = ctx
+        self.frame_vao = frame_vao
         self.win_size = win_size
         self.text_handler = TextHandler()
 
-        self.frame_vao = frame_vao
         self.surf = pg.Surface(win_size).convert_alpha()
+        self.text_handler = TextHandler()
+        self.screen_data = ScreenData(self).screen_data
+        self.sprites = load_sheet()
 
         self.assets = {asset : pg.image.load(f'UI_Assets/{assets[asset]}').convert_alpha() for asset in assets}
-
-        self.screen = self.main_menu
-
-        self.update_texture = 2
-
-        self.values = {'slider_test' : 2.0}
-
-        self.buttons = {
-        #   self.screen    : [pos/scale, img, function, *args]
-        #   set pos/scale[2 or 3] = 0 to maintain original img shape and scale along other axis
-            self.main_menu : [(np.array([.5, .3,  0, .1]), self.assets['btn'], self.set_screen, [self.hud]), 
-                              (np.array([.5, .5,  0, .1]), self.assets['btn'], self.log, ['btn']), 
-                              (np.array([.5, .7,  0, .1]), self.assets['btn'], self.add_button, ["rndm", self.assets['btn_blank'], self.log, ['Pop Up']]),
-                              (np.array([.5, .1,  0, .1]), self.assets['btn_blank'], None, [])],
-            self.hud : [(np.array([.1, .1, 0, .05]), self.assets['btn'], self.set_screen, [self.main_menu])]
-        }
-
-        self.text_boxes = {
-            self.main_menu : [(np.array([.1, .1,  .1, .1]), self.assets['btn'], ('Red', 'default', 16, (255, 255, 255), (255, 0, 0, 255), True, True)), 
-                              (np.array([.1, .3,  .1, .1]), self.assets['btn'], ('Green', 'default', 16, (255, 255, 255), (0, 255, 0, 255), True, True)), 
-                              (np.array([.1, .5,  .1, .1]), self.assets['btn'], ('Blue', 'default', 16, (255, 255, 255), (0, 0, 255, 255), True, True)), 
-                
-                              (np.array([.5, .3,  0, .1]), self.assets['btn'], ('Text', 'default', 16, (255, 255, 255), (0, 0, 0, 100), True, True)),
-                              (np.array([.5, .5,  0, .1]), self.assets['btn'], ('Text', 'default', 16, (255, 255, 255), (0, 0, 0, 100), True, True)), 
-                              (np.array([.5, .7,  0, .1]), self.assets['btn'], ('Text', 'default', 16, (255, 255, 255), (0, 0, 0, 100), True, True)),
-                              (np.array([.5, .1,  0, .1]), self.assets['btn_blank'], ('Text', 'default', 16, (255, 255, 255), (0, 0, 0, 100), True, True)),
-                              (np.array([.2, .2, .3, .3]), None, ('You Can also just have your paragraphs line up agasint the top and left side rather than being centered.', 'default', 16, (255, 255, 255), (0, 0, 0, 100), False, False))],
-            self.hud : []
-        }
-
-        self.sliders = {
-            self.main_menu : [[np.array([.5, .9, .4, .05]), np.array([50, 150, 255]), (0, 10, 0.5), 'slider_test']],
-            self.hud : []
-        }
-
-        self.hotkeys = {
-            self.main_menu : {
-                pg.K_ESCAPE : [[self.set_screen, [self.hud]], [self.set_attrib, ['runtime', 'simulate', True]]],
-                pg.K_e : [[self.log, ['Pressed "E"']]]
-            },
-            self.hud : {
-                pg.K_ESCAPE : [[self.set_screen, [self.main_menu]], [self.set_attrib, ['runtime', 'simulate', False]]],
-                pg.K_e : [[self.log, ['Pressed "E"']]]
+        self.values = {
+            'sound' : 0.0,
+            'music' : 0.0,
+            'FOV' : 90.0,
+            'render_distance' : 10,
+            'view_distance' : 250,
+            'lighting_distance' : 50,
+            'selected_card' : 2,
+            'health' : 7,
+            'max_health' : 10
             }
-        }
-
-        self.current_buttons = self.buttons[self.main_menu][:]
-        self.current_text_boxes = self.text_boxes[self.main_menu][:]
-        self.current_sliders = self.sliders[self.main_menu][:]
+        self.shop_cards = [get_rand_card() for i in range(3)]
+        self.hand = [get_rand_card() for i in range(7)]
+        self.deck = [get_rand_card() for i in range(8)]
+        self.inventory_cards = [get_rand_card() for i in range(10)]
 
         self.mouse_states = [False, False, False]
         self.key_states = pg.key.get_pressed()
 
-        self.n_cards = 5
+        self.screen = self.pause
+        self.await_func = [None, None, []]  # event.type, function to call, args
+        data = self.screen_data[self.screen]
+        self.current_screen_data = {key : value.copy() for key, value in zip(data.keys(), data.values())}
+
+        self.update_texture = 2
+        self.scroll = 0
+        self.n_cards = 7
 
     def update(self):
+        # Handles all keyboard and mouse input for UI
         self.mouse_pos = pg.mouse.get_pos()
         self.mouse_buttons = pg.mouse.get_pressed()
         self.keys = pg.key.get_pressed()
-
-        for key in self.hotkeys[self.screen]:
-            if self.keys[key] and not self.key_states[key]: 
-                for command in self.hotkeys[self.screen][key]: command[0](*command[1])
-
-        self.screen()
-
-        if self.update_texture >= 0: self.update_texture -= 1
-
+        self.update_elements()
         self.mouse_states = [state for state in self.mouse_buttons]
         self.key_states = self.keys
 
+        # Calls the function of the current screen
+        if self.update_texture >= 0: self.screen()
+
+        # Used to limit the number of draw calls
+        if self.update_texture >= 0: self.update_texture -= 1
+
+        # Renders the Texture
         if self.update_texture == 0 or self.update_texture == 1: self.render()
 
 
@@ -107,31 +109,79 @@ class UI_Handler:
         self.frame_vao.program['UITexture'] = 5
         surf_to_texture(self.ctx, self.surf).use(location=5)
 
+    def draw(self):
+        if not(self.update_texture == 0 or self.update_texture == 1 or self.update_texture == 2): return
+        self.execute_draw_calls()
+        self.draw_images()
+        self.draw_sliders()
+        self.draw_text()
+
+    def update_elements(self):
+        scroll_bounds = self.current_screen_data['scroll']
+        self.scroll = min(max(self.scroll, scroll_bounds[0]), scroll_bounds[1])
+        self.update_hotkeys()
+        self.update_buttons()
+        self.update_sliders()
+
+    def get_events(self, events):
+        for event in events:
+            if event.type == pg.VIDEORESIZE:
+                self.update_texture = 2
+                self.win_size = (event.w, event.h)
+                self.surf = pg.Surface((event.w, event.h)).convert_alpha()
+
+            if event.type == pg.MOUSEWHEEL:
+                self.update_texture = 2
+                self.scroll += event.y/10
+
+            if int(event.type) in list(self.current_screen_data['events'].keys()):
+                func = self.current_screen_data['events'][int(pg.MOUSEWHEEL)]
+                func[0](event, *func[1])
+
+            if event.type == self.await_func[0]:
+                self.await_func[1](event, *self.await_func[2])
+
     def set_attrib(self, category, var, value):
         config[category][var] = value
+
+    def set_await(self, type, func, args: list):
+        self.await_func = [type, func, args]
+
+    def await_key(self, event, category, value, key_index):
+        if event.key == pg.K_ESCAPE: return
+        self.values[value] = event.key
+        self.screen_data[self.screen]['text'][key_index][2][0] = event.unicode
+        if event.key in special_keys: self.screen_data[self.screen]['text'][key_index][2][0] = special_keys[event.key]
+        self.await_func = [None, None, []]
+        data = self.screen_data[self.screen]
+        self.current_screen_data = {key : value.copy() for key, value in zip(data.keys(), data.values())}
+        self.update_texture = 2
 
     def log(self, txt=''):
         print(txt)
         self.update_texture = 2
 
     def set_screen(self, screen):
-        if screen in [self.main_menu]:
+        if screen in [self.main_menu, self.pause]:
             pg.event.set_grab(False)
             pg.mouse.set_visible(True)
         elif screen in [self.hud]:
             pg.event.set_grab(True)
             pg.mouse.set_visible(False) 
-
         self.update_texture = 2
+        self.scroll = 0
         self.screen = screen
-        self.current_buttons = self.buttons[screen][:]
-        self.current_text_boxes = self.text_boxes[screen][:]
-        self.current_sliders = self.sliders[screen][:]
+        data = self.screen_data[screen]
+        self.current_screen_data = {key : value.copy() for key, value in zip(data.keys(), data.values())}
     
+    def increment_card(self, event):
+        val = self.values['selected_card'] + event.y
+        self.values['selected_card'] = min(max(val, 0), self.n_cards-1)
+
     def add_button(self, pos: tuple=(.5, .5, .1, .1), img: pg.image=None, func=None, args: list=[]):
         if pos == "rndm": pos = np.array([random.uniform(0, 1), random.uniform(0, 1), .1, .1])
-        self.current_buttons.append([np.array([*pos]), img, func, [*args]])
-
+        self.current_screen_data['buttons'].append([np.array([*pos]), img, func, [*args]])
+    
     def get_rect(self, element):
         win_scale = np.array([self.win_size[0], self.win_size[1], self.win_size[0], self.win_size[1]])
         rect = (element[0] * win_scale)
@@ -140,7 +190,7 @@ class UI_Handler:
 
         if 0.0 in rect[2:]:
             index = np.where(rect==0.0)[0][0]
-            img_rect = element[1].get_rect()
+            img_rect = self.assets[element[1]].get_rect()
             if index == 2:
                 rect[2] = rect[3] * (img_rect[2] / img_rect[3])
                 rect[0] -= rect[2]/2
@@ -148,58 +198,179 @@ class UI_Handler:
                 rect[3] = rect[2] * (img_rect[3] / img_rect[2])
                 rect[1] -= rect[3]/2
         
+        if element[-1]: rect[1] += self.scroll * self.win_size[1]
+
         return rect
 
-    def draw_sliders(self, sliders):
-        for slider in sliders:
+    def update_hotkeys(self):
+        for key in self.current_screen_data['hotkeys']:
+            if self.keys[key] and not self.key_states[key]:
+                for command in self.current_screen_data['hotkeys'][key]: command[0](*command[1])
+
+    def update_buttons(self):
+        if not(self.mouse_buttons[0] and not self.mouse_states[0]): return
+        for button in self.current_screen_data['buttons']:
+            rect = self.get_rect(button)
+            if not (rect[0] < self.mouse_pos[0] < rect[0] + rect[2] and rect[1] < self.mouse_pos[1] < rect[1] + rect[3]): continue
+            button[2](*button[3])
+            self.update_texture = 2
+
+    def update_sliders(self):
+        if not self.mouse_buttons[0]: return
+        for slider in self.current_screen_data['sliders']:
             rect = self.get_rect(slider)
             if self.mouse_buttons[0]:
                 if (rect[0] < self.mouse_pos[0] < rect[0] + rect[2] and rect[1] < self.mouse_pos[1] < rect[1] + rect[3]):
-                    self.values[slider[3]] = min(max(((self.mouse_pos[0] - rect[0] + rect[3]/4) / rect[2]) * slider[2][1], slider[2][0]), slider[2][1])
+                    self.values[slider[3]] = min(max(((self.mouse_pos[0] - rect[0] + rect[3]/4) / rect[2]) * (slider[2][1] - slider[2][0]) + slider[2][0], slider[2][0]), slider[2][1])
                     self.values[slider[3]] -= self.values[slider[3]] % slider[2][2]
                     self.update_texture = 2
-            pg.draw.rect(self.surf, slider[1]/1.75, (rect[0], rect[1] + rect[3] / 4, rect[2], rect[3] / 2))
+
+    def execute_draw_calls(self):
+        for func in self.current_screen_data['draw_calls']:
+            rect = self.get_rect([func[1][1], func[-1]])
+            func[0](self.surf, func[1][0], rect)
+
+    def draw_sliders(self):
+        for slider in self.current_screen_data['sliders']:
+            rect = self.get_rect(slider)
+            pg.draw.rect(self.surf, slider[1]/1.5, (rect[0], rect[1] + rect[3] / 4, rect[2], rect[3] / 2))
             pg.draw.rect(self.surf, (0, 0, 0), (rect[0], rect[1] + rect[3] / 4, rect[2], rect[3] / 2), 1)
-            pg.draw.circle(self.surf, slider[1], (rect[0] + ((self.values[slider[3]] - slider[2][0]) / slider[2][1]) * rect[2], rect[1] + rect[3] / 2), rect[3] / 2)
-            pg.draw.circle(self.surf, (0, 0, 0), (rect[0] + ((self.values[slider[3]] - slider[2][0]) / slider[2][1]) * rect[2], rect[1] + rect[3] / 2), rect[3] / 2, 1)
+            pg.draw.circle(self.surf, slider[1], (rect[0] + ((self.values[slider[3]] - slider[2][0]) / (slider[2][1] - slider[2][0])) * rect[2], rect[1] + rect[3] / 2), rect[3] / 2.5)
 
-            self.text_handler.render_text(self.surf, (rect[0] + rect[2] + rect[3]/1.5, rect[1] - rect[3] * .15, rect[3] * 1.5, rect[3] * 1.3), f'{float(self.values[slider[3]]):.3}', 'default', 14, (255, 255, 255), (0, 0, 0, 100), True, True)
+            self.text_handler.render_text(self.surf, (rect[0] + rect[2] + rect[3]/1.5, rect[1] - rect[3] * .15, rect[3] * 2, rect[3] * 1.3), f'{float(self.values[slider[3]]):.4}', 'default', 14, (255, 255, 255), (0, 0, 0, 100), True, True)
 
-    def draw_text(self, text_boxes):
-        for text_box in text_boxes:
+    def draw_text(self):
+        for text_box in self.current_screen_data['text']:
             rect = self.get_rect(text_box)
             self.text_handler.render_text(self.surf, rect, *text_box[2])
 
-    def draw_buttons(self, btns):
-        rects = []
-        for button in btns:
+    def draw_images(self):
+        for button in self.current_screen_data['images']:
             rect = self.get_rect(button)
-            img = pg.transform.scale(button[1], [*rect[2:]])
-
-            rects.append((rect, *button[-2:]))
-            if button[1]: self.surf.blit(img, rect)
-
-
-        if self.mouse_buttons[0] and not self.mouse_states[0]:
-            for button in rects:
-                if not button[1]: continue
-                if not (button[0][0] < self.mouse_pos[0] < button[0][0] + button[0][2] and button[0][1] < self.mouse_pos[1] < button[0][1] + button[0][3]): continue
-                button[1](*button[2])
-                self.update_texture = 2
+            img = pg.transform.scale(self.assets[button[1]], [*rect[2:]])
+            self.surf.blit(img, rect)
 
     def main_menu(self):
         self.surf.fill((0, 0, 0, 100))
-        self.draw_buttons(self.current_buttons)
-        self.draw_sliders(self.current_sliders)
-        if self.update_texture > 0: self.draw_text(self.current_text_boxes)
+        self.draw()
+
+    def pause(self):
+        self.surf.fill((0, 0, 0, 100))
+        self.draw()
+
+    def settings_general(self):
+        self.surf.fill((0, 0, 0, 100))
+        self.draw()
+
+    def settings_control(self):
+        self.surf.fill((0, 0, 0, 100))
+        self.draw()
+
+    def settings_graphics(self):
+        self.surf.fill((0, 0, 0, 100))
+        self.draw()
+
+    def inventory(self):
+        self.surf.fill((0, 0, 0, 100))
+
+        # Draw side card
+        win_scale = np.array([self.win_size[0], self.win_size[1], self.win_size[0], self.win_size[1]])
+        card_width = self.win_size[0]/6
+        card = self.get_card_surf(card_width * 3/2, 1, self.hand[0])
+        rect = np.array([.05, .5, .15, .15 * 3/2])
+        rect[1] -= card.get_rect()[3]/2/win_scale[1]
+
+        self.surf.blit(card, (rect[:2] * win_scale[:2]))
+
+        self.draw()
+    
+    def buy_card(self, index):
+        self.shop_cards[index] = False
+        self.update_texture = 2
+
+    def shop(self):
+        self.surf.fill((0, 0, 0, 100))
+
+        data = self.screen_data[self.screen]
+        self.current_screen_data = {key : value.copy() for key, value in zip(data.keys(), data.values())}
+
+        win_scale = np.array([self.win_size[0], self.win_size[1], self.win_size[0], self.win_size[1]])
+        card_width = self.win_size[0]/6
+        for i in range(3):
+            if not self.shop_cards[i]: continue
+            card = self.get_card_surf(card_width * 3/2, 1, self.shop_cards[i])
+            rect = card.get_rect()
+            w = rect[2]
+            offset = (self.win_size[0] - (w + 15) * 3 - 15) / 2
+            btn_rect = np.array([offset + i * (w + 15), self.win_size[1] - w * 3/2 - .1 * self.win_size[1], rect[2], rect[3]])
+            self.surf.blit(card, btn_rect[:2])
+            btn_rect /= win_scale
+            btn_rect[0] += btn_rect[2]/2
+            btn_rect[1] += btn_rect[3]/2 - .1
+            self.current_screen_data['buttons'].append((btn_rect, None, self.buy_card, [i], False))
+            if self.shop_cards[i]: self.current_screen_data['text'].append((np.array([btn_rect[0], .95, btn_rect[2]/2, .075]), None, (f'${i*2+2}', 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False))
+
+        self.draw()
+
+    def get_card_surf(self, card_hieght, dist, card):
+        element = element_indicies[card.element]
+        launch = launch_type_indicies[card.launch_type]
+        spread = spread_type_indiceis[card.spread_type]
+        damage = str(card.damage)
+        count = card.count + 11
+        force = str(float(card.force))
+        radius = str(float(card.radius))
+        if len(damage) == 1: damage = '0' + damage
+        damage_1, damage_2 = int(damage[0]) + 11, int(damage[1]) + 11
+        radius_1, radius_2 = int(radius[0]) + 11, int(radius[2]) + 11
+        force_1, force_2 = int(force[0]) + 11, int(force[2]) + 11
+
+        # Get card template of element
+        card_surf = self.sprites[element].copy()
+
+        # Blit the numbers on the top
+        card_surf.blit(self.sprites[damage_1], (2, 2))
+        card_surf.blit(self.sprites[damage_2], (6, 2))
+        card_surf.blit(self.sprites[count], (14, 2))
+
+        # Blit the symbols
+        card_surf.blit(self.sprites[launch], (6, 12))
+        card_surf.blit(self.sprites[spread], (14, 12))
+
+        # Blit radius
+        card_surf.blit(self.sprites[radius_1], (11, 19))
+        card_surf.blit(self.sprites[21], (14, 19))
+        card_surf.blit(self.sprites[radius_2], (17, 19))
+
+        # Blit force
+        card_surf.blit(self.sprites[force_1], (11, 25))
+        card_surf.blit(self.sprites[21], (14, 25))
+        card_surf.blit(self.sprites[force_2], (17, 25))
+
+        scale_constant = (self.n_cards / 2 - (dist - 1)) * .1 + .9
+        card_surf = pg.transform.scale(card_surf, (card_hieght * 2/3 * scale_constant , card_hieght * scale_constant))
+        return card_surf
 
     def hud(self):
-        self.surf.fill((255, 0, 0, 0))
-        self.draw_buttons(self.current_buttons)
-        self.draw_sliders(self.current_sliders)
-        if self.update_texture > 0: self.draw_text(self.current_text_boxes)
+        self.surf.fill((0, 0, 0, 0))
+        self.draw()
 
-        card_size = self.win_size[0] / self.n_cards / 2, self.win_size[1] / 5
+        # Draw the crosshair circle
+        pg.draw.circle(self.surf, (0, 0, 0), (self.win_size[0]/2, self.win_size[1]/2), self.win_size[0]/400)
 
-        for i in range(self.n_cards):
-            pg.draw.rect(self.surf, (255, 0, 0, 255), (self.win_size[0] / 2 - (card_size[0] + 5) * self.n_cards/2 + i * (card_size[0] + 5), self.win_size[1] - card_size[1] - 5, card_size[0], card_size[1]))
+        # Draws the health bar
+        win_scale = np.array([self.win_size[0], self.win_size[1], self.win_size[0], self.win_size[1]])
+        rect = np.array([.01, .01, .4, .05]) * win_scale
+        pg.draw.rect(self.surf, (200, 50, 20, 155), (*rect[:2], rect[2] * (self.values['health'] / self.values['max_health']), rect[3]))
+        pg.draw.rect(self.surf, (0, 0, 0, 255), rect, 1)
+
+        # Draws the hand
+        card_hieght = self.win_size[1] / 6
+        offset = (self.win_size[0] - (len(self.hand) - 1) * (card_hieght * 2/3 + 3)) / 2
+        for i in range(len(self.hand)):
+            w, h = card_hieght * 2/3, card_hieght
+            index = i - self.values['selected_card']
+            dist = abs(index)
+            card = self.get_card_surf(card_hieght, dist, self.hand[i])
+            card = pg.transform.rotate(card, -np.sqrt(dist) * 10 * np.sign(index))
+            self.surf.blit(card, (offset + i * (w + 3) - index * 15 - w/2, self.win_size[1] - h * 1.5 + np.sqrt(dist) * 50))

@@ -57,6 +57,6 @@ void main()
     //fragColor = normal + depth;
     fragColor = screen - outline;
     vec4 ui_texture = texture(UITexture, vec2(TexCoords.x, -TexCoords.y));
-    vec3 final_color = ui_texture.rbg * ui_texture.w + fragColor.rgb * (1 - ui_texture.w);
+    vec3 final_color = ui_texture.bgr * ui_texture.w + fragColor.rgb * (1 - ui_texture.w);
     fragColor.rgb = final_color;
 }

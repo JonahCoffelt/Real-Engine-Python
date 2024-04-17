@@ -4,6 +4,7 @@ import moderngl as mgl
 from graphics_engine import GraphicsEngine
 import glm
 import numpy as np
+from config import config
 import cudart
 
 class Game:
@@ -34,17 +35,17 @@ class Game:
         self.delta_time = 0
 
     def check_events(self):
-        for event in pg.event.get():
+        self.events = pg.event.get()
+        for event in self.events:
             if event.type == pg.QUIT:
                 pg.quit()
                 sys.exit()
             if event.type == pg.VIDEORESIZE:
-                ui = self.graphics_engine.scene.ui_handler
-                ui.win_size = (event.w, event.h)
-                ui.surf = pg.Surface((event.w, event.h)).convert_alpha()
-                ui.update_texture = 2
                 self.ctx.viewport = (0, 0, event.w, event.h)
+        
+        self.graphics_engine.scene.ui_handler.get_events(self.events)
 
+        if not config['runtime']['simulate']: return
         if pg.mouse.get_pressed()[0] and self.mine_timer > self.mine_duration:
             self.mine_timer = 0
             
