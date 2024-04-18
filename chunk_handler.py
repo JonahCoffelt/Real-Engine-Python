@@ -68,7 +68,7 @@ class ChunkHandler():
         self.depth_instance_buffer.write(self.depth_instance_buffer_data)
         self.generate_dungeon()
         
-    def generate_dungeon(self, power = 100):
+    def generate_dungeon(self, power = 15):
         
         self.dungeon_handler.generate_dungeon()
         for pos, room in self.dungeon_handler.room_spawns.items():

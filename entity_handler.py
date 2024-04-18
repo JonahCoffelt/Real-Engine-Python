@@ -83,7 +83,7 @@ class EntityHandler():
         left, health, speed = power, 1, 1
         while left > 0:
             option = random.randint(0, 100)
-            if option < 98: health += 1
+            if option < 90: health += 1
             else: speed += 1
             left -= 1
                 
@@ -186,6 +186,13 @@ class Player(Entity):
         self.cam = cam
         self.spell = self.entity_handler.spell_handler.create_random_spell()
         self.deck_handler = DeckHandler()
+        self.on_init()
+        
+    def on_init(self):
+        
+        # gives the player starting spells
+        for _ in range(5): self.deck_handler.add_spell(self.entity_handler.spell_handler.create_spell(15))
+        self.deck_handler.refill_hand()
         
     def move(self, delta_time):
         

@@ -47,7 +47,7 @@ class SpellHandler():
             'count' : 0 # multiply entire cost after
         }
         
-    def create_spell(self, power, element = None):
+    def create_spell(self, power = 15, element = None):
         
         # gets spell element if none
         if element is None: element = self.element_handler.get_random_element()
@@ -72,7 +72,7 @@ class SpellHandler():
             if test_distance < distance: closest, distance = spell, test_distance
         return closest
         
-    def create_random_spell(self, power = 100, element = None):
+    def create_random_spell(self, power = 15, element = None):
         
         launch_type = random.choice(['straight', 'lob', 'confused'])
         spread_type = random.choice(['horizontal'])#, 'vertical'])
@@ -80,12 +80,12 @@ class SpellHandler():
         
         # int types
         count = random.randint(1, 9)
-        damage = random.randint(1, power)
+        damage = random.randint(1, power if power < 100 else 99)
         
         # float types
-        radius = random.uniform(0, power ** (1/3))
-        speed = random.uniform(5, power)
-        force = random.uniform(1, power ** (1/2))
+        radius = random.uniform(0, power ** (1/3) if power ** (1/3) < 9.9 else 9.9)
+        speed = random.uniform(5, 30)
+        force = random.uniform(1, power ** (1/2) if power ** (1/2) else 9.9)
         angle = random.uniform(np.pi/24, np.pi/2)
         
         # element variables

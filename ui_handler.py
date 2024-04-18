@@ -8,10 +8,8 @@ from text_handler import TextHandler
 from ui_screen_data import ScreenData, special_keys, element_indicies, launch_type_indicies, spread_type_indiceis
 import cudart
 
-
 assets = {'btn_blank' : 'button_blank.png',
           'btn' : 'button.png'}
-
 
 def surf_to_texture(ctx, surf):
     tex = ctx.texture(surf.get_size(), 4)
@@ -20,33 +18,9 @@ def surf_to_texture(ctx, surf):
     tex.write(surf.get_view('1'))
     return tex
 
-
-class Element:
-    def __init__(self, name):
-        self.name = name
-
-class Spell:
-    def __init__(self, element: tuple, count: int, damage: int, radius: float, speed: float, force: float, spread_type: str, launch_type: str):
-        self.element = element.name  # (fire, water, air, brown, psychic, electric, acid, light, dark, ice)
-        self.count = count  # 1-9
-        self.damage = damage  # 1-99
-        self.radius = radius  # Unlimited
-        self.force = force  # Unlimited
-        self.spread_type = spread_type  # ('vertical', 'horizontal')
-        self.launch_type = launch_type  # ('lob', 'straight', 'confused')
-
-def get_rand_card():
-    elements = ('fire', 'water', 'air', 'brown', 'psychic', 'electric', 'acid', 'light', 'dark', 'ice')
-    spread_types = ('vertical', 'horizontal')
-    launch_types = ('lob', 'straight', 'confused')
-    element = Element(elements[random.randrange(len(elements))])
-    spread = spread_types[random.randrange(len(spread_types))]
-    launch = launch_types[random.randrange(len(launch_types))]
-    return Spell(element, random.randrange(1, 9), random.randrange(1, 99),  random.randrange(1, 9), random.uniform(0, 9.9), random.uniform(0, 9.9), spread, launch)
-
-
 class UI_Handler:
-    def __init__(self, ctx, frame_vao, win_size=(900, 600)):
+    def __init__(self, scene, ctx, frame_vao, win_size=(900, 600)):
+        self.scene = scene
         self.ctx = ctx
         self.frame_vao = frame_vao
         self.win_size = win_size
@@ -69,10 +43,10 @@ class UI_Handler:
             'health' : 7,
             'max_health' : 10
             }
-        self.shop_cards = [get_rand_card() for i in range(3)]
-        self.hand = [get_rand_card() for i in range(7)]
-        self.deck = [get_rand_card() for i in range(8)]
-        self.inventory_cards = [get_rand_card() for i in range(10)]
+        self.shop_cards = []
+        
+        # hud card information
+        self.update_card_info()
 
         self.mouse_states = [False, False, False]
         self.key_states = pg.key.get_pressed()
@@ -84,9 +58,11 @@ class UI_Handler:
 
         self.update_texture = 2
         self.scroll = 0
-        self.n_cards = 7
 
     def update(self):
+        # updates card information
+        self.update_card_info()
+        
         # Handles all keyboard and mouse input for UI
         self.mouse_pos = pg.mouse.get_pos()
         self.mouse_buttons = pg.mouse.get_pressed()
@@ -313,7 +289,7 @@ class UI_Handler:
         self.draw()
 
     def get_card_surf(self, card_hieght, dist, card):
-        element = element_indicies[card.element]
+        element = element_indicies[card.element.name]
         launch = launch_type_indicies[card.launch_type]
         spread = spread_type_indiceis[card.spread_type]
         damage = str(card.damage)
@@ -374,3 +350,18 @@ class UI_Handler:
             card = self.get_card_surf(card_hieght, dist, self.hand[i])
             card = pg.transform.rotate(card, -np.sqrt(dist) * 10 * np.sign(index))
             self.surf.blit(card, (offset + i * (w + 3) - index * 15 - w/2, self.win_size[1] - h * 1.5 + np.sqrt(dist) * 50))
+            
+    def update_card_info(self):
+        
+        self.hand = self.get_player_card_data('hand')
+        self.deck = self.get_player_card_data('deck')
+        self.inventory_cards = self.get_player_card_data('all')
+        self.n_cards = len(self.hand)
+            
+    def get_player_card_data(self, data : str):
+    
+        match data:
+            case 'hand': return self.scene.entity_handler.entities[0].deck_handler.hand
+            case 'deck': return self.scene.entity_handler.entities[0].deck_handler.deck
+            case 'all': return self.scene.entity_handler.entities[0].deck_handler.get_all_cards()
+            case _: assert False, 'not a valid card location'

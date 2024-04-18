@@ -1,7 +1,7 @@
 import pygame as pg
 
 def load_sheet():
-    ui_sheet_img = pg.image.load('UI_Assets\card_sheet.png').convert_alpha()
+    ui_sheet_img = pg.image.load('UI_Assets/card_sheet.png').convert_alpha()
     ui_surfaces = []
 
     w, h = ui_sheet_img.get_rect()[2:]
