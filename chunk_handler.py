@@ -25,6 +25,7 @@ class ChunkHandler():
         self.scene = scene
         self.chunks = {}
         self.update_chunks = []
+        self.confirm_modifications = 0
 
         self.world_size = 16
 
@@ -97,6 +98,10 @@ class ChunkHandler():
     def update(self):
         if len(self.update_chunks):
             self.chunks[self.update_chunks[0]].generate_mesh()
+            self.instance_buffer_data = get_data(self.chunks, (self.scene.cam.position.x//10, self.scene.cam.position.y//10, self.scene.cam.position.z//10))
+            self.depth_instance_buffer_data = np.array(self.instance_buffer_data[:,0:9], order='C')
+            self.instance_buffer.write(self.instance_buffer_data)
+            self.depth_instance_buffer.write(self.depth_instance_buffer_data)
             self.update_chunks.pop(0)
 
         if len(self.update_chunks) == 1:
@@ -104,7 +109,7 @@ class ChunkHandler():
             self.depth_instance_buffer_data = np.array(self.instance_buffer_data[:,0:9], order='C')
             self.instance_buffer.write(self.instance_buffer_data)
             self.depth_instance_buffer.write(self.depth_instance_buffer_data)
-
+            self.confirm_modifications = 2
 
         current_pos = (self.scene.cam.position.x//10, self.scene.cam.position.y//10, self.scene.cam.position.z//10)
         if self.chunk_pos != current_pos:
@@ -138,7 +143,6 @@ class ChunkHandler():
         [self.modify_point(int((pos[0] + point[0])), int((pos[1] + point[1])), int((pos[2] + point[2])), magnitude / ((abs(point[0]) + abs(point[1]) + abs(point[2])) * .5 * width + .0001), material) for point in points]
 
     def modify_point(self, x, y, z, magnitude, material=3):
-
         local_pos = [x % CHUNK_SIZE, y % CHUNK_SIZE, z % CHUNK_SIZE]
         chunk_pos = [x // CHUNK_SIZE, y // CHUNK_SIZE, z // CHUNK_SIZE]
 
