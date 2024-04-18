@@ -36,7 +36,8 @@ launch_type_indicies = {
 
 spread_type_indiceis = {
     'vertical' : 25, 
-    'horizontal' : 26
+    'horizontal' : 26,
+    'single' : 27
 }
 
 class ScreenData:
