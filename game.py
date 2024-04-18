@@ -45,10 +45,8 @@ class Game:
 
         if not config['runtime']['simulate']: return
         if self.mouse_state[0] and not self.graphics_engine.scene.ui_handler.mouse_buttons[0]:
-            self.graphics_engine.scene.entity_handler.entities[0].deck_handler.hand[self.graphics_engine.scene.ui_handler.values['selected_card']]\
-                .get_bullets(self.graphics_engine.scene.entity_handler.entities[0].obj.pos + self.graphics_engine.camera.forward, np.array([i for i in glm.normalize(self.graphics_engine.camera.looking_at())]), self.graphics_engine.scene.entity_handler.entities[0].obj)
             
-            self.graphics_engine.scene.entity_handler.entities[0].spell = self.graphics_engine.scene.entity_handler.spell_handler.create_random_spell()
+            self.graphics_engine.scene.entity_handler.entities[0].use_card(self.graphics_engine.scene.ui_handler.values['selected_card'])
 
     def start(self):
         self.run = True

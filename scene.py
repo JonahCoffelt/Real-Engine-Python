@@ -32,6 +32,7 @@ class Scene:
         self.ui_handler = UI_Handler(self, self.ctx, self.buffer_handler.buffers['frame'].vao, self.graphics_engine.app.win_size)
 
         self.chunk_handler.after_init()
+        self.entity_handler.entities[0].after_init()
 
         # Shadow map buffer
         self.shadow_texture = self.texture_handler.textures['shadow_map_texture']

@@ -2,7 +2,7 @@ import random
 
 class DeckHandler():
     
-    def __init__(self):
+    def __init__(self, player):
         
         # card storage
         self.deck = []
@@ -11,6 +11,8 @@ class DeckHandler():
         
         # limit variables
         self.max_hand_size = 5
+        
+        self.player = player
         
     # all cards
     def get_all_cards(self):
@@ -27,6 +29,8 @@ class DeckHandler():
             spell = random.choice(self.deck)
             self.deck.remove(spell)
             self.hand.append(spell)
+            
+        self.player.entity_handler.object_handler.scene.ui_handler.update_texture = 2
     
     def discard_from_hand(self, index):
         
@@ -37,7 +41,11 @@ class DeckHandler():
     # discard functions
     def undiscard(self, count = 1):
         
+        # retrieves cards from discard pile
         while count > 0 and len(self.discard) > 0:
             spell = random.choice(self.discard)
             self.discard.remove(spell)
             self.deck.append(spell)
+            
+        # automatically refills hand
+        self.refill_hand()

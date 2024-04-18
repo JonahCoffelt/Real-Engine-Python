@@ -130,7 +130,6 @@ class ChunkHandler():
         return None
                     
     def modify_terrain(self, magnitude, pos = None, material = 3):
-        print(pos)
         # ray casts from the camera if position is set to none
         if pos is None: pos = self.ray_cast()
         width = 1

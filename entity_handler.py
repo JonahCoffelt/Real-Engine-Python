@@ -37,16 +37,11 @@ class EntityHandler():
         # updates entities
         for entity in self.entities: 
             
-            # swaps from ragdoll and back
-            # if (glm.length(entity.obj.hitbox.vel) > 3 or entity.obj.hitbox.rot_vel > 0.5)\
-            #     and not (entity.obj.on_side() and glm.length(entity.obj.hitbox.vel) < 5 and entity.obj.hitbox.rot_vel < np.pi): entity.ragdoll = True
-            # print(glm.length(entity.obj.hitbox.vel) > 4, entity.obj.on_side(), entity.obj.hitbox.rot_vel < np.pi)
-            # if glm.length(entity.obj.hitbox.vel) > 3 or entity.obj.hitbox.rot_vel > np.pi: entity.ragdoll = True
-            # else: entity.ragdoll = False
-            
             # to change from ragdoll to stable
             if entity.ragdoll:
-                if glm.length(entity.obj.hitbox.vel) < 4 and entity.obj.hitbox.rot_vel < np.pi and entity.obj.last_collided is not None: entity.ragdoll = False
+                if glm.length(entity.obj.hitbox.vel) < 4 and entity.obj.hitbox.rot_vel < np.pi and entity.obj.last_collided is not None: 
+                    if type(entity) is Player: self.entities[0].deck_handler.undiscard(1)
+                    entity.ragdoll = False
             
             # to change from stable to ragdoll
             else:
@@ -181,17 +176,22 @@ class Entity():
 class Player(Entity):
     
     def __init__(self, entity_handler : EntityHandler, obj : Object, cam, health, speed = 5, ragdoll = False):
-        
         super().__init__(entity_handler, obj, health, speed, ragdoll)
         self.cam = cam
-        self.spell = self.entity_handler.spell_handler.create_random_spell()
-        self.deck_handler = DeckHandler()
-        self.on_init()
+        self.deck_handler = DeckHandler(self)
         
-    def on_init(self):
+    def after_init(self):
         
         # gives the player starting spells
-        for _ in range(5): self.deck_handler.add_spell(self.entity_handler.spell_handler.create_spell(15))
+        for _ in range(10): self.deck_handler.add_spell(self.entity_handler.spell_handler.create_spell(15))
+        self.deck_handler.refill_hand()
+        
+    def use_card(self, index):
+        
+        if not 0 <= index < len(self.deck_handler.hand): return
+        
+        self.deck_handler.hand[index].get_bullets(self.obj.pos + self.cam.forward, np.array([i for i in glm.normalize(self.cam.looking_at())]), self.obj)
+        self.deck_handler.discard_from_hand(index)
         self.deck_handler.refill_hand()
         
     def move(self, delta_time):
