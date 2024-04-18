@@ -41,13 +41,12 @@ class Scene:
         self.shadow_frame_skips = 5
 
     def update(self, delta_time):
-        
+        self.chunk_handler.update()
         self.vao_handler.program_handler.update_attribs(self)  # Updates the values sent to uniforms
         self.entity_handler.update(delta_time)
         self.object_handler.update(delta_time)  # Updates the objects
         self.particle_handler.update(delta_time)  # Updates particles
         self.atmosphere_handler.update(delta_time)  # Updates the sky and time
-        self.chunk_handler.update()
         self.ui_handler.update()
 
     def render_buffers(self):

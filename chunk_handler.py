@@ -98,18 +98,13 @@ class ChunkHandler():
     def update(self):
         if len(self.update_chunks):
             self.chunks[self.update_chunks[0]].generate_mesh()
-            self.instance_buffer_data = get_data(self.chunks, (self.scene.cam.position.x//10, self.scene.cam.position.y//10, self.scene.cam.position.z//10))
-            self.depth_instance_buffer_data = np.array(self.instance_buffer_data[:,0:9], order='C')
-            self.instance_buffer.write(self.instance_buffer_data)
-            self.depth_instance_buffer.write(self.depth_instance_buffer_data)
             self.update_chunks.pop(0)
-
-        if len(self.update_chunks) == 1:
-            self.instance_buffer_data = get_data(self.chunks, (self.scene.cam.position.x//10, self.scene.cam.position.y//10, self.scene.cam.position.z//10))
-            self.depth_instance_buffer_data = np.array(self.instance_buffer_data[:,0:9], order='C')
-            self.instance_buffer.write(self.instance_buffer_data)
-            self.depth_instance_buffer.write(self.depth_instance_buffer_data)
-            self.confirm_modifications = 2
+            if not len(self.update_chunks):
+                self.instance_buffer_data = get_data(self.chunks, (self.scene.cam.position.x//10, self.scene.cam.position.y//10, self.scene.cam.position.z//10))
+                self.depth_instance_buffer_data = np.array(self.instance_buffer_data[:,0:9], order='C')
+                self.instance_buffer.write(self.instance_buffer_data)
+                self.depth_instance_buffer.write(self.depth_instance_buffer_data)
+                self.confirm_modifications = 2
 
         current_pos = (self.scene.cam.position.x//10, self.scene.cam.position.y//10, self.scene.cam.position.z//10)
         if self.chunk_pos != current_pos:
@@ -135,12 +130,13 @@ class ChunkHandler():
         return None
                     
     def modify_terrain(self, magnitude, pos = None, material = 3):
+        print(pos)
         # ray casts from the camera if position is set to none
         if pos is None: pos = self.ray_cast()
         width = 1
         if pos is None: return
-        points = [(x, y, z) for x in range(-width, width + 1) for y in range(-width, width + 1) for z in range(-width, width + 1)]
-        [self.modify_point(int((pos[0] + point[0])), int((pos[1] + point[1])), int((pos[2] + point[2])), magnitude / ((abs(point[0]) + abs(point[1]) + abs(point[2])) * .5 * width + .0001), material) for point in points]
+        points = [(x/4, y/4, z/4) for x in range(-width * 4, width * 4 + 1) for y in range(-width * 4, width * 4 + 1) for z in range(-width * 4, width * 4 + 1)]
+        [self.modify_point(round((pos[0] + point[0])), round((pos[1] + point[1])), round((pos[2] + point[2])), magnitude / 64 / ((abs(point[0]) + abs(point[1]) + abs(point[2])) * .5 * width + .0001), material) for point in points]
 
     def modify_point(self, x, y, z, magnitude, material=3):
         local_pos = [x % CHUNK_SIZE, y % CHUNK_SIZE, z % CHUNK_SIZE]
