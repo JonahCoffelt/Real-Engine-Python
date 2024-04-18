@@ -45,8 +45,6 @@ class Game:
 
         if not config['runtime']['simulate']: return
         if self.mouse_state[0] and not self.graphics_engine.scene.ui_handler.mouse_buttons[0]:
-            self.mine_timer = 0
-            
             self.graphics_engine.scene.entity_handler.entities[0].deck_handler.hand[self.graphics_engine.scene.ui_handler.values['selected_card']]\
                 .get_bullets(self.graphics_engine.scene.entity_handler.entities[0].obj.pos + self.graphics_engine.camera.forward, np.array([i for i in glm.normalize(self.graphics_engine.camera.looking_at())]), self.graphics_engine.scene.entity_handler.entities[0].obj)
             
@@ -54,13 +52,10 @@ class Game:
 
     def start(self):
         self.run = True
-        self.mine_timer = 0
-        self.mine_duration = 0.04
         self.mouse_state = pg.mouse.get_pressed()
         while self.run:
             pg.display.set_caption(str(round(self.clock.get_fps())))
             self.delta_time = self.clock.tick()
-            self.mine_timer += self.delta_time / 1000
             self.check_events()  # Checks for window events
             self.graphics_engine.update(self.delta_time * 0.001)  # Render and update calls
 
