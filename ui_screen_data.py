@@ -64,8 +64,6 @@ class ScreenData:
                 ],
                 'sliders' : [],
                 'hotkeys' : {
-                    pg.K_ESCAPE : [[UI.set_screen, [UI.hud]], [UI.log, ["Switching screen to HUD"]]],
-                    pg.K_e : [[UI.log, ['Pressed "E"']]]
                 },
                 'events' : {}
             },
@@ -89,8 +87,8 @@ class ScreenData:
                 ],
                 'hotkeys' : {
                     pg.K_ESCAPE : [[UI.set_screen, [UI.pause]], [UI.set_attrib, ['runtime', 'simulate', False]]],
-                    pg.K_e : [[UI.set_screen, [UI.inventory]]],
-                    pg.K_q : [[UI.set_screen, [UI.shop]]]
+                    pg.K_e : [[UI.set_screen, [UI.inventory]], [UI.set_attrib, ['runtime', 'simulate', False]]],
+                    pg.K_q : [[UI.set_screen, [UI.shop]], [UI.set_attrib, ['runtime', 'simulate', False]]]
                 },
                 'events' : {
                     pg.MOUSEWHEEL : [UI.increment_card, []]

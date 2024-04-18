@@ -19,9 +19,6 @@ class Game:
         pg.display.gl_set_attribute(pg.GL_CONTEXT_PROFILE_MASK, pg.GL_CONTEXT_PROFILE_CORE)
         # Pygame display init
         pg.display.set_mode(self.win_size, flags=pg.OPENGL | pg.DOUBLEBUF | pg.RESIZABLE)
-        # Lock mouse in place and hide
-        pg.event.set_grab(True)
-        pg.mouse.set_visible(False)
         # MGL Context
         self.ctx = mgl.create_context()
         print(self.ctx.viewport)
@@ -36,6 +33,7 @@ class Game:
 
     def check_events(self):
         self.events = pg.event.get()
+        self.mouse_state = pg.mouse.get_pressed()
         for event in self.events:
             if event.type == pg.QUIT:
                 pg.quit()
@@ -46,7 +44,7 @@ class Game:
         self.graphics_engine.scene.ui_handler.get_events(self.events)
 
         if not config['runtime']['simulate']: return
-        if pg.mouse.get_pressed()[0] and self.mine_timer > self.mine_duration:
+        if self.mouse_state[0] and not self.graphics_engine.scene.ui_handler.mouse_buttons[0]:
             self.mine_timer = 0
             
             self.graphics_engine.scene.entity_handler.entities[0].deck_handler.hand[self.graphics_engine.scene.ui_handler.values['selected_card']]\
@@ -54,13 +52,11 @@ class Game:
             
             self.graphics_engine.scene.entity_handler.entities[0].spell = self.graphics_engine.scene.entity_handler.spell_handler.create_random_spell()
 
-        if pg.mouse.get_pressed()[2] and self.mine_timer > self.mine_duration:
-            self.mine_timer = 0
-
     def start(self):
         self.run = True
         self.mine_timer = 0
         self.mine_duration = 0.04
+        self.mouse_state = pg.mouse.get_pressed()
         while self.run:
             pg.display.set_caption(str(round(self.clock.get_fps())))
             self.delta_time = self.clock.tick()

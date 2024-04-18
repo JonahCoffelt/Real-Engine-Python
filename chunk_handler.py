@@ -42,6 +42,9 @@ class ChunkHandler():
         self.dungeon_handler = DungeonHandler((15, 2, 15))
         for chunk in list(self.chunks.values()):
             chunk.generate_mesh()
+
+        self.generate_dungeon()
+
         self.instance_buffer_data = get_data(self.chunks, self.chunk_pos)
         self.depth_instance_buffer_data = np.array(self.instance_buffer_data[:,0:9], order='C')
 
@@ -66,7 +69,6 @@ class ChunkHandler():
 
         self.instance_buffer.write(self.instance_buffer_data)
         self.depth_instance_buffer.write(self.depth_instance_buffer_data)
-        self.generate_dungeon()
         
     def generate_dungeon(self, power = 15):
         
@@ -93,15 +95,17 @@ class ChunkHandler():
         self.shadow_vao.render(instances=(len(self.depth_instance_buffer_data)))
                     
     def update(self):
+        if len(self.update_chunks):
+            print(len(self.update_chunks))
+            self.chunks[self.update_chunks[0]].generate_mesh()
+            self.update_chunks.pop(0)
+
         if len(self.update_chunks) == 1:
             self.instance_buffer_data = get_data(self.chunks, (self.scene.cam.position.x//10, self.scene.cam.position.y//10, self.scene.cam.position.z//10))
             self.depth_instance_buffer_data = np.array(self.instance_buffer_data[:,0:9], order='C')
             self.instance_buffer.write(self.instance_buffer_data)
             self.depth_instance_buffer.write(self.depth_instance_buffer_data)
 
-        if len(self.update_chunks):
-            self.chunks[self.update_chunks[0]].generate_mesh()
-            self.update_chunks.pop(0)
 
         current_pos = (self.scene.cam.position.x//10, self.scene.cam.position.y//10, self.scene.cam.position.z//10)
         if self.chunk_pos != current_pos:
