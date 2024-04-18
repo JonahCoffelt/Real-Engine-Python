@@ -96,7 +96,6 @@ class ChunkHandler():
                     
     def update(self):
         if len(self.update_chunks):
-            print(len(self.update_chunks))
             self.chunks[self.update_chunks[0]].generate_mesh()
             self.update_chunks.pop(0)
 
