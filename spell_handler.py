@@ -38,7 +38,7 @@ class SpellHandler():
             'casting_type' : {
                 'from_self': 0
             },
-            'damage' : 1,
+            'damage' : 2,
             'radius' : 1, # cubed after
             'speed' : 0.25,
             'force' : 3, # squared after
@@ -75,7 +75,7 @@ class SpellHandler():
     def create_random_spell(self, power = 15, element = None):
         
         launch_type = random.choice(['straight', 'lob', 'confused'])
-        spread_type = random.choice(['horizontal'])#, 'vertical'])
+        spread_type = random.choice(['horizontal', 'vertical'])
         casting_type = random.choice(['from_self'])
         
         # int types
@@ -83,9 +83,9 @@ class SpellHandler():
         damage = random.randint(1, power if power < 100 else 99)
         
         # float types
-        radius = random.uniform(0, power ** (1/3) if power ** (1/3) < 9.9 else 9.9)
+        radius = random.uniform(1, power ** (1/3) if power ** (1/3) < 9.9 else 9.9)
         speed = random.uniform(5, 30)
-        force = random.uniform(1, power ** (1/2) if power ** (1/2) else 9.9)
+        force = random.uniform(1, power if power < 9.9 else 9.9)
         angle = random.uniform(np.pi/24, np.pi/2)
         
         # element variables
@@ -98,11 +98,11 @@ class SpellHandler():
     def get_spell_cost(self, spell):
         
         cost = spell.damage * self.spell_attributes['damage']
-        cost += (spell.radius * self.spell_attributes['radius']) ** 3
+        cost += ((spell.radius - 1) * self.spell_attributes['radius']) ** 3
         cost += spell.speed * self.spell_attributes['speed']
-        cost += (spell.force * self.spell_attributes['force']) ** 2
+        cost += (spell.force * self.spell_attributes['force'])
         
-        cost *= spell.count
+        cost *= (0.5 + spell.count / 2)
         return cost
     
     def update(self, delta_time):

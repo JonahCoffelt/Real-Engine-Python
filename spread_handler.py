@@ -29,10 +29,10 @@ class SpreadHandler():
     def get_vertical(self, count, angle):
         
         angles = self.get_angles(count, angle)
-        rot_mats = [self.get_xy_rot_mat(a) for a in angles]
+        angles = [i * angle for i in angles]
         
         def program(directions):
-            return [np.array([float(i) for i in rot_mats[i] * directions[i].reshape((3, 1))]) for i in range(count)]
+            return [np.array([directions[i][0], directions[i][1] * (1 + angles[i]), directions[i][2]]) for i in range(count)]
         return program
         
     # returns a list of angles to rotate a directional vector
