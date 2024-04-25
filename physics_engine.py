@@ -3,7 +3,8 @@ from hitboxes import Hitbox
 import numpy as np
 from chunk_handler import CHUNK_SIZE
 from numba import njit
-
+from config import config
+import random
 
 #@njit
 def detect_broad_collision(c1, c20, c21, c22, dim1, dim2):
@@ -55,8 +56,11 @@ class PhysicsEngine():
                 if not collided: continue
                 bullet.has_collided = True
         
-    def resolve_terrain_collisions(self, objs, delta_time):        
+    def resolve_terrain_collisions(self, objs, delta_time):       
+        player_pos = self.chunk_handler.scene.entity_handler.entities[0].obj.pos
         for obj in objs:
+            # checks for simulation distance and skybox
+            if not self.is_in_sim_distance(player_pos, obj.pos): continue
             for chunk in self.chunk_handler.get_close_chunks(obj):
                 for cube in chunk.get_close_cubes(obj):
                     for triangle in cube:
@@ -74,11 +78,16 @@ class PhysicsEngine():
     # object to object collisions
     def resolve_collisions(self, objs, delta_time):
         
+        player_pos = self.chunk_handler.scene.entity_handler.entities[0].obj.pos
+        
         for obj in objs:
             obj.last_collided = None
-    
+            
         for i, obji in enumerate(objs):
+            # checks for simulation distance and skybox
+            if not self.is_in_sim_distance(player_pos, obj.pos): continue
             if objs[i].obj_type == 'skybox': continue
+            
             obji_immovable, obji_hitbox, obji_pos, obji_dimensions = obji.immovable, obji.hitbox, np.array([i for i in obji.pos]), obji.hitbox.dimensions
             
             for objj in objs[i+1:]:
@@ -121,6 +130,10 @@ class PhysicsEngine():
         # translational velocity
         reflected_vel = glm.reflect(hitbox1.vel, normal2)
         parallel, perpendicular = self.get_components(reflected_vel, normal2)
+        
+        # play sound if collision is fast
+        if abs(glm.length(parallel)) > 3:
+            self.chunk_handler.scene.sound_handler.play_sound(random.choice(['clonk', 'clack']))
         
         # friction and elasticity
         parallel *= elasticity_factor
@@ -209,3 +222,11 @@ class PhysicsEngine():
             if distance < best[1]: best = ([vertex], distance)
             
         return best[0][0]
+    
+    def is_in_sim_distance(self, player_pos, test_pos):
+        
+        chunk_radius = config['simulation']['simulation_distance']
+        player_pos, test_pos = [i // 10 for i in player_pos], [i // 10 for i in test_pos]
+        for i in range(3):
+            if not test_pos[i] - chunk_radius <= player_pos[i] <= test_pos[i] + chunk_radius: return False
+        return True

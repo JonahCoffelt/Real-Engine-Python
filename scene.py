@@ -8,6 +8,8 @@ from particle_handler import ParticleHandler
 from chunk_handler import ChunkHandler
 from atmosphere_handler import Atmosphere
 from ui_handler import UI_Handler
+from sound_handler import SoundHandler
+from load_zone import LoadZoneHandler
 import cudart
 
 
@@ -17,6 +19,7 @@ class Scene:
         self.ctx = graphics_engine.ctx
         self.cam = self.graphics_engine.camera
         self.time = 0
+        self.power = 15
 
         self.vao_handler = VAOHandler(self.ctx)
         self.texture_handler = TextureHandler(self.graphics_engine.app)
@@ -30,8 +33,14 @@ class Scene:
         self.particle_handler = ParticleHandler(self.ctx, self.vao_handler.program_handler.programs, self.vao_handler.vbo_handler.vbos['ico'], self.cam)
         self.atmosphere_handler = Atmosphere(self)
         self.ui_handler = UI_Handler(self, self.ctx, self.buffer_handler.buffers['frame'].vao, self.graphics_engine.app.win_size)
+        self.sound_handler = SoundHandler()
+        self.load_zone_handler = LoadZoneHandler(self)
 
         self.chunk_handler.after_init()
+        self.entity_handler.entities[0].after_init()
+        
+        # world start
+        self.enter_hub()
 
         # Shadow map buffer
         self.shadow_texture = self.texture_handler.textures['shadow_map_texture']
@@ -41,12 +50,14 @@ class Scene:
         self.shadow_frame_skips = 5
 
     def update(self, delta_time):
+        
         self.chunk_handler.update()
         self.vao_handler.program_handler.update_attribs(self)  # Updates the values sent to uniforms
         self.entity_handler.update(delta_time)
         self.object_handler.update(delta_time)  # Updates the objects
         self.particle_handler.update(delta_time)  # Updates particles
         self.atmosphere_handler.update(delta_time)  # Updates the sky and time
+        self.load_zone_handler.update(delta_time) # updates particles for load zones
         self.ui_handler.update()
 
     def render_buffers(self):
@@ -106,3 +117,26 @@ class Scene:
         self.cam = camera
         self.entity_handler.set_player_camera(self.cam)
         self.particle_handler.cam = self.cam
+        
+    def remove_world_scene(self):
+        
+        # removes entites
+        self.entity_handler.clear_all()
+        # removes world items
+        self.chunk_handler.clear_all()
+        self.light_handler.clear_all()
+        self.particle_handler.emitter_handler.clear_all()
+        
+    def enter_dungeon(self, power):
+        
+        self.remove_world_scene()
+        self.chunk_handler.fill_all()
+        self.chunk_handler.generate_dungeon(power)
+        self.entity_handler.entities[0].reset_player()
+        
+    def enter_hub(self):
+        
+        self.remove_world_scene()
+        self.chunk_handler.generate_spawn()
+        self.load_zone_handler.move_to_active('hub')
+        self.entity_handler.entities[0].reset_player()

@@ -85,7 +85,7 @@ class SpellHandler():
         # float types
         radius = random.uniform(1, power ** (1/3) if power ** (1/3) < 9.9 else 9.9)
         speed = random.uniform(5, 30)
-        force = random.uniform(1, power if power < 9.9 else 9.9)
+        force = random.uniform(1, power if power < 7 else 7)
         angle = random.uniform(np.pi/24, np.pi/2)
         
         # element variables
@@ -154,7 +154,6 @@ class Spell():
         # gets all directions and positions of bullets fired
         match self.casting_type:
             case 'from_self': positions, directions = self.casting_program(pos, dir)
-            case 'from_above': positions, directions = self.casting_program(..., dir)
             case _: assert False, 'casting type error when getting bulltes'
         directions = self.spread_program(directions)
         

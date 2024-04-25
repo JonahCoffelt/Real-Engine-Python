@@ -33,5 +33,8 @@ config = {
         'render_distance' : 10,
         'far_plane_distance' : 250,
         'full_screen' : False
+    },
+    'simulation' : {
+        'simulation_distance' : 5,
     }
 }

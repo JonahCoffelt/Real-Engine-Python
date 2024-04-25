@@ -17,6 +17,7 @@ class VAOHandler:
         self.add_vao('cube', 'default')
         self.add_vao('quad', 'mesh')
         self.add_vao('cat', 'default')
+        self.add_vao('diceguy', 'default')
         self.vaos['skybox'] = self.get_vao(program=self.program_handler.programs['skybox'], 
                                          vbo=self.vbo_handler.vbos['skybox'])
 

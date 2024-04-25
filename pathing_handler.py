@@ -20,7 +20,7 @@ class PathingHandler():
         def program(here, there, delta_time):
             there = [there[0], here[1], there[2]]
             direction = glm.normalize(there - here) * speed * delta_time
-            if glm.length(there - here + direction) < radius: return here
+            if glm.length(there - here + direction) < radius: return here - direction
             return here + direction
         return program
     

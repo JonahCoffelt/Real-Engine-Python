@@ -73,8 +73,9 @@ class Bullet():
         # bullet aftermath
         self.bullet_handler.object_handler.scene.chunk_handler.modify_terrain(-self.spell.terrain_radius, self.pos, self.spell.element.terrain_material)
         self.bullet_handler.object_handler.scene.particle_handler.add_explosion(pos = self.pos, radius = self.spell.radius, clr = self.spell.color)
+        self.bullet_handler.object_handler.scene.sound_handler.play_sound('explosion')
         
-        # applies affects to nearby entities
+        # applies effects to nearby entities
         entities = self.bullet_handler.object_handler.scene.entity_handler.get_entities_in_radius(self.pos, self.spell.radius)
         for entity, direction in entities.items():
             entity.take_hit(self.spell, self.pos)

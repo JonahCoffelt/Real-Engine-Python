@@ -1,6 +1,5 @@
 from random import uniform as rand
 
-
 class ParticleEmitterHandler:
     def __init__(self, particle_handler):
         self.particle_handler = particle_handler
@@ -13,6 +12,10 @@ class ParticleEmitterHandler:
                 [10.0, 15, 1, 3, 0.5, 0.6, 0.1, (.7, .7, .7), .2, (0.0, 1.3, 0.0), (0.3, 0.3, 0.3), (0.0, 4.0, 0.0), (1.0, 3.0, 1.0), (0.0, 2.0, 0.0), (2.0, 1.0, 2.0)]
                 ]
         }
+        
+    def clear_all(self):
+        
+        self.emitters = []
     
     def update(self, dt):
         for emitter in self.emitters:

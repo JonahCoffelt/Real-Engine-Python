@@ -4,10 +4,9 @@ from material_handler import MaterialHandler
 from hitboxes import *
 from physics_engine import PhysicsEngine
 from quaternions import *
-from random import uniform
 import time
 import cudart
-
+from config import config
 
 class ObjectHandler:
     def __init__(self, scene):
@@ -37,8 +36,10 @@ class ObjectHandler:
 
     def update(self, delta_time):
         if delta_time > 1/15: return
+        player_pos = self.scene.entity_handler.entities[0].obj.pos
         for obj in self.objects:
-                
+            # check sim distance
+            if not self.is_in_sim_distance(player_pos, obj.pos): continue
             # checks if object needs physics calculations  
             if obj.immovable: continue    
             # changes pos of all models in scene based off hitbox vel
@@ -47,12 +48,6 @@ class ObjectHandler:
             force = glm.vec3(0, 0, 0)
             if obj.gravity: force[1] = self.pe.gravity_strength
             obj.hitbox.move_tick(delta_time, force, 0)
-            # tp object to top if hits death plane
-            if obj.pos[1] < 0: 
-                #obj.set_pos(glm.vec3(uniform(20, 100), 30, uniform(20, 100)))
-                obj.hitbox.set_vel(glm.vec3(0, 0, 0))
-                obj.hitbox.set_rot_axis(glm.vec3(0, 1, 0))
-                obj.hitbox.set_rot_vel(0)
         # object - object collisions
         self.pe_time += delta_time
         if self.pe_time > self.pe_wait_time and delta_time < 1/30:
@@ -97,7 +92,7 @@ class ObjectHandler:
             if not (program == 'default' or program == 'mesh'): continue
             self.write_shader_uniforms('mesh')
 
-    def render(self, program_name, render_type='default', object_types=('container', 'metal_box', 'wooden_box', 'cat', 'skybox', 'meshes'), light=False, objs=False, prin = False):
+    def render(self, program_name, render_type='default', object_types=('container', 'metal_box', 'wooden_box', 'cat', 'skybox', 'meshes', 'diceguy'), light=False, objs=False, prin = False):
         if program_name: self.write_shader_uniforms(program_name)
         if light: # Will write all light if true
             programs = self.scene.vao_handler.program_handler.programs
@@ -113,7 +108,7 @@ class ObjectHandler:
             if not program_name:
                 program = obj.program_name
                 # Choose the material
-                if obj.obj_type in ('container', 'metal_box', 'wooden_box', 'cat'): mat = obj.material
+                if obj.obj_type in ('container', 'metal_box', 'wooden_box', 'cat', 'diceguy'): mat = obj.material
                 else: mat = obj.obj_type
                 timestamp = time.time() #
                 self.write_shader_uniforms(program, obj.obj_type, mat)
@@ -126,6 +121,14 @@ class ObjectHandler:
     def add_object(self, object):
         self.objects.append(object)
         return object
+    
+    def is_in_sim_distance(self, player_pos, test_pos):
+        # determines if object is within simulation distance
+        chunk_radius = config['simulation']['simulation_distance']
+        player_pos, test_pos = [i // 10 for i in player_pos], [i // 10 for i in test_pos]
+        for i in range(3):
+            if not test_pos[i] - chunk_radius <= player_pos[i] <= test_pos[i] + chunk_radius: return False
+        return True
 
 class Object:
     def __init__(self, obj_handler, scene, model, program_name='default', vao='cube', material='container', obj_type='none', pos=(0, 0, 0), rot=(0, 0, 0), scale=(1, 1, 1), hitbox_type = 'cube', hitbox_file_name = None, rot_vel = 0.001, rot_axis = (0, 0, 0), vel = (0, 0, 0), mass = 1, immovable = False, gravity = True):

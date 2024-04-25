@@ -115,6 +115,7 @@ class FollowCamera(Camera):
         
         self.followed = followed
         self.radius = radius
+        self.look_point = glm.vec3(0, 0, 0)
         super().__init__(app, followed.pos, yaw, pitch)
         
     # follows object so no free cam movement
@@ -125,18 +126,24 @@ class FollowCamera(Camera):
         self.m_view = self.get_view_matrix()
         
     def get_view_matrix(self):
-        return glm.lookAt(self.position, self.followed.pos + self.forward * 100, self.up)
-    
+        return glm.lookAt(self.position, self.look_point, self.up)
+        
     def update_pos(self):
         
-        # resets camera location to expected
-        self.position = self.followed.pos - self.forward * self.radius + self.up * 1 + self.right * 1
+        # gets position of camera offset from player
+        pos = [self.app.graphics_engine.scene.entity_handler.entities[0].obj.pos[i] + [0, 0.5, 0][i] for i in range(3)]
         
-        # finds if camera needs to be moved forward
-        player_pos = self.app.graphics_engine.scene.entity_handler.entities[0].obj.pos
-        back_location = self.app.graphics_engine.scene.chunk_handler.ray_cast_vec(player_pos, glm.normalize(self.position - player_pos), multiplier = self.radius/100, starting_test = 20)
+        back_location = self.app.graphics_engine.scene.chunk_handler.ray_cast_vec(pos, -self.forward + self.up + self.right, multiplier = 1/20, starting_test = 2, tests = 20)
+        if back_location is not None: 
+            self.look_point = back_location
+        else: self.look_point = pos -self.forward + self.up + self.right
         
-        if back_location is not None: self.position = back_location 
+        # draws vector backwards to nearest wall
+        back_location = self.app.graphics_engine.scene.chunk_handler.ray_cast_vec(self.look_point, -self.forward, multiplier = self.radius/100, starting_test = 20, tests = 100)
+        if back_location is not None: 
+            self.position = back_location
+            return
+        self.position = self.look_point - self.forward * self.radius
         
     def rotate(self):
         """

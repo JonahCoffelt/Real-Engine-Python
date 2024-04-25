@@ -19,8 +19,9 @@ class EntityHandler():
         self.entities = []
         self.on_init(cam)
         
-    def on_init(self, cam):
+    def on_init(self, cam) -> None:
         
+        Object(self.object_handler, self.object_handler.scene, model.BaseModel, program_name='default', vao='diceguy', obj_type='diceguy', hitbox_type='rectangle', hitbox_file_name='diceguy/diceguy', pos = (50, 50, 50))
         # creates player 
         player = Player(self, self.object_handler.add_object(Object(self.object_handler, self.object_handler.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(random.uniform(20, 100), 30, random.uniform(20, 100)), scale=(.5, .5, .5))), cam, 100)
         self.entities.append(player)
@@ -37,16 +38,12 @@ class EntityHandler():
         # updates entities
         for entity in self.entities: 
             
-            # swaps from ragdoll and back
-            # if (glm.length(entity.obj.hitbox.vel) > 3 or entity.obj.hitbox.rot_vel > 0.5)\
-            #     and not (entity.obj.on_side() and glm.length(entity.obj.hitbox.vel) < 5 and entity.obj.hitbox.rot_vel < np.pi): entity.ragdoll = True
-            # print(glm.length(entity.obj.hitbox.vel) > 4, entity.obj.on_side(), entity.obj.hitbox.rot_vel < np.pi)
-            # if glm.length(entity.obj.hitbox.vel) > 3 or entity.obj.hitbox.rot_vel > np.pi: entity.ragdoll = True
-            # else: entity.ragdoll = False
-            
             # to change from ragdoll to stable
             if entity.ragdoll:
-                if glm.length(entity.obj.hitbox.vel) < 4 and entity.obj.hitbox.rot_vel < np.pi and entity.obj.last_collided is not None: entity.ragdoll = False
+                if glm.length(entity.obj.hitbox.vel) < 4 and entity.obj.hitbox.rot_vel < np.pi and entity.obj.last_collided is not None: 
+                    if type(entity) is Player and entity.ragdoll_distance > 1.5: self.entities[0].deck_handler.undiscard(3)
+                    entity.ragdoll = False
+                    entity.ragdoll_distance = 0
             
             # to change from stable to ragdoll
             else:
@@ -54,7 +51,7 @@ class EntityHandler():
             
             # ragdoll
             if entity.ragdoll: 
-                ...
+                entity.ragdoll_distance += delta_time * abs(entity.obj.hitbox.rot_vel)
             else: 
                 # sets velocities to zero
                 for i in (0, 2): entity.obj.hitbox.vel[i] = 0
@@ -62,6 +59,11 @@ class EntityHandler():
             
             # moves entity based on AI, controls, etc
             entity.move(delta_time)
+            
+    def clear_all(self):
+        
+        while len(self.entities) > 1:
+            self.entities[-1].remove_self()
         
     def set_player_camera(self, camera):
         self.entities[0].set_camera(camera)
@@ -74,22 +76,25 @@ class EntityHandler():
             if glm.length(direction) <= radius: in_range[entity] = glm.normalize(direction)
         return in_range
     
-    def get_random_spell_caster(self, obj, power, ragdoll = False, element = None, pathing = 'direct_distanced'):
+    def get_random_jump_caster(self, obj, power, ragdoll = False, element = None, pathing = 'direct_distanced'):
         
         # (self, entity_handler : EntityHandler, obj : Object, health = 50, speed = 3, ragdoll = False, pathing = 'direct', power = 0, spells : list = [], max_cooldown = 5):
         if element is None: element = self.spell_handler.element_handler.get_random_element()
         
         # distributes power points to attribs
-        left, health, speed = power, 1, 1
+        left, health, speed, casting_time = power, 1, 1, 5
         while left > 0:
             option = random.randint(0, 100)
             if option < 90: health += 1
+            elif option < 95 and casting_time > 1: 
+                casting_time /= 2
+                left /= 2
             else: speed += 1
             left -= 1
                 
         spell = self.spell_handler.create_spell(power, element)
         
-        return SpellCaster(self, obj, health, speed, ragdoll, pathing, [spell])
+        return JumpCaster(self, obj, health, speed, ragdoll, pathing, spells = [spell], power = power, max_cooldown = casting_time)
     
     def spawn_enemies_in_dungeon(self, power):
         
@@ -110,18 +115,30 @@ class EntityHandler():
                 
                 # now spawn something
                 obj = Object(self.object_handler, self.object_handler.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=pos, scale=(.5, .5, .5))
-                sc = self.get_random_spell_caster(self.object_handler.add_object(obj), power)
+                sc = self.get_random_jump_caster(self.object_handler.add_object(obj), power)
                 self.entities.append(sc)
                 
             # for boss and spawn rooms
             if room.file_name == 'room-boss':
-                pos = [room_pos[i] * 10 + 30 for i in range(3)]
-                obj = Object(self.object_handler, self.object_handler.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=pos, scale=(2, 2, 2))
-                sc = self.get_random_spell_caster(self.object_handler.add_object(obj), power * 5)
+                # adds boss enemy
+                pos = [room_pos[i] * 10 + [23, 12, 23][i] for i in range(3)]
+                obj = Object(self.object_handler, self.object_handler.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=pos, scale=(1.5, 1.5, 1.5))
+                sc = self.get_random_jump_caster(obj, power * 5)
+                sc = Boss(self, self.object_handler.add_object(obj), sc.health, sc.speed, sc.ragdoll, 'direct_distanced', power, [])
+                # creates new death function
                 self.entities.append(sc)
+                
+                # adds tp zone in boss room
+                self.object_handler.scene.load_zone_handler.add_inactive('exit', [pos[i] + [0, -3, 0][i] for i in range(3)], (4, 4, 4), 'dungeon' , (0, 1, 1), 5)
+                
             if room.file_name == 'room-northdead':
-                pos = [room_pos[i] * 10 + 12 for i in range(3)]
+                pos = [room_pos[i] * 10 + 13 for i in range(3)]
                 self.entities[0].obj.set_pos(pos)
+                self.entities[0].spawn_point = pos
+    
+    def build_spawn(self):
+        self.entities[0].spawn_point = [10, 10, 10]
+        self.entities[0].obj.set_pos([10, 10, 10])
 
 class Entity():
     
@@ -133,8 +150,14 @@ class Entity():
         self.max_health = health
         self.health = health
         self.speed = speed
+        self.ragdoll_distance = 0
+        self.spawn_point = [i for i in self.obj.pos]
         
-    def move(self, delta_time): ...
+    def move(self, delta_time):
+        
+        if self.obj.pos[1] < -20:
+            self.obj.set_pos(self.spawn_point)
+            self.obj.hitbox.set_vel((0, 0, 0))
     
     def take_hit(self, spell : Spell, origin):
         
@@ -143,7 +166,7 @@ class Entity():
         
         # force
         direction = glm.normalize(self.obj.pos - origin)
-        self.obj.hitbox.set_vel(direction * spell.force)
+        self.obj.hitbox.set_vel(direction * spell.force ** 2)
         
         # after checks
         if self.health <= 0:
@@ -151,6 +174,7 @@ class Entity():
         
     def on_death(self):
         
+        self.entity_handler.entities[0].money += random.randint(1, self.max_health)
         self.remove_self()
         
     def remove_self(self):
@@ -166,11 +190,11 @@ class Entity():
     # def ray_cast_vec(self, origin, vec, tests = 100, multiplier = 1, starting_test = 0):
     def can_see(self, target):
         
-        obj_pos = [self.obj.pos[i] for i in range(3)]
-        target_pos = [target.pos[i] for i in range(3)]# + [0, 1, 0][i]
+        obj_pos = [self.obj.pos[i] + [0, 0.5, 0][i] for i in range(3)]
+        target_pos = [target.pos[i] + [0, 0.5, 0][i] for i in range(3)]
         direction = (glm.vec3(target_pos) - obj_pos) / 100
         # detects if target is in line of sight
-        return self.entity_handler.object_handler.scene.chunk_handler.ray_cast_vec(obj_pos, direction, starting_test = 30) is None
+        return self.entity_handler.object_handler.scene.chunk_handler.ray_cast_vec(obj_pos, direction, starting_test = 5) is None
     
     # default to aiming at player
     def get_aiming_at(self):
@@ -181,20 +205,28 @@ class Entity():
 class Player(Entity):
     
     def __init__(self, entity_handler : EntityHandler, obj : Object, cam, health, speed = 5, ragdoll = False):
-        
         super().__init__(entity_handler, obj, health, speed, ragdoll)
         self.cam = cam
-        self.spell = self.entity_handler.spell_handler.create_random_spell()
-        self.deck_handler = DeckHandler()
-        self.on_init()
+        self.deck_handler = DeckHandler(self)
+        self.money = 0
         
-    def on_init(self):
+    def after_init(self):
         
         # gives the player starting spells
-        for _ in range(5): self.deck_handler.add_spell(self.entity_handler.spell_handler.create_spell(15))
+        for _ in range(10): self.deck_handler.add_spell(self.entity_handler.spell_handler.create_spell(30))
+        self.deck_handler.refill_hand()
+        
+    def use_card(self, index):
+        
+        if not 0 <= index < len(self.deck_handler.hand): return
+        self.entity_handler.object_handler.scene.sound_handler.play_sound('shoot')
+        self.deck_handler.hand[index].get_bullets(self.obj.pos + self.cam.forward, np.array([i for i in glm.normalize(self.cam.looking_at())]), self.obj)
+        self.deck_handler.discard_from_hand(index)
         self.deck_handler.refill_hand()
         
     def move(self, delta_time):
+        
+        super().move(delta_time)
         
         keys = pg.key.get_pressed()
         if keys[config['controls']['up']] and self.obj.last_collided is not None and self.ragdoll is False:
@@ -233,8 +265,32 @@ class Player(Entity):
     # override function
     def on_death(self):
         
-        #print('dead')
-        ...
+        self.entity_handler.object_handler.scene.enter_hub()
+        
+    def reset_player(self) -> None:
+        
+        # resets cards
+        self.deck_handler.undiscard(1e6)
+        self.health = self.max_health
+        
+    def get_upward_side(self) -> int:
+        
+        # encoded side directions NEEDS TO BE CHANGED
+        sides = {
+            1 : (1, 0, 0),
+            2 : (1, 0, 0),
+            3 : (1, 0, 0),
+            4 : (1, 0, 0),
+            5 : (1, 0, 0),
+            6 : (1, 0, 0),
+        }
+        
+        # finds most similar vector to rot point
+        point = self.obj.rot_point[:]
+        best, score = None, -1e6
+        for num, dir in sides.items():
+            if (dot := np.dot(point, dir)) > score: best, score = num, dot
+        return best
         
 class Enemy(Entity):
     
@@ -247,28 +303,34 @@ class Enemy(Entity):
             case 'away': self.pathing = self.entity_handler.pathing_handler.get_away(speed)
             case _: assert False, 'pathing type not recognized'
         self.knows_player_location = False
-        self.max_forget_time = 5
-        self.forget_time = 5
+        self.max_forget_time = 10
+        self.forget_time = self.max_forget_time
         
     def move(self, delta_time): 
+        
+        super().move(delta_time)
         
         # do nothing if in ragdoll
         if self.ragdoll: return
         #self.obj.set_pos(self.pathing(self.obj.pos, self.entity_handler.entities[0].obj.pos, delta_time))
         
+        player_pos = self.entity_handler.entities[0].obj.pos
+        
         can_see_player = self.can_see(self.entity_handler.entities[0].obj)
         if can_see_player:
             self.knows_player_location = True
             self.forget_time = self.max_forget_time
+            if (x := player_pos[0] - self.obj.pos[0]): x = 0.001
+            self.obj.set_rot([0, -glm.atan((player_pos[2] - self.obj.pos[2]) / (x)), 0])
         
         if self.knows_player_location:
-            self.obj.set_pos(self.pathing(self.obj.pos, self.entity_handler.entities[0].obj.pos, delta_time))
+            self.obj.set_pos(self.pathing(self.obj.pos, player_pos, delta_time))
             if not can_see_player: self.forget_time -= delta_time
             if self.forget_time <= 0: self.knows_player_location = False
         
 class SpellCaster(Enemy):
     
-    def __init__(self, entity_handler : EntityHandler, obj : Object, health = 50, speed = 3, ragdoll = False, pathing = 'direct', power = 0, spells : list = [], max_cooldown = 5):
+    def __init__(self, entity_handler : EntityHandler, obj : Object, health = 50, speed = 3, ragdoll = False, pathing = 'direct_distanced', power = 0, spells : list = [], max_cooldown = 3):
         
         super().__init__(entity_handler, obj, health, speed, ragdoll, pathing)
         self.max_cooldown = max_cooldown
@@ -278,7 +340,7 @@ class SpellCaster(Enemy):
         
     def on_init(self, power):
         
-        if len(self.spells) == 0: self.spells.append(self.entity_handler.spell_handler.create_random_spell())
+        if len(self.spells) == 0: self.spells.append(self.entity_handler.spell_handler.create_spell(power))
         
     def move(self, delta_time):
         
@@ -290,7 +352,55 @@ class SpellCaster(Enemy):
         # spell casting
         if self.cooldown < 0:
             if self.can_see(self.entity_handler.entities[0].obj):
+                # has shot spell
                 direction = glm.normalize(self.entity_handler.entities[0].obj.pos - self.obj.pos)
                 random.choice(self.spells).get_bullets(self.obj.pos + direction * 2, np.array([i for i in direction]), self)
                 self.cooldown = self.max_cooldown
+                self.entity_handler.object_handler.scene.sound_handler.play_sound('shoot')
             else: self.cooldown += 0.5
+            
+class JumpCaster(SpellCaster):
+    
+    def __init__(self, entity_handler : EntityHandler, obj : Object, health = 50, speed = 3, ragdoll = False, pathing = 'direct', power = 0, spells : list = [], max_cooldown = 3, jump_strength = 7, max_jump_time = 7):
+        
+        super().__init__(entity_handler, obj, health, speed, ragdoll, pathing, power, spells, max_cooldown)
+        self.jump_strength = jump_strength
+        self.max_jump_time = max_jump_time
+        self.jump_time = max_jump_time
+        self.on_init(power)
+        
+    def move(self, delta_time):
+        
+        super().move(delta_time)
+        
+        # enemy jumps
+        self.jump_time -= delta_time
+        if self.jump_time < 0:
+            if self.can_see(self.entity_handler.entities[0].obj):
+                self.jump_time = self.max_jump_time
+                
+                # gets direction to player
+                direction = self.entity_handler.entities[0].obj.pos - self.obj.pos
+                direction = glm.normalize((direction[0], 0, direction[2])) + [0, 1, 0]
+                
+                self.obj.hitbox.rot_axis = glm.normalize(glm.cross(direction, (0, 1, 0)))
+                self.obj.hitbox.vel = direction * self.jump_strength
+                self.obj.hitbox.rot_vel = np.pi
+                self.ragdoll = True
+            else: self.jump_time += 0.5
+            
+class Boss(JumpCaster):
+    
+    def __init__(self, entity_handler : EntityHandler, obj : Object, health = 50, speed = 3, ragdoll = False, pathing = 'direct', power = 0, spells : list = [], max_cooldown = 3, jump_strength = 7, max_jump_time = 7):
+        
+        self.power = power
+        super().__init__(entity_handler, obj, health, speed, ragdoll, pathing, power, spells, max_cooldown, jump_strength, max_jump_time)
+        self.spells.append(self.entity_handler.spell_handler.create_spell(power))
+        self.spells.append(self.entity_handler.spell_handler.create_spell(power))
+        
+    def on_death(self):
+        
+        self.entity_handler.object_handler.scene.load_zone_handler.move_to_active('exit')
+        self.entity_handler.entities[0].deck_handler.add_spell(self.entity_handler.spell_handler.create_spell(self.power + 10))
+        
+        super().on_death()

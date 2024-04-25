@@ -29,6 +29,8 @@ class LightHandler:
                 program[f'pointLights[{i}].d'].write(light.d)
                 program[f'pointLights[{i}].s'].write(light.s)
 
+    def clear_all(self):
+        self.point_lights = []  
 
 class Light:
     def __init__(self, ambient=0.2, diffuse=0.5, specular=1.0, color=(1.0, 1.0, 1.0)):

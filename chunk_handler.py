@@ -4,6 +4,7 @@ import glm
 import cudart
 from structure_handler import StructureHandler
 from dungeon_generation import DungeonHandler
+from math import ceil
 
 RENDER_DISTANCE = 20
 
@@ -44,8 +45,6 @@ class ChunkHandler():
         for chunk in list(self.chunks.values()):
             chunk.generate_mesh()
 
-        self.generate_dungeon()
-
         self.instance_buffer_data = get_data(self.chunks, self.chunk_pos)
         self.depth_instance_buffer_data = np.array(self.instance_buffer_data[:,0:9], order='C')
 
@@ -71,12 +70,39 @@ class ChunkHandler():
         self.instance_buffer.write(self.instance_buffer_data)
         self.depth_instance_buffer.write(self.depth_instance_buffer_data)
         
+    def clear_all(self):
+        
+        for chunk in self.chunks.values():
+            chunk.clear_all()
+        for chunk in self.chunks.values():
+            chunk.generate_mesh()
+            
+    def fill_all(self):
+        
+        for chunk in self.chunks.values():
+            chunk.fill_all()
+        for chunk in self.chunks.values():
+            chunk.generate_mesh()
+        
     def generate_dungeon(self, power = 15):
         
+        self.dungeon_handler.reset()
         self.dungeon_handler.generate_dungeon()
+        updated_chunks = []
         for pos, room in self.dungeon_handler.room_spawns.items():
-            self.structure_handler.add_structure(room.file_name, [i * 10 + 10 for i in pos])
+            updated_chunks += self.structure_handler.add_structure(room.file_name, [i * 10 + 10 for i in pos])
+
+        for chunk in updated_chunks:
+            chunk.generate_mesh()
+            
         self.scene.entity_handler.spawn_enemies_in_dungeon(power)
+        
+    def generate_spawn(self):
+        
+        updated_chunks = self.structure_handler.add_structure('chess', (5, 5, 5))
+        self.scene.entity_handler.build_spawn()
+        for chunk in updated_chunks:
+            chunk.generate_mesh()
 
     def render_instanced(self):
         self.programs['mesh']['m_proj'].write(self.scene.cam.m_proj)
@@ -114,7 +140,6 @@ class ChunkHandler():
             self.instance_buffer.write(self.instance_buffer_data)
             self.depth_instance_buffer.write(self.depth_instance_buffer_data)
 
-
     def get_close_chunks(self, obj):
         possible_chunks = set([])
         for vertex in obj.hitbox.vertices:
@@ -130,7 +155,6 @@ class ChunkHandler():
         return None
                     
     def modify_terrain(self, magnitude, pos = None, material = 3):
-        print(pos)
         # ray casts from the camera if position is set to none
         if pos is None: pos = self.ray_cast()
         width = 1
@@ -200,7 +224,7 @@ class ChunkHandler():
             pos = origin + step_size * i * multiplier
             cam_chunk = f'{int(pos.x // CHUNK_SIZE)};{int(pos.y // CHUNK_SIZE)};{int(pos.z // CHUNK_SIZE)}'
             if cam_chunk in self.chunks:
-                if self.chunks[cam_chunk].field[int(pos.x) % CHUNK_SIZE][int(pos.y) % CHUNK_SIZE][int(pos.z) % CHUNK_SIZE] > 0:
+                if self.chunks[cam_chunk].field[int(pos.x) % CHUNK_SIZE][int(pos.y) % CHUNK_SIZE][int(pos.z) % CHUNK_SIZE] > -0.2:
                     ray_cast_pos = pos
                     break
         return ray_cast_pos
@@ -210,3 +234,4 @@ class ChunkHandler():
             for y in range(10):
                 for z in range(-1, 2):
                     self.set_point(pos[0] + x, pos[1] + y, pos[2] + z, (1 - y/10) - abs(x)/2 - abs(z)/2, material=5)
+                    

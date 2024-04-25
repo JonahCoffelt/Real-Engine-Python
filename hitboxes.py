@@ -30,7 +30,10 @@ class Hitbox():
         
     def get_center(self):
         
-        return self.obj.pos
+        point = []
+        for i in range(3):
+            point.append(sum([vertex[i] for vertex in self.vertices]) / len(self.vertices))
+        return glm.vec3(point)
     
     def update_vertices(self):
         

@@ -60,8 +60,9 @@ class UI_Handler:
         self.scroll = 0
 
     def update(self):
-        # updates card information
+        # updates card and player information
         self.update_card_info()
+        self.update_health_info()
         
         # Handles all keyboard and mouse input for UI
         self.mouse_pos = pg.mouse.get_pos()
@@ -79,7 +80,6 @@ class UI_Handler:
 
         # Renders the Texture
         if self.update_texture == 0 or self.update_texture == 1: self.render()
-
 
     def render(self):
         self.frame_vao.program['UITexture'] = 5
@@ -341,6 +341,7 @@ class UI_Handler:
         pg.draw.rect(self.surf, (0, 0, 0, 255), rect, 1)
 
         # Draws the hand
+        self.values['selected_card'] = min(max(self.values['selected_card'], 0), self.n_cards-1)
         card_hieght = self.win_size[1] / 6
         offset = (self.win_size[0] - (len(self.hand) - 1) * (card_hieght * 2/3 + 3)) / 2
         for i in range(len(self.hand)):
@@ -357,6 +358,11 @@ class UI_Handler:
         self.deck = self.get_player_card_data('deck')
         self.inventory_cards = self.get_player_card_data('all')
         self.n_cards = len(self.hand)
+        
+    def update_health_info(self):
+        
+        self.values['health'] = self.scene.entity_handler.entities[0].health
+        self.values['max_health'] = self.scene.entity_handler.entities[0].max_health
             
     def get_player_card_data(self, data : str):
     

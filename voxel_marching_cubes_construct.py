@@ -47,6 +47,7 @@ voxel_model_info = {
     'room-northstair' : (20, 20, 10),
     'room-biglibrary' : (30, 20, 30),
     'room-boss' : (30, 20, 30),
+    #'hub' : (60, 20, 60),
 }
 
 voxel_models = {
@@ -77,6 +78,5 @@ def add_voxel_model(chunks: dict, model: str, pos: tuple):
                 chunk = chunks[chunk_key]
                 chunk.materials[chunk_rel_pos[0]][chunk_rel_pos[1]][chunk_rel_pos[2]] = voxel_models[model][1][rel_x][rel_y][rel_z]
                 if not chunk in updated_chunks: updated_chunks.append(chunk)
-
-    for chunk in updated_chunks:
-        chunk.generate_mesh()
+                
+    return updated_chunks

@@ -9,6 +9,7 @@ TEXTURES = {
     'metal_box' : 'textures/white.png',
     'wooden_box' : 'textures/img.png',
     'cat' : 'objects/cat/20430_cat_diff_v1.jpg',
+    'diceguy' : 'objects/diceguy/diceguy.png',
 }
 
 class TextureHandler:
