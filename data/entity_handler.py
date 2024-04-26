@@ -339,13 +339,13 @@ class SpellCaster(Enemy):
         self.on_init(power)
         
     def on_init(self, power):
-        
         if len(self.spells) == 0: self.spells.append(self.entity_handler.spell_handler.create_spell(power))
+        if type(self) is Boss: return
         match self.spells[0].launch_type:
             case 'confused':
-                self.obj = self.entity_handler.object_handler.add_object(Object(self.entity_handler.object_handler, self.entity_handler.object_handler.scene, model.BaseModel, program_name='default', vao='d4', material='d4', obj_type='metal_box', scale=(1, 1, 1), pos=self.obj.pos, hitbox_type='fitted', hitbox_file_name='d4/d4'))
+                self.obj = self.entity_handler.object_handler.add_object(Object(self.entity_handler.object_handler, self.entity_handler.object_handler.scene, model.BaseModel, program_name='default', vao='d4', material='d4', obj_type='metal_box', scale=(1.5, 1.5, 1.5), pos=self.obj.pos, hitbox_type='fitted', hitbox_file_name='d4/d4'))
             case 'straight':
-                self.obj = self.entity_handler.object_handler.add_object(Object(self.entity_handler.object_handler, self.entity_handler.object_handler.scene, model.BaseModel, program_name='default', vao='d6', material='d6', obj_type='metal_box', scale=(1, 1, 1), pos=self.obj.pos, hitbox_type='fitted', hitbox_file_name='d6/d6'))
+                self.obj = self.entity_handler.object_handler.add_object(Object(self.entity_handler.object_handler, self.entity_handler.object_handler.scene, model.BaseModel, program_name='default', vao='d6', material='d6', obj_type='metal_box', scale=(0.5, 0.5, 0.5), pos=self.obj.pos, hitbox_type='rectangle', hitbox_file_name='d6/d6'))
             case 'lob':
                 self.obj = self.entity_handler.object_handler.add_object(Object(self.entity_handler.object_handler, self.entity_handler.object_handler.scene, model.BaseModel, program_name='default', vao='d20', material='d20', obj_type='metal_box', scale=(1, 1, 1), pos=self.obj.pos, hitbox_type='fitted', hitbox_file_name='d20/d20'))
             case _: assert False, 'uh oh, launch type no exist'
@@ -375,7 +375,6 @@ class JumpCaster(SpellCaster):
         self.jump_strength = jump_strength
         self.max_jump_time = max_jump_time
         self.jump_time = max_jump_time
-        self.on_init(power)
         
     def move(self, delta_time):
         
