@@ -22,7 +22,7 @@ class EntityHandler():
     def on_init(self, cam) -> None:
         
         # creates player 
-        player = Player(self, self.object_handler.add_object(Object(self.object_handler, self.object_handler.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(random.uniform(20, 100), 30, random.uniform(20, 100)), scale=(.5, .5, .5))), cam, 100)
+        player = Player(self, self.object_handler.add_object(Object(self.object_handler, self.object_handler.scene, model.BaseModel, program_name='default', vao='diceguy', material='diceguy', obj_type='metal_box', scale=(.25, .25, .25), hitbox_type='rectangle', hitbox_file_name='diceguy/diceguy')), cam, 100)        
         self.entities.append(player)
         
     def get_ragdoll_objects(self):
@@ -114,7 +114,7 @@ class EntityHandler():
                 
                 # now spawn something
                 obj = Object(self.object_handler, self.object_handler.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=pos, scale=(.5, .5, .5))
-                sc = self.get_random_jump_caster(self.object_handler.add_object(obj), power)
+                sc = self.get_random_jump_caster(obj, power)
                 self.entities.append(sc)
                 
             # for boss and spawn rooms
@@ -257,7 +257,7 @@ class Player(Entity):
             key_pressed = True
             
         if key_pressed:
-            self.obj.set_rot([0, -glm.radians(self.cam.yaw), 0])
+            self.obj.set_rot([0, -glm.radians(self.cam.yaw - 90), 0])
             
     def set_camera(self, camera):
         self.cam = camera
@@ -337,11 +337,18 @@ class SpellCaster(Enemy):
         self.cooldown = max_cooldown
         self.spells = spells
         self.on_init(power)
-        self.launch_type = self.spells[0].launch_type
         
     def on_init(self, power):
         
         if len(self.spells) == 0: self.spells.append(self.entity_handler.spell_handler.create_spell(power))
+        match self.spells[0].launch_type:
+            case 'confused':
+                self.obj = self.entity_handler.object_handler.add_object(Object(self.entity_handler.object_handler, self.entity_handler.object_handler.scene, model.BaseModel, program_name='default', vao='d4', material='d4', obj_type='metal_box', scale=(1, 1, 1), pos=self.obj.pos, hitbox_type='fitted', hitbox_file_name='d4/d4'))
+            case 'straight':
+                self.obj = self.entity_handler.object_handler.add_object(Object(self.entity_handler.object_handler, self.entity_handler.object_handler.scene, model.BaseModel, program_name='default', vao='d6', material='d6', obj_type='metal_box', scale=(1, 1, 1), pos=self.obj.pos, hitbox_type='fitted', hitbox_file_name='d6/d6'))
+            case 'lob':
+                self.obj = self.entity_handler.object_handler.add_object(Object(self.entity_handler.object_handler, self.entity_handler.object_handler.scene, model.BaseModel, program_name='default', vao='d20', material='d20', obj_type='metal_box', scale=(1, 1, 1), pos=self.obj.pos, hitbox_type='fitted', hitbox_file_name='d20/d20'))
+            case _: assert False, 'uh oh, launch type no exist'
         
     def move(self, delta_time):
         
