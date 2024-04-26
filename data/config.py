@@ -4,7 +4,8 @@ config = {
     'runtime' : {
         'simulate' : False,
         'render' : True,
-        'level' : 'hub'
+        'level' : 'hub',
+        'loading' : True
     },
     'controls' : {
         'forward' : pg.K_w,

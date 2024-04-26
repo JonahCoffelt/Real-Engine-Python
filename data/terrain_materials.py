@@ -13,7 +13,7 @@ material_IDs = {
 # adds elements to materials list
 element_handler, index = ElementHandler(), len(material_IDs)
 for element in element_handler.elements.values():
-    material_IDs[index] = np.array(element.color, dtype = 'f4')
+    material_IDs[index] = np.array(element.color[0], dtype = 'f4')
     index += 1
 
 color_to_ID = {}

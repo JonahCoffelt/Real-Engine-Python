@@ -83,6 +83,8 @@ class UI_Handler:
         self.tex.swizzel = 'BGRA'
 
     def surf_to_texture(self):
+        self.tex.release()
+        self.init_texture()
         self.tex.write(self.surf.get_view('1'))
 
     def surf_test(self):

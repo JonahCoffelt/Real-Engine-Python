@@ -18,28 +18,49 @@ class Scene:
         self.graphics_engine = graphics_engine
         self.ctx = graphics_engine.ctx
         self.cam = self.graphics_engine.camera
+        self.loading_screen = self.graphics_engine.loading_screen
         self.time = 0
         self.power = 15
+        self.tick = self.loading_screen.update
 
-        self.vao_handler = VAOHandler(self.ctx)
+    def on_init(self):
+        self.tick('Loading VAO Handler')
+        self.vao_handler = VAOHandler(self.ctx, self)
+        self.tick('Loading Textures')
         self.texture_handler = TextureHandler(self.graphics_engine.app)
+        self.tick('Loading Buffers')
         self.buffer_handler = BufferHandler(self)
+        self.tick('Loading VAOs')
         self.vao_handler.set_up()
+        self.tick('Loading Lighting')
         self.light_handler = LightHandler()
+        self.tick('Loading Shaders')
         self.vao_handler.program_handler.set_attribs(self)
+        self.tick('Initializing Chunks')
         self.chunk_handler = ChunkHandler(self)
+        self.tick('Loading Objects')
         self.object_handler = ObjectHandler(self)
+        self.tick('Loading Entities')
         self.entity_handler = EntityHandler(self.object_handler, self.cam)
+        self.tick('Loading Particles')
         self.particle_handler = ParticleHandler(self.ctx, self.vao_handler.program_handler.programs, self.vao_handler.vbo_handler.vbos['ico'], self.cam)
+        self.tick('Loading Atmosphere')
         self.atmosphere_handler = Atmosphere(self)
+        self.tick('Loading UI')
         self.ui_handler = UI_Handler(self, self.ctx, self.buffer_handler.buffers['frame'].vao, self.graphics_engine.app.win_size)
+        self.tick('Loading Sound')
         self.sound_handler = SoundHandler()
+        self.tick('Loading Zones')
         self.load_zone_handler = LoadZoneHandler(self)
+        self.tick('Loading Chunks')
         
         self.chunk_handler.after_init()
+        self.tick('Loading Entites')
         self.entity_handler.entities[0].after_init()
+        self.tick('Loading Hub')
 
         self.enter_hub()
+        self.tick('Preparing to Start')
 
         # Shadow map buffer
         self.shadow_texture = self.texture_handler.textures['shadow_map_texture']

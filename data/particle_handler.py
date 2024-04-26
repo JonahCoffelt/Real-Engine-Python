@@ -110,10 +110,14 @@ class ParticleHandler:
     def add_explosion(self, pos, radius, clr, count = 15):
         # explosion particle effect will extend slightly beyond radius
         for _ in range(count):
+            color_min, color_max = clr
+            r = random.uniform(color_min[0], color_max[0])
+            g = random.uniform(color_min[1], color_max[1])
+            b = random.uniform(color_min[2], color_max[2])
             p = np.array([i + random.uniform(-1.0, 1.0) * radius for i in pos])
             direction = p - pos
             scale = radius*2 - np.linalg.norm(direction) + 0.5
-            self.add_particles(pos = p, type = 3, life = 0.25, scale = scale, clr = clr, vel = direction, accel = [random.uniform(-1, 1) for _ in range(3)])
+            self.add_particles(pos = p, type = 3, life = 0.25, scale = scale, clr = (r, g, b), vel = direction, accel = [random.uniform(-1, 1) for _ in range(3)])
 
 class ParticleVBO:
     def __init__(self, ctx):

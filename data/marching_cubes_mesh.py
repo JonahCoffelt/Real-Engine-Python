@@ -5,19 +5,19 @@ from data.terrain_materials import material_IDs
 import cudart
 
 
-@njit
+@njit (cache=True) 
 def normalized(a):
     normalized = a / np.sqrt(np.sum(a**2))
     normalized = normalized.astype('f4') 
     return normalized
 
-@ njit
+@ njit (cache=True) 
 def vertex_interp(p1, p2, v1, v2, isolevel):
     mu = (isolevel - v1) / (v2 - v1)
     point = p1 + mu * (p2 - p1)
     return point
 
-@ njit
+@ njit (cache=True) 
 def get_cube(field, material, edge_table, tri_table, surf_lvl, x, y, z):
     pos = np.array([x, y, z], dtype='f4')
     vert_list = np.zeros(shape=(12, 3), dtype='f4')

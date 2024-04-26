@@ -1,3 +1,5 @@
+from random import uniform
+
 class BulletHandler():
     
     def __init__(self, object_handler):
@@ -65,8 +67,12 @@ class Bullet():
         self.pos, self.direction = self.launch_program(self.pos, self.direction, delta_time)
         
     def spawn_particle(self):
-        
-        self.bullet_handler.object_handler.scene.particle_handler.add_particles(clr = self.spell.color, pos = self.pos, vel = (0, 0, 0), accel = (0, 0, 0), type = 2, scale = 0.25)
+        color_min, color_max = self.spell.color
+        r = uniform(color_min[0], color_max[0])
+        g = uniform(color_min[1], color_max[1])
+        b = uniform(color_min[2], color_max[2])
+
+        self.bullet_handler.object_handler.scene.particle_handler.add_particles(clr = (r, g, b), pos = self.pos, vel = (0, 0, 0), accel = (0, 0, 0), type = 2, scale = 0.25)
         
     def execute(self):
         

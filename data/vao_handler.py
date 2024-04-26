@@ -4,10 +4,12 @@ import cudart
 
 
 class VAOHandler:
-    def __init__(self, ctx):
+    def __init__(self, ctx, scene):
         self.ctx = ctx
 
+        scene.tick()
         self.vbo_handler = VBOHandler(self.ctx)
+        scene.tick()
         self.program_handler = ProgramHandler(self.ctx)
 
         self.vaos = {}

@@ -2,8 +2,6 @@ import sys
 import pygame as pg
 import moderngl as mgl
 from data.graphics_engine import GraphicsEngine
-import glm
-import numpy as np
 from data.config import config
 import cudart
 
@@ -18,10 +16,9 @@ class Game:
         pg.display.gl_set_attribute(pg.GL_CONTEXT_MINOR_VERSION, 3)
         pg.display.gl_set_attribute(pg.GL_CONTEXT_PROFILE_MASK, pg.GL_CONTEXT_PROFILE_CORE)
         # Pygame display init
-        pg.display.set_mode(self.win_size, flags=pg.OPENGL | pg.DOUBLEBUF | pg.RESIZABLE)
+        self.pg_window = pg.display.set_mode(self.win_size, flags=pg.OPENGL | pg.DOUBLEBUF | pg.RESIZABLE)
         # MGL Context
         self.ctx = mgl.create_context()
-        print(self.ctx.viewport)
         # Basic Gl setup
         self.ctx.enable(flags=mgl.DEPTH_TEST | mgl.CULL_FACE)
         # Engine
@@ -51,6 +48,7 @@ class Game:
         self.run = True
         self.mouse_state = pg.mouse.get_pressed()
         while self.run:
+            #if config['runtime']['loading']: continue
             pg.display.set_caption(str(round(self.clock.get_fps())))
             self.delta_time = self.clock.tick()
             self.check_events()  # Checks for window events

@@ -43,13 +43,19 @@ class ChunkHandler():
         self.chunk_pos = (self.scene.cam.position.x//10, self.scene.cam.position.y//10, self.scene.cam.position.z//10)
 
     def after_init(self):
+        self.scene.tick('Loading Structures')
         self.structure_handler = StructureHandler(self, self.scene.light_handler, self.scene.particle_handler.emitter_handler)
+        self.scene.tick('Loading Dungeon Systems')
         self.dungeon_handler = DungeonHandler((15, 2, 15))
-        for chunk in list(self.chunks.values()):
-            chunk.generate_mesh()
+        #self.scene.tick('Generating Meshes')
+        #for chunk in list(self.chunks.values()):
+        #    chunk.generate_mesh()
 
+        self.scene.tick()
         self.instance_buffer_data = get_data(self.chunks, self.chunk_pos)
+        self.scene.tick()
         self.depth_instance_buffer_data = np.array(self.instance_buffer_data[:,0:9], order='C')
+        self.scene.tick()
 
         self.instance_buffer = self.scene.ctx.buffer(reserve=(18 * 3) * (10 ** 3) * (config['graphics']['render_distance'] ** 2 * 3))
         self.depth_instance_buffer = self.scene.ctx.buffer(reserve=(9 * 3) * (11 ** 3) * (config['graphics']['render_distance'] ** 2 * 3))
@@ -69,35 +75,45 @@ class ChunkHandler():
                                                                       '3f 3f 3f /i', 
                                                                       'in_i_pos0', 'in_i_pos1', 'in_i_pos2')], skip_errors=True)
 
-
+        self.scene.tick()
         self.instance_buffer.write(self.instance_buffer_data)
         self.depth_instance_buffer.write(self.depth_instance_buffer_data)
         
     def clear_all(self):
-        
+        self.scene.tick('Clearing Chunks')
         for chunk in self.chunks.values():
             chunk.clear_all()
+        self.scene.tick('Generating Meshes')
         for chunk in self.chunks.values():
             chunk.generate_mesh()
+        self.scene.tick()
+
             
     def fill_all(self):
-        
+        self.scene.tick('Filling Chunks')
         for chunk in self.chunks.values():
             chunk.fill_all()
+        self.scene.tick('Generating Meshes')
         for chunk in self.chunks.values():
             chunk.generate_mesh()
         
     def generate_dungeon(self, power = 15):
-        
+        self.scene.tick('Resetting Dungeon')
         self.dungeon_handler.reset()
+        self.scene.tick('Generating Dungeon')
         self.dungeon_handler.generate_dungeon()
+        self.scene.tick('Updating Chunks')
         updated_chunks = []
+
+        self.scene.tick()
         for pos, room in self.dungeon_handler.room_spawns.items():
             updated_chunks += self.structure_handler.add_structure(room.file_name, [i * 10 + 10 for i in pos])
 
+        self.scene.tick('Generating Meshes')
         for chunk in updated_chunks:
             chunk.generate_mesh()
-            
+    
+        self.scene.tick('Spawning Entites')
         self.scene.entity_handler.spawn_enemies_in_dungeon(power)
         
     def generate_spawn(self):

@@ -25,7 +25,7 @@ class BaseMaterial:
 
         self.spec_const = glm.float32(specular_constant)
 
-    def write(self, program, multiplier=(1.0, 1.0, 0.5)):
+    def write(self, program, multiplier=(1.0, 1.0, 1.0)):
         offset = glm.vec3(multiplier)
         program['material.offset'].write(offset)
         program['material.d'] = 1

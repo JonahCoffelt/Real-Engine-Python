@@ -7,6 +7,7 @@ from data.quaternions import *
 from random import uniform
 import time
 from data.config import config
+from data.element_handler import enemy_colors
 import cudart
 
 
@@ -36,7 +37,6 @@ class ObjectHandler:
         
         #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', scale=(8, .5, 8), pos = (8, 2, 8), gravity = False, immovable = True))
 
-        self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', vao='diceguy', material='diceguy', obj_type='metal_box', scale=(1, 1, 1), pos = (-4, 2, -8), gravity = False, immovable = True))
         self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', vao='d4', material='d4', obj_type='metal_box', scale=(1, 1, 1), pos = (-8, 2, -8), gravity = False, immovable = True))
         self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', vao='d6', material='d6', obj_type='metal_box', scale=(1, 1, 1), pos = (-12, 2, -8), gravity = False, immovable = True))
         self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', vao='d20', material='d20', obj_type='metal_box', scale=(1, 1, 1), pos = (-16, 2, -8), gravity = False, immovable = True))
@@ -112,7 +112,8 @@ class ObjectHandler:
         timestamp, write, render = time.time(), 0, 0
         for obj in objects:
             if obj.obj_type in ('container', 'metal_box', 'wooden_box', 'cat'):
-                self.material_handler.materials[obj.material].write(self.scene.vao_handler.program_handler.programs['default'])
+
+                self.material_handler.materials[obj.material].write(self.scene.vao_handler.program_handler.programs['default'], multiplier=enemy_colors[obj.element])
             if obj.obj_type not in object_types: continue
             if not program_name:
                 program = obj.program_name
@@ -136,7 +137,7 @@ class ObjectHandler:
         return True
 
 class Object:
-    def __init__(self, obj_handler, scene, model, program_name='default', vao='cube', material='container', obj_type='none', pos=(0, 0, 0), rot=(0, 0, 0), scale=(1, 1, 1), hitbox_type = 'cube', hitbox_file_name = None, rot_vel = 0.001, rot_axis = (0, 0, 0), vel = (0, 0, 0), mass = 1, immovable = False, gravity = True):
+    def __init__(self, obj_handler, scene, model, program_name='default', vao='cube', material='container', obj_type='none', pos=(0, 0, 0), rot=(0, 0, 0), scale=(1, 1, 1), hitbox_type = 'cube', hitbox_file_name = None, rot_vel = 0.001, rot_axis = (0, 0, 0), vel = (0, 0, 0), mass = 1, immovable = False, gravity = True, element='water'):
         
         self.ctx = obj_handler.ctx
         self.camera = scene.graphics_engine.camera
@@ -145,6 +146,7 @@ class Object:
         self.program_name = program_name
         self.obj_type = obj_type
         self.material = material
+        self.element = element
 
         self.pos = glm.vec3(pos)
         self.rot = glm.vec3([glm.radians(a) for a in rot])

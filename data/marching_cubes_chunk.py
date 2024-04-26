@@ -9,6 +9,9 @@ import cudart
 CHUNK_SIZE = 10
 SEED = random.randrange(1000)
 
+clear_field = -1 * np.ones(shape=(CHUNK_SIZE + 1, CHUNK_SIZE + 1, CHUNK_SIZE + 1), dtype='f4')
+fill_field = np.ones(shape=(CHUNK_SIZE + 1, CHUNK_SIZE + 1, CHUNK_SIZE + 1), dtype='f4')
+fill_materials = np.ones(shape=(CHUNK_SIZE + 1, CHUNK_SIZE + 1, CHUNK_SIZE + 1), dtype='int8')
 
 def generate_island(field, materials, chunk_x, chunk_y, chunk_z) -> np.array:
     center = CHUNK_SIZE / 2
@@ -71,16 +74,17 @@ class Chunk:
         self.VBO = ChunkMeshVBO(self.ctx, self.chunks, self.pos, self.field, self.materials, self.surf_lvl)
     
     def clear_all(self):
-        
-        self.field = -1 * np.ones(shape=(CHUNK_SIZE + 1, CHUNK_SIZE + 1, CHUNK_SIZE + 1), dtype='f4')
+        self.field = np.copy(clear_field)
+        #self.field = -1 * np.ones(shape=(CHUNK_SIZE + 1, CHUNK_SIZE + 1, CHUNK_SIZE + 1), dtype='f4')
         #self.materials = np.zeros(shape=(CHUNK_SIZE + 1, CHUNK_SIZE + 1, CHUNK_SIZE + 1), dtype='int8')
-        self.generate_mesh()
+        #self.generate_mesh()
         
     def fill_all(self):
-        
-        self.field = np.ones(shape=(CHUNK_SIZE + 1, CHUNK_SIZE + 1, CHUNK_SIZE + 1), dtype='f4')
-        self.materials = np.ones(shape=(CHUNK_SIZE + 1, CHUNK_SIZE + 1, CHUNK_SIZE + 1), dtype='int8')
-        self.generate_mesh()
+        self.field = np.copy(fill_field)
+        self.materials = np.copy(fill_materials)
+        #self.field = np.ones(shape=(CHUNK_SIZE + 1, CHUNK_SIZE + 1, CHUNK_SIZE + 1), dtype='f4')
+        #self.materials = np.ones(shape=(CHUNK_SIZE + 1, CHUNK_SIZE + 1, CHUNK_SIZE + 1), dtype='int8')
+        #self.generate_mesh()
 
     def get_close_cubes(self, obj):
         

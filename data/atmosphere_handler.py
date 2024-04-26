@@ -26,8 +26,8 @@ class Atmosphere:
             22 : np.array([[0, 17, 127],   [0, 63, 132],      [0, 109, 137] ,  [30, 109, 137]],  dtype='f4'), # Night
         }
         self.sky_colors = {
-            0 :  np.array([[0, 17, 127],   [0, 63, 132],      [0, 109, 137] ,  [30, 109, 137]],  dtype='f4'), # Night end, sunrise begin
-            23 : np.array([[0, 17, 127],   [0, 63, 132],      [0, 109, 137] ,  [30, 109, 137]],  dtype='f4'), # Night
+            0 :  np.array([[0, 17, 127],   [0, 63, 132],      [0, 109, 137] ,  [125, 125, 125]],  dtype='f4'), # Night end, sunrise begin
+            23 : np.array([[0, 17, 127],   [0, 63, 132],      [0, 109, 137] ,  [125, 125, 150]],  dtype='f4'), # Night
         }
         self.times = np.array(list(self.sky_colors.keys()))
 
@@ -61,7 +61,7 @@ class Atmosphere:
         self.sky_program[f'color2'].write(color[1] / 255)
         self.sky_program[f'color3'].write(color[2] / 255)
 
-        self.dir_light.color = color[3] / 155
+        self.dir_light.color = color[3] / 255
 
 
     def render(self):
