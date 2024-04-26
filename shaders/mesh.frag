@@ -45,7 +45,7 @@ uniform vec3 view_pos;
 float standardLightIntensity = 0.5;
 float cellLightIntensity = 0.5;
 float specLightIntensity = 0.2;
-float PLR = 2.0; // Point Light Range
+float PLR = 10.0; // Point Light Range
 
 
 float getSoftShadowX16() {

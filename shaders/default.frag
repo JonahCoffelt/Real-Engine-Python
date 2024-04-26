@@ -7,8 +7,8 @@ in vec3 normal;
 in vec3 fragPos;
 in vec4 shadowCoord;
 
-
 struct Material {
+    vec3 offset;
     sampler2D d;
     sampler2D s;
     float spec_const;
@@ -51,7 +51,7 @@ uniform vec3 view_pos;
 
 float standardLightIntensity = 0.5;
 float cellLightIntensity = 0.5;
-float PLR = 3.0; // Point Light Range
+float PLR = 10.0; // Point Light Range
 
 
 float getSoftShadowX16() {
@@ -97,7 +97,7 @@ vec3 CalcDirLight(DirectionalLight light, vec3 normal, vec3 viewDir){
     vec3 reflectDir = reflect(-lightDir, normal);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.spec_const);
 
-    vec3 ambient = light.a * light.color * pow(vec3(texture(material.d, uv_0)), vec3(gamma));;
+    vec3 ambient = light.a * light.color * pow(vec3(texture(material.d, uv_0)), vec3(gamma));
     vec3 diffuse = light.d * cellDiff * light.color * pow(vec3(texture(material.d, uv_0)), vec3(gamma));
     vec3 specular = light.s * spec * light.color * vec3(texture(material.s, uv_0));
 
@@ -153,5 +153,5 @@ void main() {
         result += CalcPointLight(pointLights[i], normal, fragPos, viewDir);  
 
     fragColor = vec4(result, 1.0);
-    fragColor.rgb = pow(fragColor.rgb, vec3(1.0/gamma));
+    fragColor.rgb = pow(fragColor.rgb, vec3(1.0/gamma)) * material.offset;
 }

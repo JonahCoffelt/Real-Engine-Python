@@ -6,14 +6,11 @@ in vec3 in_i_pos0;
 in vec3 in_i_pos1;
 in vec3 in_i_pos2;
 
-
 uniform mat4 m_proj;
 uniform mat4 m_view_light;
 uniform mat4 m_model;
 
-
 vec3 position;
-
 
 void main() {
     if (id == 0){

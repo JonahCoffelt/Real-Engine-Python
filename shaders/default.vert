@@ -29,5 +29,5 @@ void main() {
 
     mat4 shadowMVP = m_proj * m_view_light * m_model;
     shadowCoord = m_shadow_bias * shadowMVP * vec4(in_position, 1.0);
-    shadowCoord.z -= 0.0005;
+    shadowCoord.z -= 0.005;
 }
