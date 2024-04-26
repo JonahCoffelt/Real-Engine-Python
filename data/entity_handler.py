@@ -21,7 +21,6 @@ class EntityHandler():
         
     def on_init(self, cam) -> None:
         
-        Object(self.object_handler, self.object_handler.scene, model.BaseModel, program_name='default', vao='diceguy', obj_type='diceguy', hitbox_type='rectangle', hitbox_file_name='diceguy/diceguy', pos = (50, 50, 50))
         # creates player 
         player = Player(self, self.object_handler.add_object(Object(self.object_handler, self.object_handler.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=(random.uniform(20, 100), 30, random.uniform(20, 100)), scale=(.5, .5, .5))), cam, 100)
         self.entities.append(player)
@@ -338,6 +337,7 @@ class SpellCaster(Enemy):
         self.cooldown = max_cooldown
         self.spells = spells
         self.on_init(power)
+        self.launch_type = self.spells[0].launch_type
         
     def on_init(self, power):
         
