@@ -1,8 +1,10 @@
 import sys
 import pygame as pg
 import moderngl as mgl
-from graphics_engine import GraphicsEngine
-from config import config
+from data.graphics_engine import GraphicsEngine
+import glm
+import numpy as np
+from data.config import config
 import cudart
 
 class Game:
