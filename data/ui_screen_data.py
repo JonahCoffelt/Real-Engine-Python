@@ -1,5 +1,6 @@
 import numpy as np
 import pygame as pg
+import sys
 from data.config import config
 
 special_keys = {
@@ -66,15 +67,14 @@ class ScreenData:
 
                 ],
                 'text' : [
-                    (np.array([.5, .2,  .6, .2]), None, ('Dicey Decks', 'default', 60, (220, 220, 220), (0, 0, 0, 100), True, True), False),
-                    (np.array([.5, .4,  .4, .1]), None, ('Start', 'default', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False),
-                    (np.array([.5, .55, .4, .1]), None, ('Settings', 'default', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False),
-                    (np.array([.5, .7,  .4, .1]), None, ('Quit', 'default', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False)
+                    (np.array([.5, .2,  .6, .2]), None, ('Dicey Decks', 'pixel', 60, (220, 220, 220), (0, 0, 0, 100), True, True), False),
+                    (np.array([.5, .4,  .4, .1]), None, ('Start', 'pixel', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False),
+                    (np.array([.5, .55,  .4, .1]), None, ('Quit', 'pixel', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False)
                 ],
                 'buttons' : [
                     (np.array([.5, .4,  .6, .1]), None, UI.set_screen, [UI.hud], False),
-                    (np.array([.5, .55, .6, .1]), None, UI.set_screen, [UI.settings_general], False),
-                    (np.array([.5, .7,  .6, .1]), None, UI.log, ["quit"], False)
+                    (np.array([.5, .4,  .6, .1]), None, UI.set_attrib, ['runtime', 'simulate', True], False),
+                    (np.array([.5, .55,  .6, .1]), None, sys.exit, [], False)
                 ],
                 'sliders' : [],
                 'hotkeys' : {
@@ -116,9 +116,9 @@ class ScreenData:
                 ],
                 'draw_calls' : [],
                 'text' : [
-                    (np.array([.5, .4,  .6, .1]), None, ('Resume', 'default', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False),
-                    (np.array([.5, .55, .6, .1]), None, ('Settings', 'default', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False),
-                    (np.array([.5, .7,  .6, .1]), None, ('Exit', 'default', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False)
+                    (np.array([.5, .4,  .6, .1]), None, ('Resume', 'pixel', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False),
+                    (np.array([.5, .55, .6, .1]), None, ('Settings', 'pixel', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False),
+                    (np.array([.5, .7,  .6, .1]), None, ('Exit', 'pixel', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False)
                 ],
                 'buttons' : [
                     (np.array([.5, .4,  .6, .1]), None, UI.set_attrib, ['runtime', 'simulate', True], False),
@@ -142,15 +142,15 @@ class ScreenData:
                     (pg.draw.rect, [(0, 0, 0, 200), np.array([0.3, 0.5, 0.005, 0.8])], False)
                 ],
                 'text' : [
-                    (np.array([.15, .2,  .275, .1]),    None, ('General', 'default', 20, (220, 220, 220), (200, 200, 200, 100), True, True), False),
-                    (np.array([.15, .32,  .275, .1]),   None, ('Controls', 'default', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False),
-                    (np.array([.15, .44,  .275, .1]),   None, ('Graphics', 'default', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False),
-                    (np.array([.15, .86,  .275, .075]), None, ('Back', 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False),
-                    (np.array([.9, .86,  .175, .075]),  None, ('Apply', 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False),
+                    (np.array([.15, .2,  .275, .1]),    None, ('General', 'pixel', 20, (220, 220, 220), (200, 200, 200, 100), True, True), False),
+                    (np.array([.15, .32,  .275, .1]),   None, ('Controls', 'pixel', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False),
+                    (np.array([.15, .44,  .275, .1]),   None, ('Graphics', 'pixel', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False),
+                    (np.array([.15, .86,  .275, .075]), None, ('Back', 'pixel', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False),
+                    (np.array([.9, .86,  .175, .075]),  None, ('Apply', 'pixel', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False),
 
-                    (np.array([.425, .175, .2, .05]),    None, ('Volume', 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False),
-                    (np.array([.425, .25, .2, .05]),    None, ('Sound', 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False),
-                    (np.array([.425, .325, .2, .05]),    None, ('Music', 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False),
+                    (np.array([.425, .175, .2, .05]),    None, ('Volume', 'pixel', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False),
+                    (np.array([.425, .25, .2, .05]),    None, ('Sound', 'pixel', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False),
+                    (np.array([.425, .325, .2, .05]),    None, ('Music', 'pixel', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False),
                 ],
                 'buttons' : [
                     (np.array([.15, .2,  .275, .1]),    None, UI.set_screen, [UI.settings_general], False),
@@ -178,31 +178,31 @@ class ScreenData:
                     (pg.draw.rect, [(0, 0, 0, 200), np.array([0.3, 0.5, 0.005, 0.8])], False)
                 ],
                 'text' : [
-                    (np.array([.15, .2,  .275, .1]),    None, ('General', 'default', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False),
-                    (np.array([.15, .32,  .275, .1]),   None, ('Controls', 'default', 20, (220, 220, 220), (200, 200, 200, 100), True, True), False),
-                    (np.array([.15, .44,  .275, .1]),   None, ('Graphics', 'default', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False),
-                    (np.array([.15, .86,  .275, .075]), None, ('Back', 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False),
-                    (np.array([.9, .86,  .175, .075]),  None, ('Apply', 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False),
+                    (np.array([.15, .2,  .275, .1]),    None, ('General', 'pixel', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False),
+                    (np.array([.15, .32,  .275, .1]),   None, ('Controls', 'pixel', 20, (220, 220, 220), (200, 200, 200, 100), True, True), False),
+                    (np.array([.15, .44,  .275, .1]),   None, ('Graphics', 'pixel', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False),
+                    (np.array([.15, .86,  .275, .075]), None, ('Back', 'pixel', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False),
+                    (np.array([.9, .86,  .175, .075]),  None, ('Apply', 'pixel', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False),
 
-                    (np.array([.425, .175, .2, .05]),   None, ('Sensitivity', 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True), True),
+                    (np.array([.425, .175, .2, .05]),   None, ('Sensitivity', 'pixel', 16, (220, 220, 220), (0, 0, 0, 100), True, True), True),
 
-                    (np.array([.425, .25, .2, .05]),   None, ('Forward', 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True), True),
-                    [np.array([.65, .25, .2, .05]),   None, [config['controls_keys']['forward'], 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True], True],
+                    (np.array([.425, .25, .2, .05]),   None, ('Forward', 'pixel', 16, (220, 220, 220), (0, 0, 0, 100), True, True), True),
+                    [np.array([.65, .25, .2, .05]),   None, [config['controls_keys']['forward'], 'pixel', 16, (220, 220, 220), (0, 0, 0, 100), True, True], True],
 
-                    (np.array([.425, .325, .2, .05]),   None, ('Backward', 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True), True),
-                    [np.array([.65, .325, .2, .05]),   None, [config['controls_keys']['backward'], 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True], True],
+                    (np.array([.425, .325, .2, .05]),   None, ('Backward', 'pixel', 16, (220, 220, 220), (0, 0, 0, 100), True, True), True),
+                    [np.array([.65, .325, .2, .05]),   None, [config['controls_keys']['backward'], 'pixel', 16, (220, 220, 220), (0, 0, 0, 100), True, True], True],
 
-                    (np.array([.425, .4, .2, .05]),   None, ('Left', 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True), True),
-                    [np.array([.65, .4, .2, .05]),   None, [config['controls_keys']['left'], 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True], True],
+                    (np.array([.425, .4, .2, .05]),   None, ('Left', 'pixel', 16, (220, 220, 220), (0, 0, 0, 100), True, True), True),
+                    [np.array([.65, .4, .2, .05]),   None, [config['controls_keys']['left'], 'pixel', 16, (220, 220, 220), (0, 0, 0, 100), True, True], True],
 
-                    (np.array([.425, .475, .2, .05]),   None, ('Right', 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True), True),
-                    [np.array([.65, .475, .2, .05]),   None, [config['controls_keys']['right'], 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True], True],
+                    (np.array([.425, .475, .2, .05]),   None, ('Right', 'pixel', 16, (220, 220, 220), (0, 0, 0, 100), True, True), True),
+                    [np.array([.65, .475, .2, .05]),   None, [config['controls_keys']['right'], 'pixel', 16, (220, 220, 220), (0, 0, 0, 100), True, True], True],
 
-                    (np.array([.425, .55, .2, .05]),   None, ('Roll', 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True), True),
-                    [np.array([.65, .55, .2, .05]),   None, [config['controls_keys']['roll'], 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True], True],
+                    (np.array([.425, .55, .2, .05]),   None, ('Roll', 'pixel', 16, (220, 220, 220), (0, 0, 0, 100), True, True), True),
+                    [np.array([.65, .55, .2, .05]),   None, [config['controls_keys']['roll'], 'pixel', 16, (220, 220, 220), (0, 0, 0, 100), True, True], True],
 
-                    (np.array([.425, .625, .2, .05]),   None, ('Inventory', 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True), True),
-                    [np.array([.65, .625, .2, .05]),   None, [config['controls_keys']['inventory'], 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True], True],
+                    (np.array([.425, .625, .2, .05]),   None, ('Inventory', 'pixel', 16, (220, 220, 220), (0, 0, 0, 100), True, True), True),
+                    [np.array([.65, .625, .2, .05]),   None, [config['controls_keys']['inventory'], 'pixel', 16, (220, 220, 220), (0, 0, 0, 100), True, True], True],
                 ],
                 'buttons' : [
                     (np.array([.15, .2,  .275, .1]),    None, UI.set_screen, [UI.settings_general], False),
@@ -234,17 +234,17 @@ class ScreenData:
                     (pg.draw.rect, [(0, 0, 0, 200), np.array([0.3, 0.5, 0.005, 0.8])], False)
                 ],
                 'text' : [
-                    (np.array([.15, .2,  .275, .1]),    None, ('General', 'default', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False),
-                    (np.array([.15, .32,  .275, .1]),   None, ('Controls', 'default', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False),
-                    (np.array([.15, .44,  .275, .1]),   None, ('Graphics', 'default', 20, (220, 220, 220), (200, 200, 200, 100), True, True), False),
-                    (np.array([.15, .86,  .275, .075]), None, ('Back', 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False),
-                    (np.array([.9, .86,  .175, .075]),  None, ('Apply', 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False),
+                    (np.array([.15, .2,  .275, .1]),    None, ('General', 'pixel', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False),
+                    (np.array([.15, .32,  .275, .1]),   None, ('Controls', 'pixel', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False),
+                    (np.array([.15, .44,  .275, .1]),   None, ('Graphics', 'pixel', 20, (220, 220, 220), (200, 200, 200, 100), True, True), False),
+                    (np.array([.15, .86,  .275, .075]), None, ('Back', 'pixel', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False),
+                    (np.array([.9, .86,  .175, .075]),  None, ('Apply', 'pixel', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False),
 
-                    (np.array([.425, .175, .2, .05]),   None, ('FOV', 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False),
-                    (np.array([.425, .25, .2, .05]),   None, ('Chunk Distance', 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False),
-                    (np.array([.425, .325, .2, .05]),   None, ('View Distance', 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False),
-                    (np.array([.425, .4, .2, .05]),   None, ('Light Distance', 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False),
-                    (np.array([.425, .475, .2, .05]),   None, ('Particle Distance', 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False),
+                    (np.array([.425, .175, .2, .05]),   None, ('FOV', 'pixel', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False),
+                    (np.array([.425, .25, .2, .05]),   None, ('Chunk Distance', 'pixel', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False),
+                    (np.array([.425, .325, .2, .05]),   None, ('View Distance', 'pixel', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False),
+                    (np.array([.425, .4, .2, .05]),   None, ('Light Distance', 'pixel', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False),
+                    (np.array([.425, .475, .2, .05]),   None, ('Particle Distance', 'pixel', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False),
 
                 ],
                 'buttons' : [
@@ -276,15 +276,16 @@ class ScreenData:
                     (pg.draw.rect, [(0, 0, 0, 200), np.array([0.66, 0.55, 0.005, 0.7])], False)
                 ],
                 'text' : [
-                    (np.array([.5, .075,  .3, .075]), None, ('Inventory', 'default', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False),
-                    (np.array([.82, .075,  .3, .075]), None, ('Deck', 'default', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False),
+                    (np.array([.5, .075,  .3, .075]), None, ('Inventory', 'pixel', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False),
+                    (np.array([.82, .075,  .3, .075]), None, ('Deck', 'pixel', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False),
 
                 ],
                 'buttons' : [
                 ],
                 'sliders' : [],
                 'hotkeys' : {
-                    pg.K_ESCAPE : [[UI.set_screen, [UI.hud]]]
+                    pg.K_ESCAPE : [[UI.set_screen, [UI.hud]], [UI.set_attrib, ['runtime', 'simulate', True]]],
+                    config['controls']['inventory'] : [[UI.set_screen, [UI.hud]], [UI.set_attrib, ['runtime', 'simulate', True]]]
                 },
                 'events' : {}
             },
@@ -296,13 +297,13 @@ class ScreenData:
                 ],
                 'draw_calls' : [],
                 'text' : [
-                    (np.array([.5, .075,  .3, .1]), None, ('Shop', 'default', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False),
+                    (np.array([.5, .075,  .3, .1]), None, ('Shop', 'pixel', 20, (220, 220, 220), (0, 0, 0, 100), True, True), False),
                 ],
                 'buttons' : [
                 ],
                 'sliders' : [],
                 'hotkeys' : {
-                    pg.K_ESCAPE : [[UI.set_screen, [UI.hud]]]
+                    pg.K_ESCAPE : [[UI.set_screen, [UI.hud]], [UI.set_attrib, ['runtime', 'simulate', True]]],
                 },
                 'events' : {}
             },

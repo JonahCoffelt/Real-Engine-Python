@@ -1,7 +1,7 @@
 import numpy as np
 import pywavefront
 from data.mesh import *
-import cudart
+#import cudart
 
 
 class VBOHandler:

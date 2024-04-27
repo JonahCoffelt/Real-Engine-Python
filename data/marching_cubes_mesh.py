@@ -2,7 +2,7 @@ import numpy as np
 from numba import njit
 from data.marching_cube_tables import edge_table, tri_table
 from data.terrain_materials import material_IDs
-import cudart
+#import cudart
 
 
 @njit (cache=True) 

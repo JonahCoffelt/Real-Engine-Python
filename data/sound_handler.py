@@ -1,7 +1,9 @@
 import pygame as pg
+from data.config import config
 
 music = {
     'Dungeon' : 'audio/music/Dungeon.mp3',
+    'Dungeon2' : 'audio/music/Dungeon2.mp3',
     'Shop' : 'audio/music/Shop.mp3',
     'Lobby' : 'audio/music/Lobby.mp3',
     'Intro' : 'audio/music/Intro.mp3',
@@ -20,19 +22,22 @@ class SoundHandler:
         pg.mixer.pre_init(44100, -16, 2, 512)
         pg.mixer.init()
         pg.mixer.set_num_channels(64)
-        pg.mixer.music.set_volume(.2)
+        pg.mixer.music.set_volume(config['settings']['music']/100)
         MUSIC_END = pg.USEREVENT+1
         pg.mixer.music.set_endevent(MUSIC_END)
         
         self.sounds = {sound : pg.mixer.Sound(sounds[sound]) for sound in sounds}
         self.playlists = {}
 
-        self.make_playlist('dungeon', ('Dungeon',))
+        self.make_playlist('dungeon', ('Dungeon2', 'Dungeon'))
         self.make_playlist('hub', ('Intro', 'Lobby'))
 
         self.current_track = None
         self.current_playlist = None
         self.playlist_index = 0
+
+    def update_volume(self):
+        pg.mixer.music.set_volume(config['settings']['music']/100)
 
     def make_playlist(self, name, songs):
         self.playlists[name] = [music[song] for song in songs]
@@ -62,7 +67,7 @@ class SoundHandler:
 
     def play_sound(self, sound):
         snd = self.sounds[sound]
-        snd.set_volume(0.2)
+        snd.set_volume(config['settings']['sound']/100)
         snd.play()
 
     def fast_forward(self):

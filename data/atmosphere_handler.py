@@ -2,7 +2,7 @@ import numpy as np
 import random
 import glm
 from data.config import config
-import cudart
+#import cudart
 
 
 class Atmosphere:

@@ -1,6 +1,6 @@
 import numpy as np
 from numba import njit
-import cudart
+#import cudart
 
 
 @njit

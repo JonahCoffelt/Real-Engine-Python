@@ -118,7 +118,7 @@ class EntityHandler():
                 obj = Object(self.object_handler, self.object_handler.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=pos, scale=(.5, .5, .5))
                 sc = self.get_random_jump_caster(obj, power)
                 self.entities.append(sc)
-                
+            
             # for boss and spawn rooms
             if 'room-boss' in room.file_name:
                 element = self.spell_handler.element_handler.elements[room.file_name.split('-')[-1]]
@@ -178,6 +178,7 @@ class Entity():
     def on_death(self):
         
         self.entity_handler.entities[0].money += random.randint(1, self.max_health)
+        self.entity_handler.object_handler.scene.ui_handler.update_texture = 2
         self.remove_self()
         
     def remove_self(self):
@@ -296,7 +297,11 @@ class Player(Entity):
         for num, dir in sides.items():
             if (dot := np.dot(point, dir[0])) > score or (dot := np.dot(point, dir[1])) > score: best, score = num, dot
         return best
-        
+
+    def is_in_boss_room(self):
+        return self.entity_handler.object_handler.scene.chunk_handler.dungeon_handler.point_in_boss_room(self.obj.pos)
+
+
 class Enemy(Entity):
     
     def __init__(self, entity_handler : EntityHandler, obj : Object, health = 50, speed = 3, ragdoll = False, pathing_type = 'direct'):
@@ -416,8 +421,13 @@ class Boss(JumpCaster):
     def on_death(self):
         
         self.entity_handler.object_handler.scene.load_zone_handler.move_to_active('exit')
-        self.entity_handler.entities[0].deck_handler.add_spell(self.entity_handler.spell_handler.create_spell(self.power + 10))
+        card = self.entity_handler.spell_handler.create_spell(self.power + 10)
+        self.entity_handler.entities[0].deck_handler.add_spell(card)
         
+        self.entity_handler.object_handler.scene.ui_handler.latest_card = card
+        self.entity_handler.object_handler.scene.ui_handler.show_new_card = 5
+        config['runtime']['simulate'] = False
+
         super().on_death()
         
     def on_init(self, power):

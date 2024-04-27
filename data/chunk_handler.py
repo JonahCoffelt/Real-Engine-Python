@@ -1,6 +1,6 @@
 import numpy as np
 import glm
-import cudart
+#import cudart
 from data.config import config
 from data.marching_cubes_chunk import Chunk, CHUNK_SIZE
 from data.structure_handler import StructureHandler
@@ -8,7 +8,7 @@ from data.dungeon_generation import DungeonHandler
 
 def get_data(chunks, pos):
     radius = config['graphics']['render_distance']
-    range_chunks = [f'{x};{y};{z}' for x in range(max(int(pos[0] - radius), 0), int(pos[0] + radius)) for y in range(max(int(pos[1] - radius), 0), int(pos[1] + radius)) for z in range(max(int(pos[2] - radius), 0), int(pos[2] + radius))]
+    range_chunks = [f'{x};{y};{z}' for x in range(max(int(pos[0] - radius), 0), int(pos[0] + radius)) for y in range(0, 4) for z in range(max(int(pos[2] - radius), 0), int(pos[2] + radius))]
     rendered_chunks = []
     for chunk in range_chunks:
         if chunk in chunks: rendered_chunks.append(chunks[chunk])
@@ -31,13 +31,12 @@ class ChunkHandler():
         self.chunks = {}
         self.update_chunks = []
 
-        self.world_size = 10
-        self.world_height = 8
+        self.world_size = 16
 
         self.programs = self.scene.vao_handler.program_handler.programs
 
         for x in range(self.world_size):
-            for y in range(self.world_height):
+            for y in range(4):
                 for z in range(self.world_size):
                     self.chunks[f'{x};{y};{z}'] = (Chunk(self.scene.ctx, self.chunks, self.programs, self.scene, (x, y, z)))
 
@@ -47,7 +46,7 @@ class ChunkHandler():
         self.scene.tick('Loading Structures')
         self.structure_handler = StructureHandler(self, self.scene.light_handler, self.scene.particle_handler.emitter_handler)
         self.scene.tick('Loading Dungeon Systems')
-        self.dungeon_handler = DungeonHandler((self.world_size-1, self.world_height-1, self.world_size-1))
+        self.dungeon_handler = DungeonHandler((15, 2, 15))
         #self.scene.tick('Generating Meshes')
         #for chunk in list(self.chunks.values()):
         #    chunk.generate_mesh()
@@ -100,7 +99,7 @@ class ChunkHandler():
         
     def generate_dungeon(self, power = 15):
         self.scene.tick('Resetting Dungeon')
-        self.dungeon_handler.reset((self.world_size-1, self.world_height-1, self.world_size-1))
+        self.dungeon_handler.reset()
         self.scene.tick('Generating Dungeon')
         self.dungeon_handler.generate_dungeon()
         self.scene.tick('Updating Chunks')

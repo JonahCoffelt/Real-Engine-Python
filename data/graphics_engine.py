@@ -2,9 +2,6 @@ import pygame as pg
 from data.scene import Scene
 from data.loading_screen_handler import LoadingScreen
 from data.camera import *
-import threading
-import cudart
-
 
 
 class GraphicsEngine:

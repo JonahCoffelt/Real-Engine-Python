@@ -1,6 +1,6 @@
 import pygame as pg
 import moderngl as mgl
-import cudart
+#import cudart
 
 
 TEXTURES = {

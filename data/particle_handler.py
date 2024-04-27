@@ -3,7 +3,7 @@ from numba import njit
 import random
 import moderngl as mgl
 from data.particle_emitter_handler import ParticleEmitterHandler
-import cudart
+#import cudart
 
 
 #  Particle Format

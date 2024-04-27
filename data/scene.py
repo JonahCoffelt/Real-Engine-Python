@@ -10,7 +10,7 @@ from data.atmosphere_handler import Atmosphere
 from data.ui_handler import UI_Handler
 from data.sound_handler import SoundHandler
 from data.load_zone import LoadZoneHandler
-import cudart
+#import cudart
 
 
 class Scene:
@@ -72,8 +72,6 @@ class Scene:
 
         self.shadow_timer = 5
         self.shadow_frame_skips = 5
-        
-        self.ui_handler.win_size = self.graphics_engine.app.win_size
 
     def update(self, delta_time):
 
@@ -85,10 +83,7 @@ class Scene:
         self.atmosphere_handler.update(delta_time)  # Updates the sky and time
         self.light_handler.update(self.cam.position, self.vao_handler.program_handler.programs)
         self.load_zone_handler.update(delta_time) # updates particles for load zones
-        self.ui_handler.update()
-        if self.ui_handler.show_new_card > 0:
-            self.ui_handler.show_new_card -= delta_time
-            if self.ui_handler.show_new_card <- 0: self.ui_handler.update_texture = 2
+        self.ui_handler.update(delta_time)
 
     def render_buffers(self):
         self.buffer_handler.buffers['frame'].use()   # Frame Buffer
@@ -136,7 +131,7 @@ class Scene:
         frame_vao.render()
 
     def render(self, delta_time):
-        self.ui_handler.update()
+        self.ui_handler.update(delta_time)
         if config['runtime']['simulate']: self.update(delta_time)  # Updates objects, time, and uniforms
         if not config['runtime']['render']: return
         self.render_buffers()  # Renders the standard buffers
@@ -165,6 +160,7 @@ class Scene:
     def enter_dungeon(self, power):
         
         self.sound_handler.play_playlist('dungeon')
+        self.ui_handler.update_shop()
         self.remove_world_scene()
         self.chunk_handler.fill_all()
         self.chunk_handler.generate_dungeon(power)
@@ -173,6 +169,7 @@ class Scene:
     def enter_hub(self):
         
         self.sound_handler.play_playlist('hub')
+        self.ui_handler.update_shop()
         self.remove_world_scene()
         self.chunk_handler.generate_spawn()
         self.load_zone_handler.move_to_active('hub')

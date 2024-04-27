@@ -6,7 +6,7 @@ from data.config import config
 from data.sheet_spliter import load_sheet
 from data.text_handler import TextHandler
 from data.ui_screen_data import ScreenData, special_keys, element_indicies, launch_type_indicies, spread_type_indiceis, element_colors
-import cudart
+#import cudart
 
 assets = {'btn_blank' : 'button_blank.png',
           'btn' : 'button.png'}
@@ -38,7 +38,7 @@ class UI_Handler:
             'health' : 7,
             'max_health' : 10
             }
-        self.shop_cards = []
+        self.update_shop()
         
         # hud card information
         self.update_card_info()
@@ -47,7 +47,7 @@ class UI_Handler:
         self.mouse_states = [False, False, False]
         self.key_states = pg.key.get_pressed()
 
-        self.screen = self.pause
+        self.screen = self.main_menu
         self.await_func = [None, None, []]  # event.type, function to call, args
         data = self.screen_data[self.screen]
         self.current_screen_data = {key : value.copy() for key, value in zip(data.keys(), data.values())}
@@ -55,8 +55,9 @@ class UI_Handler:
         self.update_texture = 2
         self.scroll = 0
         self.show_new_card = 0
+        self.latest_card = None
 
-    def update(self):
+    def update(self, dt):
         # updates card and player information
         self.update_card_info()
         self.update_health_info()
@@ -74,9 +75,13 @@ class UI_Handler:
             self.screen()
 
         if self.show_new_card > 0:
+            self.show_new_card -= dt
             self.screen()
             self.draw_new_card()
             self.render()
+            if self.show_new_card < 0: 
+                self.update_texture = 2
+                config['runtime']['simulate'] = True
 
         # Used to limit the number of draw calls
         if self.update_texture >= 0: self.update_texture -= 1
@@ -119,6 +124,9 @@ class UI_Handler:
             self.draw_beam((self.win_size[0]/2, self.win_size[1]/2), 40, self.show_new_card + i * (3.1415 * 2) / 10, .2, 300, color=(230, 230, 200), taper=1.5)
         for i in range(7):
             self.draw_beam((self.win_size[0]/2, self.win_size[1]/2), 60, -self.show_new_card * 1.5 + i * (3.1415 * 2) / 7, .1, 250, color=(250, 250, 230), taper=.75)
+        card_surf = self.get_card_surf(self.win_size[1]*.5, 0, self.latest_card)
+        rect = card_surf.get_rect()
+        self.surf.blit(card_surf, (self.win_size[0]/2 - rect[2]/2, self.win_size[1]/2 - rect[3]/2))
 
     def update_elements(self):
         scroll_bounds = self.current_screen_data['scroll']
@@ -188,6 +196,7 @@ class UI_Handler:
         self.selected_inv_card = card
 
     def move_card(self, card, destination):
+        print(card, destination)
         match destination:
             case 'deck':
                 self.deck_handler.inventory_to_deck(card)
@@ -339,7 +348,7 @@ class UI_Handler:
         return preview_surf
 
     def main_menu(self):
-        self.surf.fill((0, 0, 0, 100))
+        self.surf.fill((20, 20, 20, 255))
         self.draw()
 
     def pause(self):
@@ -348,6 +357,7 @@ class UI_Handler:
 
     def settings_general(self):
         self.surf.fill((0, 0, 0, 100))
+        self.scene.sound_handler.update_volume()
         self.draw()
 
     def settings_control(self):
@@ -395,14 +405,20 @@ class UI_Handler:
         self.draw()
     
     def buy_card(self, index):
+        cost = int(self.scene.entity_handler.spell_handler.get_spell_cost(self.shop_cards[index])) * 2
+        if self.scene.entity_handler.entities[0].money < cost: return
+        self.deck_handler.add_spell(self.shop_cards[index])
         self.shop_cards[index] = False
         self.update_texture = 2
+        self.scene.entity_handler.entities[0].money -= cost
 
     def shop(self):
         self.surf.fill((0, 0, 0, 100))
 
         data = self.screen_data[self.screen]
         self.current_screen_data = {key : value.copy() for key, value in zip(data.keys(), data.values())}
+
+        self.current_screen_data['text'].append((np.array([.5, .2,  .1, .1]), None, (f'Money: ${self.scene.entity_handler.entities[0].money}', 'default', 30, (220, 220, 220), (0, 0, 0, 100), True, True), False))
 
         win_scale = np.array([self.win_size[0], self.win_size[1], self.win_size[0], self.win_size[1]])
         card_width = self.win_size[0]/6
@@ -418,9 +434,18 @@ class UI_Handler:
             btn_rect[0] += btn_rect[2]/2
             btn_rect[1] += btn_rect[3]/2 - .1
             self.current_screen_data['buttons'].append((btn_rect, None, self.buy_card, [i], False))
-            if self.shop_cards[i]: self.current_screen_data['text'].append((np.array([btn_rect[0], .95, btn_rect[2]/2, .075]), None, (f'${i*2+2}', 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False))
+            cost = int(self.scene.entity_handler.spell_handler.get_spell_cost(self.shop_cards[i])) * 2
+            if self.shop_cards[i]: self.current_screen_data['text'].append((np.array([btn_rect[0], .95, btn_rect[2]/2, .075]), None, (f'${cost}', 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False))
 
         self.draw()
+
+    def boss_bar(self):
+        win_scale = np.array([self.win_size[0], self.win_size[1], self.win_size[0], self.win_size[1]])
+        rect = np.array([.2, .01, .6, .04]) * win_scale
+        health = 4
+        max_health = 10
+        pg.draw.rect(self.surf, (20, 50, 200, 155), (*rect[:2], rect[2] * (health / max_health), rect[3]))
+        pg.draw.rect(self.surf, (0, 0, 0, 255), rect, 1)
 
     def hud(self):
         self.surf.fill((0, 0, 0, 0))
@@ -431,9 +456,15 @@ class UI_Handler:
 
         # Draws the health bar
         win_scale = np.array([self.win_size[0], self.win_size[1], self.win_size[0], self.win_size[1]])
-        rect = np.array([.01, .01, .4, .05]) * win_scale
-        pg.draw.rect(self.surf, (200, 50, 20, 155), (*rect[:2], rect[2] * (self.values['health'] / self.values['max_health']), rect[3]))
+        rect = np.array([.01, .55, .03, .4]) * win_scale
+        pg.draw.rect(self.surf, (200, 50, 20, 155), (rect[0], rect[1] + rect[3] * (1 - (self.values['health'] / self.values['max_health'])), rect[2], rect[3] * (self.values['health'] / self.values['max_health'])))
         pg.draw.rect(self.surf, (0, 0, 0, 255), rect, 1)
+
+        self.current_screen_data['text'] = []
+        self.current_screen_data['text'].append((np.array([.95, .95,  .05, .05]), None, (f'${self.scene.entity_handler.entities[0].money}', 'default', 16, (220, 220, 220), (0, 0, 0, 100), True, True), False))
+
+
+        if self.scene.entity_handler.entities[0].is_in_boss_room(): self.boss_bar()
 
         # Draws the hand
         card_hieght = self.win_size[1] / 6
@@ -458,6 +489,11 @@ class UI_Handler:
         
         self.values['health'] = self.scene.entity_handler.entities[0].health
         self.values['max_health'] = self.scene.entity_handler.entities[0].max_health
+
+
+    def update_shop(self):
+        add = self.scene.entity_handler.spell_handler.create_spell
+        self.shop_cards = [add(power=self.scene.power + 10), add(power=self.scene.power + 15), add(power=self.scene.power + 20)]
 
 
     def get_player_card_data(self, data : str):

@@ -2,7 +2,7 @@ import numpy as np
 import glm
 import random
 from data.marching_cubes_mesh import ChunkMeshVBO
-import cudart
+#import cudart
 
 
 

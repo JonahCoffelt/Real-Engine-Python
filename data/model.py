@@ -1,6 +1,6 @@
 import glm
 from data.material_handler import *
-import cudart
+#import cudart
 
 
 class BaseModel:

@@ -1,6 +1,6 @@
 from data.vbo_handler import VBOHandler
 from data.shader_program_handler import ProgramHandler
-import cudart
+#import cudart
 
 
 class VAOHandler:

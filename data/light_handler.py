@@ -2,7 +2,7 @@ import glm
 import numpy as np
 from numba import njit
 from data.config import config
-import cudart
+#import cudart
 
 @njit
 def distance(a, b):

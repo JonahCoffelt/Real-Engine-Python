@@ -5,7 +5,7 @@ from data.launch_handler import LaunchHandler
 from data.spread_handler import SpreadHandler
 from data.casting_handler import CastingHandler
 from data.element_handler import ElementHandler
-import cudart
+#import cudart
 
 
 class SpellHandler():
@@ -135,9 +135,7 @@ class Spell():
         self.element = element
         
         # gets spread program
-        if count == 1: 
-            self.spread_program = self.spell_handler.spread_handler.programs['single']
-            self.spread_type = 'single'
+        if count == 1: self.spread_program = self.spell_handler.spread_handler.programs['single']
         else:
             match spread_type:
                 case 'horizontal': self.spread_program = self.spell_handler.spread_handler.get_horizontal(count, angle)
