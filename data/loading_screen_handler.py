@@ -31,8 +31,8 @@ uniform sampler2D UITexture;
 
 void main()
 { 
-    //fragColor = vec4(1.0) + texture(UITexture, vec2(TexCoords.x, -TexCoords.y));
     fragColor = texture(UITexture, vec2(TexCoords.x, -TexCoords.y));
+    fragColor.rgb = fragColor.bgr;
 }
 """
 
@@ -40,7 +40,7 @@ class LoadingScreen:
     def __init__(self, ctx, win_size):
         self.ctx = ctx
         self.win_size = win_size
-        self.surf = pg.Surface(win_size)
+        self.surf = pg.Surface(win_size).convert_alpha()
         self.text_handler = TextHandler()
         self.clock = pg.time.Clock()
         self.tex = None
@@ -92,6 +92,76 @@ class LoadingScreen:
 
         # Pygame disaplay
         pg.display.flip()
+
+    def intro(self):
+        time = 0
+        pg_logo = pg.image.load('UI_Assets\python_logo.png').convert_alpha()
+        logo_scale = self.win_size[1]/6
+        pg_logo = pg.transform.scale(pg_logo, (logo_scale, logo_scale))
+        while True:
+            pg.display.set_caption(str(round(self.clock.get_fps())))
+            time += self.clock.tick()/1000
+            if time > 4: break
+            if pg.mouse.get_pressed()[0]: break
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    pg.quit()
+                    sys.exit()
+
+            if time < 2: opacity = time/2 * 255
+            elif time > 3: opacity = (1 - (time - 3)) * 255
+
+            # Clear Screen
+            self.ctx.clear(color=(0.08, 0.16, 0.18))
+
+            # Make loading screen surface
+            self.surf.fill((20, 20, 20))
+            pg_logo.set_alpha(opacity)
+            self.surf.blit(pg_logo, (self.win_size[0]/2 - logo_scale/2, self.win_size[1]/2 - logo_scale/2))
+            self.text_handler.render_text(self.surf, (0, 0, self.win_size[0], self.win_size[1] * 1.25), 'made with python', size=24, opacity=opacity, center_height=True, center_width=True, color=(220, 220, 220))
+            self.text_handler.render_text(self.surf, (0, self.win_size[1]/8 * 7, self.win_size[0], self.win_size[1]/8), 'contians AI generated music', size=16, opacity=opacity, center_height=True, center_width=True, color=(220, 220, 220))
+
+            # Convert to texture and render
+            self.set_texture()
+            self.vao.program['UITexture'] = 0
+            self.tex.use(location=0)
+            self.vao.render()
+
+            # Pygame disaplay
+            pg.display.flip()
+    
+    def get_card(self, card):
+        time = 0
+        while True:
+            pg.display.set_caption(str(round(self.clock.get_fps())))
+            dt = self.clock.tick()/1000
+            time += dt
+            if time > 4: break
+            if pg.mouse.get_pressed()[0]: break
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    pg.quit()
+                    sys.exit()
+
+            # Clear Screen
+            self.ctx.clear(color=(0, 0, 0))
+
+            # Make loading screen surface
+            self.surf.fill((0, 0, 0, 0))
+
+            for i in range(10):
+                self.draw_beam((self.win_size[0]/2, self.win_size[1]/2), 40, time + i * (3.1415 * 2) / 10, .2, 300, color=(230, 230, 200), taper=1.5)
+            for i in range(7):
+                self.draw_beam((self.win_size[0]/2, self.win_size[1]/2), 60, -time * 1.5 + i * (3.1415 * 2) / 7, .1, 250, color=(250, 250, 230), taper=.75)
+        
+            # Convert to texture and render
+            self.set_texture()
+            self.vao.program['UITexture'] = 0
+            self.tex.use(location=0)
+            self.vao.render()
+
+            # Pygame disaplay
+            pg.display.flip()
 
     def destroy(self):
         self.vbo.release()

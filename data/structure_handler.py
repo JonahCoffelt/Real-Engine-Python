@@ -39,6 +39,9 @@ structures = {
     'room-northstair' : {'model' : 'room-northstair', 'lights' : [], 'particles' : [], 'entities' : []},
     
     # dungeon rooms
+    'room-basic1' : {'model' : 'room-basic1', 'lights' : [], 'particles' : [], 'entities' : []},
+    'room-basic2' : {'model' : 'room-basic2', 'lights' : [], 'particles' : [], 'entities' : []},
+    'room-tall1' : {'model' : 'room-tall1', 'lights' : [], 'particles' : [], 'entities' : []},
     'room-spawn' : {'model' : 'room-northdead', 'lights' : [], 'particles' : [], 'entities' : []},
     'room-diner' : {'model' : 'room-diner', 'lights' : [], 'particles' : [], 
         'entities' : [

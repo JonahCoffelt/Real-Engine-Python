@@ -80,6 +80,9 @@ class Scene:
         self.light_handler.update(self.cam.position, self.vao_handler.program_handler.programs)
         self.load_zone_handler.update(delta_time) # updates particles for load zones
         self.ui_handler.update()
+        if self.ui_handler.show_new_card > 0:
+            self.ui_handler.show_new_card -= delta_time
+            if self.ui_handler.show_new_card <- 0: self.ui_handler.update_texture = 2
 
     def render_buffers(self):
         self.buffer_handler.buffers['frame'].use()   # Frame Buffer

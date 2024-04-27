@@ -54,6 +54,7 @@ class UI_Handler:
 
         self.update_texture = 2
         self.scroll = 0
+        self.show_new_card = 0
 
     def update(self):
         # updates card and player information
@@ -69,7 +70,13 @@ class UI_Handler:
         self.key_states = self.keys
 
         # Calls the function of the current screen
-        if self.update_texture >= 0: self.screen()
+        if self.update_texture >= 0:
+            self.screen()
+
+        if self.show_new_card > 0:
+            self.screen()
+            self.draw_new_card()
+            self.render()
 
         # Used to limit the number of draw calls
         if self.update_texture >= 0: self.update_texture -= 1
@@ -90,6 +97,11 @@ class UI_Handler:
     def surf_test(self):
         self.surf_to_texture()
 
+    def draw_beam(self, center, r, theta, width, height, color=(200, 200, 200), taper=2):
+        points = [(center[0] + r * np.cos(theta - width), center[1] + r * np.sin(theta - width)), (center[0] + r * np.cos(theta + width), center[1] + r * np.sin(theta + width)), (center[0] + (r + height) * np.cos(theta + width/taper), center[1] + (r + height) * np.sin(theta + width/taper)), (center[0] + (r + height) * np.cos(theta - width/taper), center[1] + (r + height) * np.sin(theta - width/taper))]
+
+        pg.draw.polygon(self.surf, color, points)
+
     def render(self):
         self.frame_vao.program['UITexture'] = 5
         self.surf_to_texture()
@@ -101,6 +113,12 @@ class UI_Handler:
         self.draw_images()
         self.draw_sliders()
         self.draw_text()
+
+    def draw_new_card(self):
+        for i in range(10):
+            self.draw_beam((self.win_size[0]/2, self.win_size[1]/2), 40, self.show_new_card + i * (3.1415 * 2) / 10, .2, 300, color=(230, 230, 200), taper=1.5)
+        for i in range(7):
+            self.draw_beam((self.win_size[0]/2, self.win_size[1]/2), 60, -self.show_new_card * 1.5 + i * (3.1415 * 2) / 7, .1, 250, color=(250, 250, 230), taper=.75)
 
     def update_elements(self):
         scroll_bounds = self.current_screen_data['scroll']

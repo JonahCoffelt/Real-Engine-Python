@@ -9,11 +9,15 @@ class TextHandler():
         self.load_font("default")
         self.load_font("calibri")
         self.load_font("arial")
+        self.load_custom_font('pixel', "UI_Assets/Minecraft.ttf")
+
+    def load_custom_font(self, name, path):
+        self.fonts[name] = freetype.Font(path, 64)
 
     def load_font(self, font):
         self.fonts[font] = freetype.SysFont(font, 24)
     
-    def render_text(self, win, rect, text, font="default", size=16, color=(255, 255, 255), bg_color=(0, 0, 0, 0), center_width=False, center_height=False, bold=False, underline=False, italic=False):
+    def render_text(self, win, rect, text, font="pixel", size=16, color=(255, 255, 255), bg_color=(0, 0, 0, 0), center_width=False, center_height=False, bold=False, underline=False, italic=False, opacity=255):
         '''
         Renders any font which has been loaded to the class instance.
         Args:
@@ -74,5 +78,7 @@ class TextHandler():
             if center_height: y += rect[3]/2 - (space[3] * 1.5 * len(lines))/2 + space[3] * .25
             else: y += .5 * (space[3] * 1.5)
             font.render_to(surf, (x, y), line, fgcolor=color)
+
+        surf.set_alpha(opacity)
 
         win.blit(surf, [*rect[:2]])
