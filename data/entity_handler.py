@@ -147,6 +147,13 @@ class EntityHandler():
         self.entities.append(Entity(self, self.object_handler.add_object(Object(self.object_handler, self.object_handler.scene, model.BaseModel, program_name='default', vao='diceguy', material='diceguy', obj_type='metal_box', scale=(.25, .25, .25), pos = (53, 7, 55), rot = (0, 0, 0), hitbox_type='largecube', hitbox_file_name='diceguy/diceguy', element = 'dark')), 1e9, 0, False))
         self.entities[-1].obj.set_rot((0, glm.radians(180), 0))
 
+    def get_boss_health_info(self):
+        
+        for entity in self.entities:
+            if type(entity) is not Boss: continue
+            return entity.health, entity.max_health
+        return 0, 0
+
 class Entity():
     
     def __init__(self, entity_handler : EntityHandler, obj : Object, health, speed = 1, ragdoll = False):
