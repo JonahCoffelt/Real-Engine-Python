@@ -39,9 +39,9 @@ structures = {
     'room-northstair' : {'model' : 'room-northstair', 'lights' : [], 'particles' : [], 'entities' : []},
     
     # dungeon rooms
-    'room-basic1' : {'model' : 'room-basic1', 'lights' : [], 'particles' : [], 'entities' : []},
-    'room-basic2' : {'model' : 'room-basic2', 'lights' : [], 'particles' : [], 'entities' : []},
-    'room-tall1' : {'model' : 'room-tall1', 'lights' : [], 'particles' : [], 'entities' : []},
+    'room-basic1' : {'model' : 'room-basic1', 'lights' : [((6, 4, 6), (1.0, .7, .3), 2.0), ((6, 4, 13), (1.0, .7, .3), 2.0), ((13, 4, 6), (1.0, .7, .3), 2.0), ((13, 4, 13), (1.0, .7, .3), 2.0)], 'particles' : [('fire', (6, 4, 6), None), ('fire', (6, 4, 13), None), ('fire', (13, 4, 6), None), ('fire', (13, 4, 13), None)], 'entities' : []},
+    'room-basic2' : {'model' : 'room-basic2', 'lights' : [((12, 4, 9.5), (1.0, .7, .3), 2.0), ((9.5, 4, 7), (1.0, .7, .3), 2.0), ((9.5, 4, 12), (1.0, .7, .3), 2.0), ((7, 4, 9.5), (1.0, .7, .3), 2.0)], 'particles' : [('fire', (12, 4, 9.5), None), ('fire', (9.5, 4, 7), None), ('fire', (9.5, 4, 12), None), ('fire', (7, 4, 9.5), None)], 'entities' : []},
+    'room-tall1' : {'model' : 'room-tall1', 'lights' : [((8, 14, 7), (1.0, .7, .3), 2.0), ((6, 14, 9), (1.0, .7, .3), 2.0), ((6, 14, 5), (1.0, .7, .3), 2.0), ((4, 14, 7), (1.0, .7, .3), 2.0)], 'particles' : [('fire', (8, 14, 7), None), ('fire', (6, 14, 9), None), ('fire', (6, 14, 5), None), ('fire', (4, 14, 7), None)], 'entities' : []},
     'room-spawn' : {'model' : 'room-northdead', 'lights' : [], 'particles' : [], 'entities' : []},
     'room-diner' : {'model' : 'room-diner', 'lights' : [], 'particles' : [], 
         'entities' : [
@@ -53,13 +53,13 @@ structures = {
         ]},
     'room-boss-fire' : {'model' : 'room-boss-fire', 
         'lights' : [
-                ((14.5, 9, 24), 5, 1),
-                ((5, 9, 24), 5, 1),
-                ((24, 9, 24), 5, 1),
-                ((24, 9, 14.5), 5, 1),
-                ((24, 9, 5), 5, 1),
-                ((14.5, 9, 5), 5, 1),
-                ((5, 9, 5), 5, 1),
+                ((14.5, 9, 24), (1, .8, .2), 1),
+                ((5, 9, 24), (1, .8, .2), 1),
+                ((24, 9, 24), (1, .8, .2), 1),
+                ((24, 9, 14.5), (1, .8, .2), 1),
+                ((24, 9, 5), (1, .8, .2), 1),
+                ((14.5, 9, 5), (1, .8, .2), 1),
+                ((5, 9, 5), (1, .8, .2), 1),
             ], 
         'particles' : [
                 ('fire', (14.5, 9, 24), None),
@@ -69,10 +69,10 @@ structures = {
                 ('fire', (24, 9, 5), None),
                 ('fire', (14.5, 9, 5), None),
                 ('fire', (5, 9, 5), None),
-            ], 
+            ] + [('boss-fire', (x, 1, 26), None) for x in range(3, 26, 2)] + [('boss-fire', (x, 1, 3), None) for x in range(3, 26, 2)] + [('boss-fire', (26, 1, z), None) for z in range(3, 26, 2)], 
         'entities' : []},
-    'room-boss-acid' : {'model' : 'room-boss-acid', 'lights' : [], 'particles' : [], 'entities' : []},
-    'room-boss-water' : {'model' : 'room-boss-water', 'lights' : [], 'particles' : [], 'entities' : []},
+    'room-boss-acid' : {'model' : 'room-boss-acid', 'lights' : [], 'particles' : [('boss-spore', (15, 10, 15), None)], 'entities' : []},
+    'room-boss-water' : {'model' : 'room-boss-water', 'lights' : [], 'particles' : [('waterfall', (x, 15, 26), None) for x in range(3, 26, 3)] + [('waterfall', (x, 15, 3), None) for x in range(3, 26, 3)] + [('waterfall', (26, 15, z), None) for z in range(3, 26, 3)], 'entities' : []},
 }
 
 class StructureHandler:

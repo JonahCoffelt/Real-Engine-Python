@@ -442,8 +442,8 @@ class UI_Handler:
     def boss_bar(self):
         win_scale = np.array([self.win_size[0], self.win_size[1], self.win_size[0], self.win_size[1]])
         rect = np.array([.2, .01, .6, .04]) * win_scale
-        health = 4
-        max_health = 10
+        health, max_health = self.scene.entity_handler.get_boss_health_info()
+        if not max_health: return
         pg.draw.rect(self.surf, (20, 50, 200, 155), (*rect[:2], rect[2] * (health / max_health), rect[3]))
         pg.draw.rect(self.surf, (0, 0, 0, 255), rect, 1)
 

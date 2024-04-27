@@ -44,7 +44,7 @@ class ParticleHandler:
         self.ico_vbo = ico_vbo
         self.empty_particle = np.array([0.0 for i in range(14)])
 
-        self.particle_cube_size = 15
+        self.particle_cube_size = 18
         self.order_update_timer = 0
 
         self.particle_instances_2d = np.zeros(shape=(1,14), dtype='f4')                   

@@ -205,7 +205,7 @@ class DungeonHandler():
     
     def point_in_boss_room(self, point):
         for chunk, room in self.room_spawns.items():
-            if room.file_name != 'room-boss': continue
+            if 'room-boss' not in room.file_name: continue
             room_pos = [i*10 + 10 for i in chunk] # offset by 10, should be identical to loading
             for i in range(3):
                 if not room_pos[i] <= point[i] <= room_pos[i] + [30, 20, 30][i]: return False
