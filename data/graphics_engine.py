@@ -3,7 +3,6 @@ from data.scene import Scene
 from data.loading_screen_handler import LoadingScreen
 from data.camera import *
 
-
 class GraphicsEngine:
     def __init__(self, app) -> None:
         self.app = app
@@ -22,8 +21,8 @@ class GraphicsEngine:
         self.loading_screen.intro()
 
         # creates attached cam to scene object
-        # self.camera = FollowCamera(self.app, self.scene.entity_handler.entities[0].obj)
-        # self.scene.set_camera(self.camera)
+        self.camera = FollowCamera(self.app, self.scene.entity_handler.entities[0].obj)
+        self.scene.set_camera(self.camera)
 
     def update(self, delta_time):
         self.ctx.clear(color=(0.08, 0.16, 0.18))

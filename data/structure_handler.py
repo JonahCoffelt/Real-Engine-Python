@@ -37,8 +37,15 @@ structures = {
 
     # basic stairs
     'room-northstair' : {'model' : 'room-northstair', 'lights' : [], 'particles' : [], 'entities' : []},
+    'room-eaststair' : {'model' : 'room-eaststair', 'lights' : [], 'particles' : [], 'entities' : []},
     
     # dungeon rooms
+    'room-nsguardhall' : {'model' : 'room-nsguardhall', 'lights' : [], 'particles' : [], 'entities' : [
+        ((10, 3, 5), 5, 1)
+        ]},
+    'room-ewguardhall' : {'model' : 'room-ewguardhall', 'lights' : [], 'particles' : [], 'entities' : [
+        ((5, 3, 10), 5, 1)
+        ]},
     'room-basic1' : {'model' : 'room-basic1', 'lights' : [((6, 4, 6), (1.0, .7, .3), 2.0), ((6, 4, 13), (1.0, .7, .3), 2.0), ((13, 4, 6), (1.0, .7, .3), 2.0), ((13, 4, 13), (1.0, .7, .3), 2.0)], 'particles' : [('fire', (6, 4, 6), None), ('fire', (6, 4, 13), None), ('fire', (13, 4, 6), None), ('fire', (13, 4, 13), None)], 'entities' : []},
     'room-basic2' : {'model' : 'room-basic2', 'lights' : [((12, 4, 9.5), (1.0, .7, .3), 2.0), ((9.5, 4, 7), (1.0, .7, .3), 2.0), ((9.5, 4, 12), (1.0, .7, .3), 2.0), ((7, 4, 9.5), (1.0, .7, .3), 2.0)], 'particles' : [('fire', (12, 4, 9.5), None), ('fire', (9.5, 4, 7), None), ('fire', (9.5, 4, 12), None), ('fire', (7, 4, 9.5), None)], 'entities' : []},
     'room-tall1' : {'model' : 'room-tall1', 'lights' : [((8, 14, 7), (1.0, .7, .3), 2.0), ((6, 14, 9), (1.0, .7, .3), 2.0), ((6, 14, 5), (1.0, .7, .3), 2.0), ((4, 14, 7), (1.0, .7, .3), 2.0)], 'particles' : [('fire', (8, 14, 7), None), ('fire', (6, 14, 9), None), ('fire', (6, 14, 5), None), ('fire', (4, 14, 7), None)], 'entities' : []},

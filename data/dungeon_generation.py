@@ -21,6 +21,9 @@ class DungeonHandler():
             'basic tall 1' : Room('room-tall1', [2, 2, 2], [[[0, 0, 0], 3], [[0, 1, 0], 2], [[1, 0, 1], 1]]),
             'diner' : Room('room-diner', [2, 1, 2], [[[0, 0, 0], 3], [[0, 0, 0], 2], [[1, 0, 1], 0], [[1, 0, 1], 1]]),
             'north stair' : Room('room-northstair', [2, 2, 1], [[[1, 1, 0], 0], [[0, 0, 0], 2]]),
+            'east stair' : Room('room-eaststair', [1, 2, 2], [[[0, 0, 1], 1], [[0, 1, 0], 3]]),
+            'ew guard hall' : Room('room-ewguardhall', [1, 1, 2], [[[0, 0, 1], 1], [[0, 0, 0], 3]]),
+            'ns guard hall' : Room('room-nsguardhall', [2, 1, 1], [[[1, 0, 0], 0], [[0, 0, 0], 2]]),
             'big library' : Room('room-biglibrary', [3, 2, 3], [[[1, 0, 0], 3], [[0, 0, 1], 2], [[2, 0, 1], 0], [[1, 0, 2], 1], [[1, 1, 0], 3], [[0, 1, 1], 2], [[2, 1, 1], 0], [[1, 1, 2], 1]]),
             'boss' : Room('room-boss-fire', [3, 2, 3], [[[0, 1, 1], 2]]),
         }

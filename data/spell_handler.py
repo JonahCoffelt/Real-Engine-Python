@@ -85,7 +85,7 @@ class SpellHandler():
         # float types
         radius = random.uniform(2, power ** (1/3) if power ** (1/3) < 9.9 else 9.9)
         speed = random.uniform(5, 30)
-        force = random.uniform(1, power if power < 7 else 7)
+        force = random.uniform(1, power if power < 5 else 5)
         angle = random.uniform(np.pi/24, np.pi/2)
         
         # element variables

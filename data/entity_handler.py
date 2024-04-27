@@ -22,7 +22,7 @@ class EntityHandler():
     def on_init(self, cam) -> None:
         
         # creates player 
-        player = Player(self, self.object_handler.add_object(Object(self.object_handler, self.object_handler.scene, model.BaseModel, program_name='default', vao='diceguy', material='diceguy', obj_type='metal_box', scale=(.25, .25, .25), hitbox_type='largecube', hitbox_file_name='diceguy/diceguy')), cam, 100)
+        player = Player(self, self.object_handler.add_object(Object(self.object_handler, self.object_handler.scene, model.BaseModel, program_name='default', vao='diceguy', material='diceguy', obj_type='metal_box', scale=(.25, .25, .25), hitbox_type='largecube', hitbox_file_name='diceguy/diceguy')), cam, 50)
         self.entities.append(player)
         
     def get_ragdoll_objects(self):

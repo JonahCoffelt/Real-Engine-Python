@@ -47,10 +47,13 @@ voxel_model_info = {
     'room-tall1' : (20, 20, 20),
     'room-diner' : (20, 10, 20),
     'room-northstair' : (20, 20, 10),
+    'room-eaststair' : (10, 20, 20),
     'room-biglibrary' : (30, 20, 30),
     'room-boss-fire' : (30, 20, 30),
     'room-boss-acid' : (30, 20, 30),
     'room-boss-water' : (30, 20, 30),
+    'room-nsguardhall' : (20, 10, 10),
+    'room-ewguardhall' : (10, 10, 20),
     'hub' : (60, 40, 60),
 }
 
