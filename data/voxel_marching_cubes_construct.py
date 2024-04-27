@@ -48,7 +48,9 @@ voxel_model_info = {
     'room-diner' : (20, 10, 20),
     'room-northstair' : (20, 20, 10),
     'room-biglibrary' : (30, 20, 30),
-    'room-boss' : (30, 20, 30),
+    'room-boss-fire' : (30, 20, 30),
+    'room-boss-acid' : (30, 20, 30),
+    'room-boss-water' : (30, 20, 30),
 }
 
 voxel_models = {

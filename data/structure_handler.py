@@ -51,7 +51,7 @@ structures = {
         'entities' : [
             ((15, 3, 15), 5, 1)
         ]},
-    'room-boss' : {'model' : 'room-boss', 
+    'room-boss-fire' : {'model' : 'room-boss-fire', 
         'lights' : [
                 ((14.5, 9, 24), 5, 1),
                 ((5, 9, 24), 5, 1),
@@ -71,6 +71,8 @@ structures = {
                 ('fire', (5, 9, 5), None),
             ], 
         'entities' : []},
+    'room-boss-acid' : {'model' : 'room-boss-acid', 'lights' : [], 'particles' : [], 'entities' : []},
+    'room-boss-water' : {'model' : 'room-boss-water', 'lights' : [], 'particles' : [], 'entities' : []},
 }
 
 class StructureHandler:

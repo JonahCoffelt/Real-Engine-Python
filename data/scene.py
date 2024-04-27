@@ -72,6 +72,8 @@ class Scene:
 
         self.shadow_timer = 5
         self.shadow_frame_skips = 5
+        
+        self.ui_handler.win_size = self.graphics_engine.app.win_size
 
     def update(self, delta_time):
 

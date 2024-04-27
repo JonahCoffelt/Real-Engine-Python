@@ -22,7 +22,7 @@ class DungeonHandler():
             'diner' : Room('room-diner', [2, 1, 2], [[[0, 0, 0], 3], [[0, 0, 0], 2], [[1, 0, 1], 0], [[1, 0, 1], 1]]),
             'north stair' : Room('room-northstair', [2, 2, 1], [[[1, 1, 0], 0], [[0, 0, 0], 2]]),
             'big library' : Room('room-biglibrary', [3, 2, 3], [[[1, 0, 0], 3], [[0, 0, 1], 2], [[2, 0, 1], 0], [[1, 0, 2], 1], [[1, 1, 0], 3], [[0, 1, 1], 2], [[2, 1, 1], 0], [[1, 1, 2], 1]]),
-            'boss' : Room('room-boss', [3, 2, 3], [[[0, 1, 1], 2]]),
+            'boss' : Room('room-boss-fire', [3, 2, 3], [[[0, 1, 1], 2]]),
         }
         # 0 = empty, 1 = used
         self.gen_layout = np.zeros(layout, dtype='f4') 
@@ -63,23 +63,26 @@ class DungeonHandler():
         self.generate_branch(boss_door_pos, 2)
         if np.sum(self.gen_layout) < self.get_layout_volume() // 3:
             self.reset()
-            self.generate_dungeon()
+            return self.generate_dungeon()
             
         # replaces furthest south deadend with spawn room
         furthest, distance = None, 0
         for room_pos, room in self.room_spawns.items():
             if room.file_name != 'room-northdead': continue
-            test_distance = sum([abs(boss_door_pos[i] - room_pos[i]) for i in range(3)])
+            test_distance = room_pos[1]
             if test_distance > distance: 
                 furthest, distance = room_pos, test_distance
 
         # if dungeon is generated without a southfacing deadend
         if furthest is None:
             self.reset()
-            self.generate_dungeon()
+            return self.generate_dungeon()
             
         # replaces furthest southfacing room with spawn room
         self.room_spawns[furthest] = self.rooms['spawn']
+        
+        # resets boss room
+        self.room_spawns[spawn_pos].file_name = random.choice(['room-boss-water', 'room-boss-acid', 'room-boss-fire'])
         
     def get_layout_volume(self):
         
@@ -219,6 +222,6 @@ class Room():
         self.door_data = door_data
         self.dim = dim
 
-# dungeon = DungeonHandler()
+# dungeon = DungeonHandler((9, 7, 9))    
+# dungeon.reset()
 # dungeon.generate_dungeon()
-# print(dungeon.gen_layout)

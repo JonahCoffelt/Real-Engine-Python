@@ -135,7 +135,9 @@ class Spell():
         self.element = element
         
         # gets spread program
-        if count == 1: self.spread_program = self.spell_handler.spread_handler.programs['single']
+        if count == 1: 
+            self.spread_program = self.spell_handler.spread_handler.programs['single']
+            self.spread_type = 'single'
         else:
             match spread_type:
                 case 'horizontal': self.spread_program = self.spell_handler.spread_handler.get_horizontal(count, angle)

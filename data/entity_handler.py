@@ -120,12 +120,14 @@ class EntityHandler():
                 self.entities.append(sc)
                 
             # for boss and spawn rooms
-            if room.file_name == 'room-boss':
+            if 'room-boss' in room.file_name:
+                element = self.spell_handler.element_handler.elements[room.file_name.split('-')[-1]]
+                
                 # adds boss enemy
                 pos = [room_pos[i] * 10 + [23, 12, 23][i] for i in range(3)]
                 obj = Object(self.object_handler, self.object_handler.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=pos, scale=(1.5, 1.5, 1.5))
                 health, speed, casting_time = self.get_spellcaster_stats(power * 5)
-                boss = Boss(self, self.object_handler.add_object(obj), health=health, speed=speed, pathing='direct_distanced', power=power, spells=[], ragdoll=False, max_cooldown = casting_time)
+                boss = Boss(self, self.object_handler.add_object(obj), health=health, speed=speed, pathing='direct_distanced', power=power, spells=[], ragdoll=False, max_cooldown = casting_time, element=element)
                 # creates new death function
                 self.entities.append(boss)
                 
@@ -323,8 +325,11 @@ class Enemy(Entity):
         if can_see_player:
             self.knows_player_location = True
             self.forget_time = self.max_forget_time
-            if (x := player_pos[0] - self.obj.pos[0]): x = 0.001
-            self.obj.set_rot([0, -glm.atan((player_pos[2] - self.obj.pos[2]) / (x)), 0])
+            if (x := player_pos[0] - self.obj.pos[0]) == 0: x = 0.001
+            angle = glm.atan((player_pos[2] - self.obj.pos[2]) / (x)) 
+            if x < 0 : angle -= 3.1415
+            #if (player_pos[2] - self.obj.pos[2]) < 0 and x < 0: angle += 3.1415
+            self.obj.set_rot([0, -angle + glm.radians(90), 0])
         
         if self.knows_player_location:
             self.obj.set_pos(self.pathing(self.obj.pos, player_pos, delta_time))
@@ -343,7 +348,6 @@ class SpellCaster(Enemy):
         
     def on_init(self, power):
         if len(self.spells) == 0: self.spells.append(self.entity_handler.spell_handler.create_spell(power))
-        if type(self) is Boss: return
         match self.spells[0].launch_type:
             case 'confused':
                 self.obj = self.entity_handler.object_handler.add_object(Object(self.entity_handler.object_handler, self.entity_handler.object_handler.scene, model.BaseModel, program_name='default', vao='d4', material='d4', obj_type='metal_box', scale=(1, 1, 1), pos=self.obj.pos, hitbox_type='fitted', hitbox_file_name='d4/d4', element=self.spells[0].element.name))
@@ -401,12 +405,13 @@ class JumpCaster(SpellCaster):
             
 class Boss(JumpCaster):
     
-    def __init__(self, entity_handler : EntityHandler, obj : Object, health = 50, speed = 3, ragdoll = False, pathing = 'direct', power = 0, spells : list = [], max_cooldown = 3, jump_strength = 7, max_jump_time = 7):
+    def __init__(self, entity_handler : EntityHandler, obj : Object, health = 50, speed = 3, ragdoll = False, pathing = 'direct', power = 0, spells : list = [], max_cooldown = 3, jump_strength = 7, max_jump_time = 7, element = None):
         
+        if element is None: element = self.entity_handler.spell_handler.element_handler.get_random_element()
+        self.element = element
         self.power = power
         super().__init__(entity_handler, obj, health, speed, ragdoll, pathing, power, spells, max_cooldown, jump_strength, max_jump_time)
-        self.spells.append(self.entity_handler.spell_handler.create_spell(power))
-        self.spells.append(self.entity_handler.spell_handler.create_spell(power))
+        
         
     def on_death(self):
         
@@ -414,3 +419,6 @@ class Boss(JumpCaster):
         self.entity_handler.entities[0].deck_handler.add_spell(self.entity_handler.spell_handler.create_spell(self.power + 10))
         
         super().on_death()
+        
+    def on_init(self, power):
+        for _ in range(3): self.spells.append(self.entity_handler.spell_handler.create_spell(power, self.element))
