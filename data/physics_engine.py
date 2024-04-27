@@ -130,7 +130,7 @@ class PhysicsEngine():
         
         # play sound if collision is fast
         if abs(glm.length(parallel)) > 3:
-            self.chunk_handler.scene.sound_handler.play_sound(random.choice(['clonk', 'clack']))
+            self.chunk_handler.scene.sound_handler.play_sound(random.choice(['impact']))
         
         # friction and elasticity
         parallel *= elasticity_factor

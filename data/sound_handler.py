@@ -11,10 +11,9 @@ music = {
 
 sounds = {
     'jump' : 'audio/sounds/cartoon-jump-6462.mp3',
-    'explosion' : 'audio/sounds/explosion1.mp3',
+    'explosion' : 'audio/sounds/explosion.mp3',
     'shoot' : 'audio/sounds/shoot.mp3',
-    'clack' : 'audio/sounds/clack.mp3',
-    'clonk' : 'audio/sounds/clonk.mp3',
+    'impact' : 'audio/sounds/impact.mp3',
 }
 
 class SoundHandler:
