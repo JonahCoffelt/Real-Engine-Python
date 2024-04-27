@@ -121,11 +121,12 @@ class EntityHandler():
             
             # for boss and spawn rooms
             if 'room-boss' in room.file_name:
-                element = self.spell_handler.element_handler.elements[room.file_name.split('-')[-1]]
+                estring = room.file_name.split('-')[-1]
+                element = self.spell_handler.element_handler.elements[estring]
                 
                 # adds boss enemy
                 pos = [room_pos[i] * 10 + [23, 12, 23][i] for i in range(3)]
-                obj = Object(self.object_handler, self.object_handler.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=pos, scale=(1.5, 1.5, 1.5))
+                obj = Object(self.object_handler, self.object_handler.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=pos, scale=(1.5, 1.5, 1.5), element = estring)
                 health, speed, casting_time = self.get_spellcaster_stats(power * 5)
                 boss = Boss(self, self.object_handler.add_object(obj), health=health, speed=speed, pathing='direct_distanced', power=power, spells=[], ragdoll=False, max_cooldown = casting_time, element=element)
                 # creates new death function
@@ -140,8 +141,11 @@ class EntityHandler():
                 self.entities[0].spawn_point = pos
     
     def build_spawn(self):
-        self.entities[0].spawn_point = [10, 10, 10]
-        self.entities[0].obj.set_pos([10, 10, 10])
+        self.entities[0].spawn_point = [50, 7, 20]
+        self.entities[0].obj.set_pos([50, 7, 20])
+        # shop guy
+        self.entities.append(Entity(self, self.object_handler.add_object(Object(self.object_handler, self.object_handler.scene, model.BaseModel, program_name='default', vao='diceguy', material='diceguy', obj_type='metal_box', scale=(.25, .25, .25), pos = (53, 7, 55), rot = (0, 0, 0), hitbox_type='largecube', hitbox_file_name='diceguy/diceguy', element = 'dark')), 1e9, 0, False))
+        self.entities[-1].obj.set_rot((0, glm.radians(180), 0))
 
 class Entity():
     

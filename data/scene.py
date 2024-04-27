@@ -159,6 +159,7 @@ class Scene:
         
     def enter_dungeon(self, power):
         
+        self.atmosphere_handler.set_to_dungeon()
         self.sound_handler.play_playlist('dungeon')
         self.ui_handler.update_shop()
         self.remove_world_scene()
@@ -168,6 +169,7 @@ class Scene:
         
     def enter_hub(self):
         
+        self.atmosphere_handler.set_to_outside()
         self.sound_handler.play_playlist('hub')
         self.ui_handler.update_shop()
         self.remove_world_scene()

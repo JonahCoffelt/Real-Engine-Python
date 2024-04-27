@@ -8,7 +8,7 @@ class LoadZoneHandler():
         # name : zone
         self.active = {}
         self.inactive = {
-            'hub' : LoadZone(self, (20, 5, 20), (4, 4, 4), 'hub', (0, 1, 1))
+            'hub' : LoadZone(self, (33, 6, 33), (4, 4, 4), 'hub', (0, 1, 1))
         }
         
         # timing

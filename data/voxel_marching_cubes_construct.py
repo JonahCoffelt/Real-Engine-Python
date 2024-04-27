@@ -51,6 +51,7 @@ voxel_model_info = {
     'room-boss-fire' : (30, 20, 30),
     'room-boss-acid' : (30, 20, 30),
     'room-boss-water' : (30, 20, 30),
+    'hub' : (60, 40, 60),
 }
 
 voxel_models = {
