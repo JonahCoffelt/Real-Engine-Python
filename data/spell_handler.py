@@ -55,7 +55,7 @@ class SpellHandler():
         # gets spell firing modifiers
         launch_type = random.choice(['straight', 'lob', 'confused'])
         power -= self.spell_attributes['launch_type'][launch_type]
-        spread_type = random.choice(['horizontal'])#, 'vertical'])
+        spread_type = random.choice(['horizontal', 'vertical'])
         power -= self.spell_attributes['spread_type'][spread_type]
         casting_type = random.choice(['from_self'])
         power -= self.spell_attributes['casting_type'][casting_type]
@@ -83,14 +83,14 @@ class SpellHandler():
         damage = random.randint(1, power if power < 100 else 99)
         
         # float types
-        radius = random.uniform(1, power ** (1/3) if power ** (1/3) < 9.9 else 9.9)
+        radius = random.uniform(2, power ** (1/3) if power ** (1/3) < 9.9 else 9.9)
         speed = random.uniform(5, 30)
         force = random.uniform(1, power if power < 7 else 7)
         angle = random.uniform(np.pi/24, np.pi/2)
         
         # element variables
         if element is None: element = self.element_handler.get_random_element()
-        terrain_radius = radius / 3 * element.terrain
+        terrain_radius = radius * element.terrain / 4
         color = element.color
         
         return Spell(self, damage, radius, terrain_radius, element, speed, force, spread_type, launch_type, casting_type, count, angle, True, color)

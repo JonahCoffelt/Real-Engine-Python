@@ -71,15 +71,21 @@ class Hitbox():
         # records to memo
         norm = glm.cross(self.get_face_vertex(index, 1) - self.get_face_vertex(index, 0), self.get_face_vertex(index, -1) - self.get_face_vertex(index, 0))
         self.normals[index] = norm
-        
         return norm
     
     # setter methods
     def set_vel(self, vel): self.vel = glm.vec3(vel)
-        
     def set_rot_vel(self, rot_vel): self.rot_vel = rot_vel
-        
     def set_rot_axis(self, rot_axis): self.rot_axis = rot_axis
+    
+class LargeCubeHitbox(Hitbox):
+    
+    def __init__(self, obj, vel = (0, 0, 0), rot_vel = 0, rot_axis = (0, 0, 0)):
+        
+        super().__init__(obj,
+            [(-2, -2, 2), (2, -2, 2), (2, 2, 2), (-2, 2, 2), (-2, 2, -2), (-2, -2, -2), (2, -2, -2), (2, 2, -2)],
+            [(0, 2, 3), (0, 1, 2), (1, 7, 2), (1, 6, 7), (6, 5, 4), (4, 7, 6), (3, 4, 5), (3, 5, 0), (3, 7, 4), (3, 2, 7), (0, 6, 1), (0, 5, 6)],
+            (2, 2, 2), vel, rot_vel, rot_axis)
         
 class CubeHitbox(Hitbox):
     

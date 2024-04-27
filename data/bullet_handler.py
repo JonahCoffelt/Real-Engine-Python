@@ -77,7 +77,7 @@ class Bullet():
     def execute(self):
         
         # bullet aftermath
-        self.bullet_handler.object_handler.scene.chunk_handler.modify_terrain(-self.spell.terrain_radius, self.pos, self.spell.element.terrain_material)
+        self.bullet_handler.object_handler.scene.chunk_handler.modify_terrain(-self.spell.terrain_radius, self.pos, self.spell.element.terrain_material, width = int(abs(self.spell.terrain_radius)) + 1)
         self.bullet_handler.object_handler.scene.particle_handler.add_explosion(pos = self.pos, radius = self.spell.radius, clr = self.spell.color)
         self.bullet_handler.object_handler.scene.sound_handler.play_sound('explosion')
         

@@ -67,12 +67,9 @@ class PhysicsEngine():
                         
                         # regular physics calculation
                         self.dummy.set_hitbox(Hitbox(self.dummy, triangle, [[0, 1, 2]], (1, 1, 1), (0, 0, 0), 0, (0, 0, 0)))
-                        
                         collided = self.gjk.get_gjk_collision(obj.hitbox, self.dummy.hitbox)
                         if not collided: continue
-                        
                         obj.last_collided = 'terrain'
-                        
                         self.resolve_collision(obj, self.dummy, delta_time)
         
     # object to object collisions

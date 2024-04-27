@@ -9,7 +9,7 @@ class DungeonHandler():
         
         # room name : room object
         self.rooms = {
-            'spawn' : Room('room-northdead', [1, 1, 1], [[[0, 0, 0], 0]]),
+            'spawn' : Room('room-spawn', [1, 1, 1], [[[0, 0, 0], 0]]),
             'north dead' : Room('room-northdead', [1, 1, 1], [[[0, 0, 0], 0]]),
             'east dead' : Room('room-eastdead', [1, 1, 1], [[[0, 0, 0], 1]]),
             'south dead' : Room('room-southdead', [1, 1, 1], [[[0, 0, 0], 2]]),
@@ -67,8 +67,9 @@ class DungeonHandler():
         for room_pos, room in self.room_spawns.items():
             if room.file_name != 'room-northdead': continue
             test_distance = sum([abs(boss_door_pos[i] - room_pos[i]) for i in range(3)])
-            if test_distance > distance: furthest, distance = room_pos, test_distance
-            
+            if test_distance > distance: 
+                furthest, distance = room_pos, test_distance
+
         # if dungeon is generated without a southfacing deadend
         if furthest is None:
             self.reset()

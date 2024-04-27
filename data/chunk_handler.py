@@ -176,10 +176,9 @@ class ChunkHandler():
         if chunk in self.chunks.keys(): return self.chunks[chunk]
         return None
                     
-    def modify_terrain(self, magnitude, pos = None, material = 3):
+    def modify_terrain(self, magnitude, pos = None, material = 3, width = 1):
         # ray casts from the camera if position is set to none
         if pos is None: pos = self.ray_cast()
-        width = 1
         if pos is None: return
         points = [(x/4, y/4, z/4) for x in range(-width * 4, width * 4 + 1) for y in range(-width * 4, width * 4 + 1) for z in range(-width * 4, width * 4 + 1)]
         [self.modify_point(round((pos[0] + point[0])), round((pos[1] + point[1])), round((pos[2] + point[2])), magnitude / 64 / ((abs(point[0]) + abs(point[1]) + abs(point[2])) * .5 * width + .0001), material) for point in points]

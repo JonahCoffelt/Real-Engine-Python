@@ -41,8 +41,12 @@ class Game:
         self.graphics_engine.scene.ui_handler.get_events(self.events)
 
         if not config['runtime']['simulate']: return
+        # player shooting control
         if self.mouse_state[0] and not self.graphics_engine.scene.ui_handler.mouse_buttons[0]:
             self.graphics_engine.scene.entity_handler.entities[0].use_card(self.graphics_engine.scene.ui_handler.values['selected_card'])
+        # player interact control
+        if self.mouse_state[2] and not self.graphics_engine.scene.ui_handler.mouse_buttons[2]:
+            clicked = self.graphics_engine.scene.object_handler.get_clicked()
 
     def start(self):
         self.run = True

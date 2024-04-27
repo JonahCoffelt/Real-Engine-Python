@@ -28,7 +28,7 @@ structures = {
     },
     # single chunk dead end halls and connector hall
     'room-eastdead' : {'model' : 'room-eastdead', 'lights' : [], 'particles' : [], 'entities' : []},
-    'room-northdead' : {'model' : 'room-northdead', 'lights' : [], 'particles' : [], 'entities' : []}, # doubles as spawn room
+    'room-northdead' : {'model' : 'room-northdead', 'lights' : [], 'particles' : [], 'entities' : []},
     'room-omnihall' : {'model' : 'room-omnihall', 'lights' : [], 'particles' : [], 'entities' : []},
     'room-southdead' : {'model' : 'room-southdead', 'lights' : [], 'particles' : [], 'entities' : []},
     'room-westdead' : {'model' : 'room-westdead', 'lights' : [], 'particles' : [], 'entities' : []},
@@ -39,6 +39,7 @@ structures = {
     'room-northstair' : {'model' : 'room-northstair', 'lights' : [], 'particles' : [], 'entities' : []},
     
     # dungeon rooms
+    'room-spawn' : {'model' : 'room-northdead', 'lights' : [], 'particles' : [], 'entities' : []},
     'room-diner' : {'model' : 'room-diner', 'lights' : [], 'particles' : [], 
         'entities' : [
             ((10, 3, 10), 5, 1)

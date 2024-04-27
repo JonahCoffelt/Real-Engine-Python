@@ -86,7 +86,7 @@ class GJK():
         vec_dc = self.simplex[3][0] - self.simplex[2][0]
         vec_do = -self.simplex[3][0]
         
-        epsilon = 1e-4
+        epsilon = 1e-2
         
         # Randomize the order of checking the vectors
         vectors = [(glm.cross(vec_db, vec_dc), 0), (glm.cross(vec_dc, vec_da), 1), (glm.cross(vec_da, vec_db), 2)]

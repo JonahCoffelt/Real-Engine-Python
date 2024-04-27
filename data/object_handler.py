@@ -34,12 +34,6 @@ class ObjectHandler:
         Creates objects in the scene
         """
         self.objects.append(Object(self, self.scene, model.SkyBoxModel, program_name='skybox', vao='skybox', obj_type='skybox', immovable = True, gravity = False, pos = (1, 1, 1)))
-        
-        #self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', scale=(8, .5, 8), pos = (8, 2, 8), gravity = False, immovable = True))
-
-        self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', vao='d4', material='d4', obj_type='metal_box', scale=(1, 1, 1), pos = (-8, 2, -8), gravity = False, immovable = True))
-        self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', vao='d6', material='d6', obj_type='metal_box', scale=(1, 1, 1), pos = (-12, 2, -8), gravity = False, immovable = True))
-        self.objects.append(Object(self, self.scene, model.BaseModel, program_name='default', vao='d20', material='d20', obj_type='metal_box', scale=(1, 1, 1), pos = (-16, 2, -8), gravity = False, immovable = True))
 
     def update(self, delta_time):
         if delta_time > 1/15: return
@@ -135,6 +129,19 @@ class ObjectHandler:
         for i in range(3):
             if not test_pos[i] - chunk_radius <= player_pos[i] <= test_pos[i] + chunk_radius: return False
         return True
+    
+    def get_clicked(self):
+        # gets objects close to cursor
+        possible = []
+        for obj in self.objects:
+            if glm.dot(glm.normalize(obj.pos - self.scene.cam.position), self.scene.cam.forward) > 0.98: possible.append(obj)
+        # if nothing is clicked
+        if len(possible) == 0: return None
+        # gets closest object
+        closest, distance = None, 15
+        for obj in possible:
+            if (test_distance := glm.length(obj.pos - self.scene.cam.position)) < distance: closest, distance = obj, test_distance
+        return closest
 
 class Object:
     def __init__(self, obj_handler, scene, model, program_name='default', vao='cube', material='container', obj_type='none', pos=(0, 0, 0), rot=(0, 0, 0), scale=(1, 1, 1), hitbox_type = 'cube', hitbox_file_name = None, rot_vel = 0.001, rot_axis = (0, 0, 0), vel = (0, 0, 0), mass = 1, immovable = False, gravity = True, element='water'):
@@ -169,6 +176,7 @@ class Object:
         self.hitbox = None
         match hitbox_type:
             case 'cube': self.define_hitbox_cube(vel, rot_vel, rot_axis)
+            case 'largecube': self.define_hitbox_large_cube(vel, rot_vel, rot_axis)
             case 'rectangle': self.define_hitbox_rectangle(hitbox_file_name, vel, rot_vel, rot_axis)
             case 'fitted': self.define_hitbox_fitted(hitbox_file_name, vel, rot_vel, rot_axis)
             case _: assert False, 'hitbox type is not recognized'
@@ -182,6 +190,9 @@ class Object:
         
     def define_hitbox_cube(self, vel, rot_vel, rot_axis):
         self.hitbox = CubeHitbox(self, vel, rot_vel, rot_axis)
+        
+    def define_hitbox_large_cube(self, vel, rot_vel, rot_axis):
+        self.hitbox = LargeCubeHitbox(self, vel, rot_vel, rot_axis)
             
     def define_hitbox_rectangle(self, file_name, vel, rot_vel, rot_axis):
         assert file_name != None, 'hitbox needs file name to be created'

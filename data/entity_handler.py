@@ -22,7 +22,7 @@ class EntityHandler():
     def on_init(self, cam) -> None:
         
         # creates player 
-        player = Player(self, self.object_handler.add_object(Object(self.object_handler, self.object_handler.scene, model.BaseModel, program_name='default', vao='diceguy', material='diceguy', obj_type='metal_box', scale=(.25, .25, .25), hitbox_type='rectangle', hitbox_file_name='diceguy/diceguy')), cam, 100)        
+        player = Player(self, self.object_handler.add_object(Object(self.object_handler, self.object_handler.scene, model.BaseModel, program_name='default', vao='diceguy', material='diceguy', obj_type='metal_box', scale=(.25, .25, .25), hitbox_type='largecube', hitbox_file_name='diceguy/diceguy')), cam, 100)
         self.entities.append(player)
         
     def get_ragdoll_objects(self):
@@ -40,7 +40,8 @@ class EntityHandler():
             # to change from ragdoll to stable
             if entity.ragdoll:
                 if glm.length(entity.obj.hitbox.vel) < 4 and entity.obj.hitbox.rot_vel < np.pi and entity.obj.last_collided is not None: 
-                    if type(entity) is Player and entity.ragdoll_distance > 1.5: self.entities[0].deck_handler.undiscard(3)
+                    if type(entity) is Player and entity.ragdoll_distance > 1.5: 
+                        self.entities[0].deck_handler.undiscard(self.entities[0].get_upward_side())
                     entity.ragdoll = False
                     entity.ragdoll_distance = 0
             
@@ -76,10 +77,13 @@ class EntityHandler():
         return in_range
     
     def get_random_jump_caster(self, obj, power, ragdoll = False, element = None, pathing = 'direct_distanced'):
-        
-        # (self, entity_handler : EntityHandler, obj : Object, health = 50, speed = 3, ragdoll = False, pathing = 'direct', power = 0, spells : list = [], max_cooldown = 5):
+        # gets spell caster based off of stats
         if element is None: element = self.spell_handler.element_handler.get_random_element()
-        
+        health, speed, casting_time = self.get_spellcaster_stats(power)   
+        spell = self.spell_handler.create_spell(power, element)
+        return JumpCaster(self, obj, health, speed, ragdoll, pathing, spells = [spell], power = power, max_cooldown = casting_time)
+    
+    def get_spellcaster_stats(self, power):
         # distributes power points to attribs
         left, health, speed, casting_time = power, 1, 1, 5
         while left > 0:
@@ -90,10 +94,8 @@ class EntityHandler():
                 left /= 2
             else: speed += 1
             left -= 1
-                
-        spell = self.spell_handler.create_spell(power, element)
-        
-        return JumpCaster(self, obj, health, speed, ragdoll, pathing, spells = [spell], power = power, max_cooldown = casting_time)
+            
+        return health, speed, casting_time
     
     def spawn_enemies_in_dungeon(self, power):
         
@@ -122,15 +124,15 @@ class EntityHandler():
                 # adds boss enemy
                 pos = [room_pos[i] * 10 + [23, 12, 23][i] for i in range(3)]
                 obj = Object(self.object_handler, self.object_handler.scene, model.BaseModel, program_name='default', material='metal_box', obj_type='metal_box', pos=pos, scale=(1.5, 1.5, 1.5))
-                sc = self.get_random_jump_caster(obj, power * 5)
-                sc = Boss(self, self.object_handler.add_object(obj), sc.health, sc.speed, sc.ragdoll, 'direct_distanced', power, [])
+                health, speed, casting_time = self.get_spellcaster_stats(power * 5)
+                boss = Boss(self, self.object_handler.add_object(obj), health=health, speed=speed, pathing='direct_distanced', power=power, spells=[], ragdoll=False, max_cooldown = casting_time)
                 # creates new death function
-                self.entities.append(sc)
+                self.entities.append(boss)
                 
                 # adds tp zone in boss room
                 self.object_handler.scene.load_zone_handler.add_inactive('exit', [pos[i] + [0, -3, 0][i] for i in range(3)], (4, 4, 4), 'dungeon' , (0, 1, 1), 5)
                 
-            if room.file_name == 'room-northdead':
+            if room.file_name == 'room-spawn':
                 pos = [room_pos[i] * 10 + 13 for i in range(3)]
                 self.entities[0].obj.set_pos(pos)
                 self.entities[0].spawn_point = pos
@@ -275,21 +277,22 @@ class Player(Entity):
         
     def get_upward_side(self) -> int:
         
+        self.obj.hitbox.update_vertices()
         # encoded side directions NEEDS TO BE CHANGED
         sides = {
-            1 : (1, 0, 0),
-            2 : (1, 0, 0),
-            3 : (1, 0, 0),
-            4 : (1, 0, 0),
-            5 : (1, 0, 0),
-            6 : (1, 0, 0),
-        }
+            6 : (self.obj.hitbox.get_face_normal(0), self.obj.hitbox.get_face_normal(1)),
+            5 : (self.obj.hitbox.get_face_normal(2), self.obj.hitbox.get_face_normal(3)),
+            1 : (self.obj.hitbox.get_face_normal(4), self.obj.hitbox.get_face_normal(5)),
+            2 : (self.obj.hitbox.get_face_normal(6), self.obj.hitbox.get_face_normal(7)),
+            3 : (self.obj.hitbox.get_face_normal(8), self.obj.hitbox.get_face_normal(9)),
+            4 : (self.obj.hitbox.get_face_normal(10), self.obj.hitbox.get_face_normal(11))
+            }
         
         # finds most similar vector to rot point
-        point = self.obj.rot_point[:]
+        point = (0, 1, 0)
         best, score = None, -1e6
         for num, dir in sides.items():
-            if (dot := np.dot(point, dir)) > score: best, score = num, dot
+            if (dot := np.dot(point, dir[0])) > score or (dot := np.dot(point, dir[1])) > score: best, score = num, dot
         return best
         
 class Enemy(Entity):
@@ -343,7 +346,7 @@ class SpellCaster(Enemy):
         if type(self) is Boss: return
         match self.spells[0].launch_type:
             case 'confused':
-                self.obj = self.entity_handler.object_handler.add_object(Object(self.entity_handler.object_handler, self.entity_handler.object_handler.scene, model.BaseModel, program_name='default', vao='d4', material='d4', obj_type='metal_box', scale=(1.5, 1.5, 1.5), pos=self.obj.pos, hitbox_type='fitted', hitbox_file_name='d4/d4', element=self.spells[0].element.name))
+                self.obj = self.entity_handler.object_handler.add_object(Object(self.entity_handler.object_handler, self.entity_handler.object_handler.scene, model.BaseModel, program_name='default', vao='d4', material='d4', obj_type='metal_box', scale=(1, 1, 1), pos=self.obj.pos, hitbox_type='fitted', hitbox_file_name='d4/d4', element=self.spells[0].element.name))
             case 'straight':
                 self.obj = self.entity_handler.object_handler.add_object(Object(self.entity_handler.object_handler, self.entity_handler.object_handler.scene, model.BaseModel, program_name='default', vao='d6', material='d6', obj_type='metal_box', scale=(0.5, 0.5, 0.5), pos=self.obj.pos, hitbox_type='rectangle', hitbox_file_name='d6/d6', element=self.spells[0].element.name))
             case 'lob':
