@@ -27,7 +27,8 @@ class SoundHandler:
         self.sounds = {sound : pg.mixer.Sound(sounds[sound]) for sound in sounds}
         self.playlists = {}
 
-        self.make_playlist('Example_Playlist', ('Intro', 'Lobby', 'Dungeon', 'Shop'))
+        self.make_playlist('dungeon', ('Dungeon',))
+        self.make_playlist('hub', ('Intro', 'Lobby'))
 
         self.current_track = None
         self.current_playlist = None

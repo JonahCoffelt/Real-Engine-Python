@@ -95,7 +95,7 @@ class LoadingScreen:
 
     def intro(self):
         time = 0
-        pg_logo = pg.image.load('UI_Assets\python_logo.png').convert_alpha()
+        pg_logo = pg.image.load('UI_Assets/python_logo.png').convert_alpha()
         logo_scale = self.win_size[1]/6
         pg_logo = pg.transform.scale(pg_logo, (logo_scale, logo_scale))
         while True:

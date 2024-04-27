@@ -59,7 +59,11 @@ class Scene:
         self.entity_handler.entities[0].after_init()
         self.tick('Loading Hub')
 
-        self.enter_hub()
+        # loads in world
+        self.remove_world_scene()
+        self.chunk_handler.generate_spawn()
+        self.load_zone_handler.move_to_active('hub')
+        self.entity_handler.entities[0].reset_player()
         self.tick('Preparing to Start')
 
         # Shadow map buffer
@@ -158,6 +162,7 @@ class Scene:
         
     def enter_dungeon(self, power):
         
+        self.sound_handler.play_playlist('dungeon')
         self.remove_world_scene()
         self.chunk_handler.fill_all()
         self.chunk_handler.generate_dungeon(power)
@@ -165,6 +170,7 @@ class Scene:
         
     def enter_hub(self):
         
+        self.sound_handler.play_playlist('hub')
         self.remove_world_scene()
         self.chunk_handler.generate_spawn()
         self.load_zone_handler.move_to_active('hub')

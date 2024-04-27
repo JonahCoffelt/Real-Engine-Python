@@ -21,11 +21,12 @@ class GraphicsEngine:
         self.camera = Camera(self.app)
         self.scene  = Scene(self)
         self.scene.on_init()
+        self.scene.sound_handler.play_playlist('hub')
         self.loading_screen.intro()
 
         # creates attached cam to scene object
-        # self.camera = FollowCamera(self.app, self.scene.entity_handler.entities[0].obj)
-        # self.scene.set_camera(self.camera)
+        self.camera = FollowCamera(self.app, self.scene.entity_handler.entities[0].obj)
+        self.scene.set_camera(self.camera)
 
     def update(self, delta_time):
         self.ctx.clear(color=(0.08, 0.16, 0.18))
