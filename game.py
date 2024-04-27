@@ -31,27 +31,29 @@ class Game:
     def check_events(self):
         self.events = pg.event.get()
         self.mouse_state = pg.mouse.get_pressed()
+        MUSIC_END = pg.USEREVENT+1
         for event in self.events:
             if event.type == pg.QUIT:
                 pg.quit()
                 sys.exit()
             if event.type == pg.VIDEORESIZE:
+                self.win_size = (event.w, event.h)
                 self.ctx.viewport = (0, 0, event.w, event.h)
-            if event.type == pg.KEYDOWN:
-                if event.key == pg.K_0:
-                    self.graphics_engine.scene.ui_handler.show_new_card = 2
+            if event.type == MUSIC_END:
+                self.graphics_engine.scene.sound_handler.update_playlist()
         
         self.graphics_engine.scene.ui_handler.get_events(self.events)
 
         if not config['runtime']['simulate']: return
         if self.mouse_state[0] and not self.graphics_engine.scene.ui_handler.mouse_buttons[0]:
             self.graphics_engine.scene.entity_handler.entities[0].use_card(self.graphics_engine.scene.ui_handler.values['selected_card'])
+        if self.mouse_state[2] and not self.graphics_engine.scene.ui_handler.mouse_buttons[2]:
+            clicked = self.graphics_engine.scene.object_handler.get_clicked()
 
     def start(self):
         self.run = True
         self.mouse_state = pg.mouse.get_pressed()
         while self.run:
-            #if config['runtime']['loading']: continue
             pg.display.set_caption(str(round(self.clock.get_fps())))
             self.delta_time = self.clock.tick()
             self.check_events()  # Checks for window events
