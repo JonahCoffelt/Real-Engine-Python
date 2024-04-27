@@ -1,7 +1,7 @@
 # Blender 4.1.0 MTL File: 'd4.blend'
 # www.blender.org
 
-newmtl triangle_material
+newmtl d4_material
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
