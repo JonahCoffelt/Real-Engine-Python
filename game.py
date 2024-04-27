@@ -49,6 +49,9 @@ class Game:
             self.graphics_engine.scene.entity_handler.entities[0].use_card(self.graphics_engine.scene.ui_handler.values['selected_card'])
         if self.mouse_state[2] and not self.graphics_engine.scene.ui_handler.mouse_buttons[2]:
             clicked = self.graphics_engine.scene.object_handler.get_clicked()
+            if clicked.material == 'diceguy': 
+                self.graphics_engine.scene.ui_handler.set_screen(self.graphics_engine.scene.ui_handler.shop)
+                config['runtime']['simulate'] = False
 
     def start(self):
         self.run = True
